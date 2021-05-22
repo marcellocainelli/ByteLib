@@ -1,0 +1,9 @@
+{
+	"name": "ByteLib",
+	"description": "",
+	"version": "1.0.0",
+	"homepage": "https://github.com/marcellocainelli/ByteLib",
+	"mainsrc": "./Source",
+	"projects": [],
+	"dependencies": {}
+}
