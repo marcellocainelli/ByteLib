@@ -51,6 +51,7 @@ Type
       function Commit: iQuery;
       function Rollback: iQuery;
       function ChangeCount(DataSet: TDataSet): integer;
+      function GetFieldNames(Table: string; List: TStrings): iQuery;
   end;
 
 implementation
@@ -112,6 +113,12 @@ begin
   FDQuery.SQL.Add(Value);
   FDQuery.ExecSQL;
  end;
+
+function TModelQueryFiredac.GetFieldNames(Table: string; List: TStrings): iQuery;
+begin
+  Result:= Self;
+  TFDConnection(FParent.Connection).GetFieldNames('', '', Table, '', List);
+end;
 
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery;
 begin

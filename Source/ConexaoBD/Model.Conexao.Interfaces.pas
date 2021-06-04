@@ -28,6 +28,7 @@ type
     function Commit: iQuery;
     function Rollback: iQuery;
     function ChangeCount(DataSet: TDataSet): integer;
+    function GetFieldNames(Table: string; List: TStrings): iQuery;
   end;
 
   iTable = interface
