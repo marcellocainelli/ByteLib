@@ -52,6 +52,7 @@ Type
       function Rollback: iQuery;
       function ChangeCount(DataSet: TDataSet): integer;
       function GetFieldNames(Table: string; List: TStrings): iQuery;
+      function SetMode(pModo: string): iQuery;
   end;
 
 implementation
@@ -155,6 +156,12 @@ begin
   end;
 end;
 
+function TModelQueryFiredac.SetMode(pModo: string): iQuery;
+begin
+  Result:= Self;
+  FDQuery.FetchOptions.Mode:= fmAll;
+end;
+
 function TModelQueryFiredac.IndexFieldNames(FieldName: String): iQuery;
 begin
   Result:= Self;
@@ -189,6 +196,7 @@ end;
 
 function TModelQueryFiredac.ApplyUpdates: iQuery;
 begin
+  Result:= Self;
   try
     FDQuery.ApplyUpdates(0);
     FDQuery.CommitUpdates;

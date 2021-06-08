@@ -29,6 +29,7 @@ type
     function Rollback: iQuery;
     function ChangeCount(DataSet: TDataSet): integer;
     function GetFieldNames(Table: string; List: TStrings): iQuery;
+    function SetMode(pModo: string): iQuery;
   end;
 
   iTable = interface
