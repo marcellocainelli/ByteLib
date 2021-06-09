@@ -77,8 +77,8 @@ begin
 
   FUpdateTransaction.Connection:= TFDConnection(FParent.Connection);
   {$IFDEF SERVER}
-    FDWDriverFD.Connection:= TFDConnection(FParent.Connection);
-    FDWPooler.RESTDriver:= FDWDriverFD;
+    //FDWDriverFD.Connection:= TFDConnection(FParent.Connection);
+    //FDWPooler.RESTDriver:= FDWDriverFD;
   {$ENDIF}
 end;
 
