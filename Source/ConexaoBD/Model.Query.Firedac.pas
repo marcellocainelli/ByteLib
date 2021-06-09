@@ -53,6 +53,9 @@ Type
       function ChangeCount(DataSet: TDataSet): integer;
       function GetFieldNames(Table: string; List: TStrings): iQuery;
       function SetMode(pModo: string): iQuery;
+
+      procedure CatchApplyUpdatesErrors;
+      function TrataErrosApplyUpdates(AMsgErro: string): string;
   end;
 
 implementation
@@ -146,13 +149,15 @@ begin
     TFDConnection(FParent.Connection).StartTransaction;
   Try
     If FDQuery.ApplyUpdates(0) > 0 then
-      raise exception.Create('Ocorreu um erro ao tentar gravar o registro!');
+      CatchApplyUpdatesErrors;
     FDQuery.CommitUpdates;
     if Commit then
       TFDConnection(FParent.Connection).Commit;
   except
-    TFDConnection(FParent.Connection).Rollback;
-    raise;
+    on E:Exception do begin
+      TFDConnection(FParent.Connection).Rollback;
+      raise Exception.Create(E.Message);
+    end;
   end;
 end;
 
@@ -209,6 +214,33 @@ end;
 function TModelQueryFiredac.ChangeCount(DataSet: TDataSet): integer;
 begin
   Result:= TFDQuery(DataSet).ChangeCount;
+end;
+
+procedure TModelQueryFiredac.CatchApplyUpdatesErrors;
+var
+  oErr: EFDException;
+begin
+  FDQuery.FilterChanges:= [rtModified, rtInserted, rtDeleted, rtHasErrors];
+  try
+    FDQuery.First;
+    while not FDQuery.Eof do begin
+      oErr:= FDQuery.RowError;
+      if oErr <> nil then begin
+        raise Exception.Create(TrataErrosApplyUpdates(oErr.Message));
+      end;
+      FDQuery.Next;
+    end;
+  finally
+    FDQuery.FilterChanges:= [rtUnModified, rtModified, rtInserted];
+  end;
+end;
+
+function TModelQueryFiredac.TrataErrosApplyUpdates(AMsgErro: string): string;
+begin
+  Result:= AMsgErro;
+
+  if AMsgErro.Contains('violation of PRIMARY or UNIQUE KEY') then
+    Result:= 'Código já cadastrado!';
 end;
 
 end.
