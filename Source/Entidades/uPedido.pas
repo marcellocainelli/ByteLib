@@ -57,14 +57,22 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
-  vTextoSQL:= '';
+  vTextoSQL:= FEntidadeBase.TextoSql;
 
   Case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSql + 'Where COD_CAIXA = :Parametro';
-    1: vTextoSQL:= FEntidadeBase.TextoSql + 'Where COD_FUN = :Parametro';
-    2: vTextoSQL:= FEntidadeBase.TextoSql + 'Where COD_CLI = :Parametro';
-    3: vTextoSQL:= FEntidadeBase.TextoSql + 'Where DT_SINCRONISMO is NULL';
+    1: vTextoSQL:= vTextoSQL + ' Where COD_CAIXA = :Parametro';
+    2: vTextoSQL:= vTextoSQL + ' Where COD_FUN = :Parametro';
+    3: vTextoSQL:= vTextoSQL + ' Where COD_CLI = :Parametro';
+    4: vTextoSQL:= vTextoSQL + ' Where DT_SINCRONISMO is :Parametro';
   end;
+
+  if FEntidadeBase.RegraPesquisa.Equals('FiltraPedOrc') then begin
+    if FEntidadeBase.TipoPesquisa = 0 then
+      vTextoSQL:= vTextoSQL + ' Where TIPO = :pTipo'
+    else
+      vTextoSQL:= vTextoSQL + ' and TIPO = :pTipo';
+  end;
+
 
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('ID');

@@ -1,4 +1,4 @@
-unit uConvenio;
+unit uConvenio_Descontos;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
 
 Type
-  TConvenio = class(TInterfacedObject, iEntidade)
+  TConvenio_Descontos = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -16,7 +16,6 @@ Type
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource): iEntidade;
       function InicializaDataSource(Value: TDataSource): iEntidade;
-
       procedure ModificaDisplayCampos;
   end;
 
@@ -25,50 +24,53 @@ implementation
 uses
   uEntidadeBase;
 
-{ TConvenio }
+{ TConvenio_Descontos }
 
-constructor TConvenio.Create;
+constructor TConvenio_Descontos.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select C.codigo, C.nome, C.limite, 0 as INDICE from Convenio C');
+  FEntidadeBase.TextoSQL(
+    'select CD.*, M.DESCRICAO ' +
+    'from CONVENIO_DESCONTOS CD ' +
+    'join MARCAS M on (M.CODIGO = CD.COD_GRUPO) ' +
+    'where CD.COD_CONVENIO= :pCod_Convenio');
 end;
 
-destructor TConvenio.Destroy;
+destructor TConvenio_Descontos.Destroy;
 begin
   inherited;
 end;
 
-class function TConvenio.New: iEntidade;
+class function TConvenio_Descontos.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TConvenio.EntidadeBase: iEntidadeBase<iEntidade>;
+function TConvenio_Descontos.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TConvenio.Consulta(Value: TDataSource): iEntidade;
+function TConvenio_Descontos.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('NOME');
+  FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TConvenio.InicializaDataSource(Value: TDataSource): iEntidade;
+function TConvenio_Descontos.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('NOME');
+  FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-procedure TConvenio.ModificaDisplayCampos;
+procedure TConvenio_Descontos.ModificaDisplayCampos;
 begin
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LIMITE')).DisplayFormat:= '#,0.00';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('TX_DESCONTO')).DisplayFormat:= '#,0.00';
 end;
 
 end.

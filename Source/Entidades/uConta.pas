@@ -74,7 +74,7 @@ begin
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('BANCO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -83,13 +83,13 @@ begin
   Result:= Self;
   FEntidadeBase.Iquery.IndexFieldNames('BANCO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TConta.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LIMITE_CREDITO')).DisplayFormat:= '#,0.00';
 end;
 
 end.
