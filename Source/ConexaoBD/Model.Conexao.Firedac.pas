@@ -6,6 +6,7 @@ uses
   System.IOUtils,
   System.IniFiles,
   System.SysUtils,
+
   Data.DB,
 
   FireDAC.Comp.Client,
@@ -16,6 +17,8 @@ uses
   FireDAC.DatS,
   FireDAC.FMXUI.Wait,
   FireDAC.Phys,
+  FireDAC.Phys.FB,
+  FireDAC.Phys.FBDef,
   FireDAC.Phys.Intf,
   FireDAC.Phys.SQLite,
   FireDAC.Phys.SQLiteDef,
@@ -29,6 +32,7 @@ uses
   FireDAC.Stan.Param,
   FireDAC.Stan.Pool,
   FireDAC.UI.Intf,
+  FireDAC.VCLUI.Wait,
 
   Model.Conexao.Interfaces;
 
