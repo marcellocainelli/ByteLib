@@ -1,12 +1,12 @@
-unit uCfop;
+unit uCst;
 
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB;
 
 Type
-  TCfop = class(TInterfacedObject, iEntidade)
+  TCst = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -25,30 +25,30 @@ implementation
 uses
   uEntidadeBase;
 
-{ TCfop }
+{ TCst }
 
-constructor TCfop.Create;
+constructor TCst.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From CFOP');
+  FEntidadeBase.TextoSQL('Select * From CST');
 end;
 
-destructor TCfop.Destroy;
+destructor TCst.Destroy;
 begin
   inherited;
 end;
 
-class function TCfop.New: iEntidade;
+class function TCst.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TCfop.EntidadeBase: iEntidadeBase<iEntidade>;
+function TCst.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TCfop.Consulta(Value: TDataSource): iEntidade;
+function TCst.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
@@ -56,15 +56,12 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TCfop.InicializaDataSource(Value: TDataSource): iEntidade;
+function TCst.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
-  Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+
 end;
 
-procedure TCfop.ModificaDisplayCampos;
+procedure TCst.ModificaDisplayCampos;
 begin
 
 end;

@@ -45,7 +45,7 @@ end;
 
 procedure TPrecosItens.SelecionaSQLConsulta;
 begin
-  case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra']) of
+  case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra','Produto']) of
   0: FEntidadeBase.TextoSQL(
       'select pi.*, p.nome_prod, p.preco_vend ' +
       'from preco_itens pi ' +
@@ -61,6 +61,11 @@ begin
       'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
       'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
       'and p.nome_prod Containing :pNome_prod');
+  2: FEntidadeBase.TextoSQL(
+      'Select p.descricao as nome_prod, pi.preco, pi.preco as preco_vend ' +
+      'from preco_itens pi ' +
+      'join precos p on (p.codigo = pi.cod_precos) ' +
+      'where pi.cod_prod = :pCod_prod');
   end;
 end;
 
