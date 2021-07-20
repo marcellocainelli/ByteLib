@@ -1,4 +1,4 @@
-unit uCst;
+unit uCategoria;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   Model.Entidade.Interfaces, Data.DB;
 
 Type
-  TCst = class(TInterfacedObject, iEntidade)
+  TCategoria = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -25,30 +25,30 @@ implementation
 uses
   uEntidadeBase;
 
-{ TCst }
+{ TCategoria }
 
-constructor TCst.Create;
+constructor TCategoria.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From CST');
+  FEntidadeBase.TextoSQL('Select * From CATEGORIAS');
 end;
 
-destructor TCst.Destroy;
+destructor TCategoria.Destroy;
 begin
   inherited;
 end;
 
-class function TCst.New: iEntidade;
+class function TCategoria.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TCst.EntidadeBase: iEntidadeBase<iEntidade>;
+function TCategoria.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TCst.Consulta(Value: TDataSource): iEntidade;
+function TCategoria.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   //FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
@@ -56,12 +56,12 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TCst.InicializaDataSource(Value: TDataSource): iEntidade;
+function TCategoria.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
 
 end;
 
-procedure TCst.ModificaDisplayCampos;
+procedure TCategoria.ModificaDisplayCampos;
 begin
 
 end;

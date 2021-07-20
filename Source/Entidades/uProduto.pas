@@ -255,7 +255,7 @@ var
 begin
   Result:= Self;
   SelecionaSQLConsulta;
-  vTextoSQL:= FEntidadeBase.TextoSQL + ' P.COD_PROD = :mParametro and STATUS = ''A'' Order By 2';
+  vTextoSQL:= FEntidadeBase.TextoSQL + ' and P.COD_PROD = :mParametro and STATUS = ''A'' Order By 2';
   FEntidadeBase.AddParametro('mCodFilial', 1, ftInteger);
   FEntidadeBase.AddParametro('mParametro', '-1', ftString);
   FEntidadeBase.Iquery.SQL(vTextoSql);
