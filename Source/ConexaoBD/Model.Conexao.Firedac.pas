@@ -32,8 +32,9 @@ uses
   FireDAC.Stan.Param,
   FireDAC.Stan.Pool,
   FireDAC.UI.Intf,
+  {$IFDEF MSWINDOWS}
   FireDAC.VCLUI.Wait,
-
+  {$ENDIF}
   Model.Conexao.Interfaces;
 
 Type
