@@ -6,7 +6,7 @@ uses
   Model.Entidade.Interfaces, Data.DB;
 
 Type
-  TCst = class(TInterfacedObject, iEntidade)
+  TNcm = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -26,7 +26,7 @@ uses
 
 { TCst }
 
-constructor TCst.Create;
+constructor TNcm.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
@@ -35,22 +35,22 @@ begin
     'Left Join PRODUTOS_IMPOSTOS I on (I.CODIGO = N.COD_IPIPISCOFINS) ');
 end;
 
-destructor TCst.Destroy;
+destructor TNcm.Destroy;
 begin
   inherited;
 end;
 
-class function TCst.New: iEntidade;
+class function TNcm.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TCst.EntidadeBase: iEntidadeBase<iEntidade>;
+function TNcm.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TCst.Consulta(Value: TDataSource): iEntidade;
+function TNcm.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
 begin
@@ -65,12 +65,12 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TCst.InicializaDataSource(Value: TDataSource): iEntidade;
+function TNcm.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
 
 end;
 
-procedure TCst.ModificaDisplayCampos;
+procedure TNcm.ModificaDisplayCampos;
 begin
 
 end;

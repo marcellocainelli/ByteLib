@@ -144,7 +144,7 @@ begin
             vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro';
         end else
           //busca por descrição
-          vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2';
+          vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + QuotedStr('%') + ' || Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2';
     end;
     //busca por cód barras/descrição
     1: begin
