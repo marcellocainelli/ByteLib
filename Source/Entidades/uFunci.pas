@@ -53,15 +53,15 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
-  vTextoSQL:= '';
+  vTextoSQL:= FEntidadeBase.TextoSql;
 
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= FEntidadeBase.TextoSql + 'and CODIGO = :pCod_Funci';
   end;
 
-  FEntidadeBase.AddParametro('pCod_Funci', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  FEntidadeBase.AddParametro('pCod_Funci', FEntidadeBase.TextoPesquisa, ftString);
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
 
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
