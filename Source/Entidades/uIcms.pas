@@ -6,7 +6,7 @@ uses
   Model.Entidade.Interfaces, Data.DB;
 
 Type
-  TCst = class(TInterfacedObject, iEntidade)
+  TIcms = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -26,28 +26,28 @@ uses
 
 { TCst }
 
-constructor TCst.Create;
+constructor TIcms.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * from ICMS where COD_FILIAL = :pCod_Filial');
 end;
 
-destructor TCst.Destroy;
+destructor TIcms.Destroy;
 begin
   inherited;
 end;
 
-class function TCst.New: iEntidade;
+class function TIcms.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TCst.EntidadeBase: iEntidadeBase<iEntidade>;
+function TIcms.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TCst.Consulta(Value: TDataSource): iEntidade;
+function TIcms.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   FEntidadeBase.Iquery.IndexFieldNames('COD_ICMS');
@@ -55,12 +55,12 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TCst.InicializaDataSource(Value: TDataSource): iEntidade;
+function TIcms.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
 
 end;
 
-procedure TCst.ModificaDisplayCampos;
+procedure TIcms.ModificaDisplayCampos;
 begin
 
 end;
