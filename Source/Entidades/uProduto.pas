@@ -73,11 +73,11 @@ begin
   case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra']) of
   0: FEntidadeBase.TextoSQL(
             'Select P.*, EF.QUANTIDADE From PRODUTOS P ' +
-            'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = 1)' + //:pFilial) ' +
+            'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = :pFilial) ' +
             'where (1=1)');
   1: FEntidadeBase.TextoSQL(
             'Select P.*, EF.QUANTIDADE From PRODUTOS P ' +
-            'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = 1)' + //:pFilial) ' +
+            'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = :pFilial) ' +
             'where (1=1)' +
             'and ((COD_MARCA = :mCOD_MARCA) or (:mCOD_MARCA = -1))');
             //'and ((P.COD_MARCA1 = :mCOD_MARCA1) or (:mCOD_MARCA1 = -1)) ' +

@@ -34,7 +34,7 @@ uses
 constructor TGrupo.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select M.*, 0 as INDICE from MARCAS M where STATUS = ''A''');
+  FEntidadeBase.TextoSQL('select M.*, 0 as INDICE from MARCAS M where (1 = 1) ');
 end;
 
 destructor TGrupo.Destroy;
@@ -53,20 +53,28 @@ begin
 end;
 
 function TGrupo.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and M.STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TGrupo.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and M.STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
