@@ -30,7 +30,7 @@ uses
 constructor TCondicaoVenda.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From CONDICAO_VENDA Where STATUS = ''A''');
+  FEntidadeBase.TextoSQL('Select * From CONDICAO_VENDA Where (1 = 1) ');
 end;
 
 destructor TCondicaoVenda.Destroy;
@@ -49,20 +49,28 @@ begin
 end;
 
 function TCondicaoVenda.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
-
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TCondicaoVenda.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
-
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
+  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 

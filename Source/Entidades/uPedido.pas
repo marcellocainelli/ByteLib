@@ -75,7 +75,7 @@ begin
 
 
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('ID');
+  FEntidadeBase.Iquery.IndexFieldNames('NR_PEDIDO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
 
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
