@@ -30,7 +30,7 @@ uses
 constructor TProdutoLocal.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select P.CODIGO, P.DESCRICAO, 0 as INDICE From PRODUTOS_LOCAIS P Where STATUS = ''A'' ');
+  FEntidadeBase.TextoSQL('Select P.*, 0 as INDICE From PRODUTOS_LOCAIS P Where (1 = 1) ');
 end;
 
 destructor TProdutoLocal.Destroy;
@@ -49,21 +49,21 @@ begin
 end;
 
 function TProdutoLocal.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TProdutoLocal.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
-  Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
 
-  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TProdutoLocal.ModificaDisplayCampos;

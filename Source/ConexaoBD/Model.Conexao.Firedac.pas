@@ -105,10 +105,10 @@ procedure TModelConexaoFiredac.FDConnBeforeConnect(Sender: TObject);
 begin
   FConexao.DriverName:= 'SQLITE';
   {$IFDEF MSWINDOWS}
-    FConexao.Params.Values['Database']:= System.SysUtils.GetCurrentDir + '\bempresamobile.db';
+    FConexao.Params.Values['Database']:= System.SysUtils.GetCurrentDir + '\bempresaapp.db';
   {$ELSE}
     FConexao.Params.Values['OpenMode'] := 'CreateUTF8';
-    FConexao.Params.Values['Database']:= TPath.Combine(TPath.GetDocumentsPath, 'bempresamobile.db');
+    FConexao.Params.Values['Database']:= TPath.Combine(TPath.GetDocumentsPath, 'bempresaapp.db');
   {$ENDIF}
 end;
 
