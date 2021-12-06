@@ -13,6 +13,7 @@ type
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>;
     function RefreshDataSource(Value: TDataSource): iEntidadeBase<T>;
     function SaveIfChangeCount(DataSource: TDataSource): iEntidadeBase<T>;
+    function InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;

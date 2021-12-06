@@ -34,6 +34,7 @@ Type
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>;
     function RefreshDataSource(Value: TDataSource): iEntidadeBase<T>;
     function SaveIfChangeCount(DataSource: TDataSource): iEntidadeBase<T>;
+    function InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;
@@ -123,6 +124,11 @@ end;
 function TEntidadeBase<T>.Inativos: boolean;
 begin
   Result:= FInativos;
+end;
+
+function TEntidadeBase<T>.InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
+begin
+  DataSource.DataSet.BeforePost:= AEvent;
 end;
 
 function TEntidadeBase<T>.Inativos(pValue: boolean): boolean;
