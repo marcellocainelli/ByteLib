@@ -30,7 +30,7 @@ uses
 constructor TAdmCartao.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select C.*, null as INDICE from CARTAO_ADMINISTRADORA C Where STATUS = ''A''');
+  FEntidadeBase.TextoSQL('select C.*, null as INDICE from CARTAO_ADMINISTRADORA C where (1 = 1) ');
 end;
 
 destructor TAdmCartao.Destroy;
@@ -49,21 +49,20 @@ begin
 end;
 
 function TAdmCartao.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and C.STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TAdmCartao.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
-  Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
-  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TAdmCartao.ModificaDisplayCampos;

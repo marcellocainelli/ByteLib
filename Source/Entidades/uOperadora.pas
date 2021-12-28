@@ -30,7 +30,7 @@ uses
 constructor TOperadora.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select O.*, null as INDICE from OPERADORA O Where STATUS = ''A''');
+  FEntidadeBase.TextoSQL('select O.*, null as INDICE from OPERADORA O where (1 = 1) ');
 end;
 
 destructor TOperadora.Destroy;
@@ -50,26 +50,24 @@ begin
 end;
 
 function TOperadora.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and O.STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TOperadora.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
-  Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
-  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TOperadora.ModificaDisplayCampos;
 begin
-
 end;
 
 end.
