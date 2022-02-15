@@ -65,6 +65,7 @@ begin
     3: vTextoSQL:= vTextoSQL + ' Where COD_CLI = :Parametro';
     4: vTextoSQL:= vTextoSQL + ' Where DT_SINCRONISMO is :Parametro';
     5: vTextoSQL:= vTextoSQL + ' Where COD_FUN = :Parametro and DT_PEDIDO between :pDtInicio and :pDtFim';
+    6: vTextoSQL:= vTextoSQL + ' Where NR_PEDIDO = :Parametro';
   end;
 
   if FEntidadeBase.RegraPesquisa.Equals('FiltraPedOrc') then begin

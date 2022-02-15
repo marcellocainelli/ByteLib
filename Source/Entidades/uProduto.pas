@@ -207,36 +207,36 @@ begin
 
   case FEntidadeBase.TipoPesquisa of
     //busca por código
-    0: vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro and P.STATUS = ''A'' Order By 2';
+    0: vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro ';
     //busca por descrição
-    1: vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro) and P.STATUS = ''A'' Order By 2';
+    1: vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro) ';
     2: begin
-      vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro and P.STATUS = ''A'' Order By 2';
+      vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro ';
       //Se trabalha com multiplos cod barras
       If DmFuncoes.MultiplosCodBarras then
         FEntidadeBase.TextoPesquisa(DmFuncoes.MultBarrasGetCodBarPrincipal(FEntidadeBase.TextoPesquisa));
     end;
     3: begin
       If FEntidadeBase.RegraPesquisa = 'Containing' then
-        vTextoSQL:= vTextoSQL + ' and Upper(P.REFERENCIA) containing Upper(:mParametro) and P.STATUS = ''A'' Order By 2'
+        vTextoSQL:= vTextoSQL + ' and Upper(P.REFERENCIA) containing Upper(:mParametro) '
       else If FEntidadeBase.RegraPesquisa = 'Starting With' then
-        vTextoSQL:= vTextoSQL + ' and Upper(P.REFERENCIA) Like Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2';
+        vTextoSQL:= vTextoSQL + ' and Upper(P.REFERENCIA) Like Upper(:mParametro) || ' + QuotedStr('%');
     end;
     //procura por Inf. Adicionais
-    4: vTextoSQL:= vTextoSQL + ' and P.DETALHE Containing :mParametro and P.STATUS = ''A'' Order By 2';
+    4: vTextoSQL:= vTextoSQL + ' and P.DETALHE Containing :mParametro ';
     //procura por Marca
-    5: vTextoSQL:= vTextoSQL + ' and M1.DESCRICAO Containing :mParametro and P.STATUS = ''A'' Order By 2';
+    5: vTextoSQL:= vTextoSQL + ' and M1.DESCRICAO Containing :mParametro ';
     //procura por Localizacao
-    6: vTextoSQL:= vTextoSQL + ' and P.LOCAL Containing :mParametro and P.STATUS = ''A'' Order By 2';
+    6: vTextoSQL:= vTextoSQL + ' and P.LOCAL Containing :mParametro ';
     //procura por preco
     7: begin
-      vTextoSQL:= vTextoSQL + ' and P.PRECO_VEND = :mParametro and P.STATUS = ''A'' Order By 2';
+      vTextoSQL:= vTextoSQL + ' and P.PRECO_VEND = :mParametro ';
       FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
     end;
   end;
 
   If not FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and P.STATUS = ' + QuotedStr('A') + ' Order By 2';
+    vTextoSQL:= vTextoSQL + ' and P.STATUS = ' + QuotedStr('A');
   {$ENDIF}
 
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);

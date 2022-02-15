@@ -3,7 +3,7 @@ unit uFilial_Email;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TFilial_Email = class(TInterfacedObject, iEntidade)
@@ -54,7 +54,7 @@ var
 begin
   Result:= Self;
 
-  vTextoSQL:= FEntidadeBase.TextoSQL + ' Where FE.CODIGO = :CodFilial';
+  vTextoSQL:= FEntidadeBase.TextoSQL + ' Where FE.CODIGO = :pCodFilial';
   FEntidadeBase.Iquery.SQL(vTextoSQL);
 
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;

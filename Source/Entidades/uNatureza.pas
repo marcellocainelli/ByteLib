@@ -30,7 +30,7 @@ uses
 constructor TNatureza.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select N.*, 0 as INDICE from NATUREZA N');
+  FEntidadeBase.TextoSQL('select N.*, 0 as INDICE from NATUREZA N  Where (1 = 1) ');
 end;
 
 destructor TNatureza.Destroy;
@@ -49,20 +49,28 @@ begin
 end;
 
 function TNatureza.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('HISTORICO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TNatureza.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('HISTORICO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
