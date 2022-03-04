@@ -14,6 +14,8 @@ type
     function RefreshDataSource(Value: TDataSource): iEntidadeBase<T>;
     function SaveIfChangeCount(DataSource: TDataSource): iEntidadeBase<T>;
     function InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
+    function Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
+    function SetReadOnly(Value: TDataSource; ANomeCampo: string; AReadOnly: boolean): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;
