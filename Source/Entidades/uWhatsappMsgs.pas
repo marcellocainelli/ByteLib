@@ -1,4 +1,4 @@
-unit uMsgsWhatsapp;
+unit uWhatsappMsgs;
 
 interface
 
@@ -30,7 +30,7 @@ uses
 constructor TMsgsWhatsapp.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From MSGS_WHATSAPP');
+  FEntidadeBase.TextoSQL('Select * From WHATSAPP_MSGS');
 end;
 
 destructor TMsgsWhatsapp.Destroy;
@@ -64,7 +64,7 @@ begin
   end;
 
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
+  FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
 
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -74,9 +74,9 @@ function TMsgsWhatsapp.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
 
-  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
+  FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.AddParametro('Parametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + 'CODIGO = :Parametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + 'ID = :Parametro');
 
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
