@@ -37,11 +37,12 @@ Type
   TModelConexaoFiredac = class(TInterfacedObject, iConexao)
     private
       FConexao: TFDConnection;
-      FArqIni: TIniFile; //arquivo de inicializacao
+      FArqIni: TIniFile;
+      class var FCaminhoIni: String;
     public
       constructor Create;
       destructor Destroy; override;
-      class function New: iConexao;
+      class function New(ACaminhoIni: String = ''): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
       procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
@@ -51,25 +52,11 @@ implementation
 { TModelConexaoFiredac }
 constructor TModelConexaoFiredac.Create;
 begin
-
   FConexao:= TFDConnection.Create(nil);
   {$IFDEF APP}
     InsertOnBeforeConnectEvent(FDConnBeforeConnect);
-//    {$IFDEF MSWINDOWS}
-////      FConexao.Params.Database:= '$(DB_BYTE)';
-//        FConexao.Params.Values['Database']:= System.SysUtils.GetCurrentDir + '\BD\bempresamobile.db';
-//    {$ELSE}
-//      FConexao.Params.Values['OpenMode'] := 'ReadWrite';
-//      FConexao.Params.Values['Database']:= TPath.Combine(TPath.GetDocumentsPath, 'bempresamobile.db');
-////      FConexao.Params.Database:= TPath.Combine(TPath.GetDocumentsPath, 'bempresamobile.db');
-//    {$ENDIF}
   {$ELSE}
-    //Abre arquivo de inicializacao
-    {$IFDEF BYTESUPER}
-      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
-    {$ELSE}
-      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
-    {$ENDIF}
+    FArqIni:= TiniFile.Create(FCaminhoIni);
     FConexao.DriverName:= 'FB';
     FConexao.Params.Database:= FArqIni.ReadString('SISTEMA','Database','');
     FConexao.Params.UserName:= 'SYSDBA';
@@ -77,6 +64,7 @@ begin
   {$ENDIF}
   FConexao.Connected:= true;
 end;
+
 destructor TModelConexaoFiredac.Destroy;
 begin
   FreeAndNil(FConexao);
@@ -84,18 +72,24 @@ begin
   inherited;
 end;
 
-class function TModelConexaoFiredac.New: iConexao;
+class function TModelConexaoFiredac.New(ACaminhoIni: String): iConexao;
 begin
+  FCaminhoIni:= ACaminhoIni;
+  if ACaminhoIni.IsEmpty then
+    FCaminhoIni:= ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini';
   Result:= Self.Create;
 end;
+
 function TModelConexaoFiredac.CaminhoBanco: String;
 begin
   Result:= FConexao.Params.Database;
 end;
+
 function TModelConexaoFiredac.Connection: TCustomConnection;
 begin
   Result:= FConexao;
 end;
+
 procedure TModelConexaoFiredac.InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
 begin
   FConexao.BeforeConnect:= AEvent;

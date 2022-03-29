@@ -76,10 +76,6 @@ begin
   FDQuery.CachedUpdates:= True;
 
   FUpdateTransaction.Connection:= TFDConnection(FParent.Connection);
-  {$IFDEF SERVER}
-    //FDWDriverFD.Connection:= TFDConnection(FParent.Connection);
-    //FDWPooler.RESTDriver:= FDWDriverFD;
-  {$ENDIF}
 end;
 
 function TModelQueryFiredac.Dataset: TDataSet;
