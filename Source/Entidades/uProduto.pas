@@ -130,7 +130,7 @@ begin
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
   else if FEntidadeBase.RegraPesquisa = 'Início do texto' then
-    FEntidadeBase.RegraPesquisa('LIKE');
+    FEntidadeBase.RegraPesquisa('Starting With');
 
   Case FEntidadeBase.TipoPesquisa of
     //busca por código/cód barras/descrição
@@ -142,10 +142,14 @@ begin
           else
             //busca por cód barras
             vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro';
-        end else
+        end else begin
           //busca por descrição
-          vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + QuotedStr('%') + ' || Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2';
-    end;
+          if FEntidadeBase.RegraPesquisa.Equals('Containing') then
+            vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) LIKE' + QuotedStr('%') + ' || Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2'
+          else if FEntidadeBase.RegraPesquisa.Equals('Starting With') then
+            vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) LIKE' + ' Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2'
+        end;
+   end;
     //busca por cód barras/descrição
     1: begin
       if CharInSet(FEntidadeBase.TextoPesquisa[1], ['0'..'9']) and (Length(FEntidadeBase.TextoPesquisa) < 14) then

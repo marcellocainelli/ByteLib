@@ -30,7 +30,7 @@ uses
 constructor TCliente.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From CADCLI Where ');
+  FEntidadeBase.TextoSQL('Select * From CADCLI Where (1=1) and ');
 end;
 
 destructor TCliente.Destroy;
@@ -54,20 +54,24 @@ var
   vNumeroAux: integer;
 begin
   Result:= Self;
-  vTextoSQL:= '';
+  vTextoSQL:= FEntidadeBase.TextoSql;
   {$IFDEF APP}
-  if FEntidadeBase.RegraPesquisa.Equals('Contendo') then
+  if FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
-  else if FEntidadeBase.RegraPesquisa.Equals('Início do texto') then
-    FEntidadeBase.RegraPesquisa('LIKE');
+  else if FEntidadeBase.RegraPesquisa = 'Início do texto' then
+    FEntidadeBase.RegraPesquisa('Starting With');
   case FEntidadeBase.TipoPesquisa of
     0: begin
         if (not FEntidadeBase.TextoPesquisa.Equals(EmptyStr)) and (TryStrToInt(FEntidadeBase.TextoPesquisa, vNumeroAux)) then
           //busca por código
-          vTextoSQL:= FEntidadeBase.TextoSql + 'CODIGO = :Parametro'
-        else
-          vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(NOME) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro) || ' + QuotedStr('%');
-    end;
+          vTextoSQL:= vTextoSQL + ' CODIGO = :Parametro'
+        else begin
+          if FEntidadeBase.RegraPesquisa.Equals('Containing') then
+            vTextoSQL:= vTextoSQL + ' Upper(NOME) LIKE' + QuotedStr('%') + ' || Upper(:Parametro) || ' + QuotedStr('%') + ' Order By 2'
+          else if FEntidadeBase.RegraPesquisa.Equals('Starting With') then
+            vTextoSQL:= vTextoSQL + ' Upper(NOME) LIKE' + ' Upper(:Parametro) || ' + QuotedStr('%') + ' Order By 2';
+        end;
+       end;
     1: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(ENDERECO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
     2: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(BAIRRO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
     3: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(CIDADE) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
@@ -101,7 +105,6 @@ begin
   {$ENDIF}
   if FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and OBS <> ' + QuotedStr('INT') + ' Order By 2';
-
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
@@ -115,7 +118,7 @@ begin
 
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.AddParametro('Parametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + 'CODIGO = :Parametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' CODIGO = :Parametro');
 
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
