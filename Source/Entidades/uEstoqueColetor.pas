@@ -1,11 +1,11 @@
-unit uColetorDados;
+unit uEstoqueColetor;
 
 interface
 
 uses
   Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
 Type
-  TColetorDados = class(TInterfacedObject, iEntidade)
+  TEstoqueColetor = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -22,28 +22,28 @@ implementation
 uses
   uEntidadeBase;
 { TBanco }
-constructor TColetorDados.Create;
+constructor TEstoqueColetor.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From ESTOQUE_COLETOR');
 end;
 
-destructor TColetorDados.Destroy;
+destructor TEstoqueColetor.Destroy;
 begin
   inherited;
 end;
 
-class function TColetorDados.New: iEntidade;
+class function TEstoqueColetor.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TColetorDados.EntidadeBase: iEntidadeBase<iEntidade>;
+function TEstoqueColetor.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TColetorDados.Consulta(Value: TDataSource): iEntidade;
+function TEstoqueColetor.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSql: String;
 begin
@@ -61,14 +61,14 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TColetorDados.InicializaDataSource(Value: TDataSource): iEntidade;
+function TEstoqueColetor.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-procedure TColetorDados.ModificaDisplayCampos;
+procedure TEstoqueColetor.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
 end;
