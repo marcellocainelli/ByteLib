@@ -4,6 +4,7 @@ interface
 
 uses
   Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+
 Type
   TEstoqueColetor = class(TInterfacedObject, iEntidade)
     private
@@ -52,6 +53,7 @@ begin
   case FEntidadeBase.TipoPesquisa of
     1: vTextoSql:= vTextoSql + ' Where ID = :Parametro';
     2: vTextoSql:= vTextoSql + ' Where ENVIADO = :pEnviado';
+    3: vTextoSql:= vTextoSql + ' Where BAIXADO = :pBaixado';
   end;
   FEntidadeBase.Iquery.Dataset.FieldDefs.Clear;
   FEntidadeBase.Iquery.Dataset.Fields.Clear;
