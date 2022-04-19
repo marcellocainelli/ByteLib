@@ -17,9 +17,9 @@ uses
   Data.DB,
 
   IdCoderMIME,
-
+  {$IFDEF MSWINDOWS}
   ShellAPI,
-
+  {$ENDIF}
   //Componentes Indy
   IdComponent,
   IdTCPConnection,
@@ -61,6 +61,10 @@ type
       {FunÁıes de formataÁ„o}
       class function SomenteNumero(const AValue: string): string;
       class function PoeZeros(Valor: String; Tamanho,Decimais:Integer): String;
+      class function RemoveAcento(AString: String): String;
+      class function PadC(sTexto: string; iTamanho: Integer): string;
+      class function padL(const AString: String; const nLen : Integer; const Caracter : AnsiChar = ' ') : String;
+      class function Padr(s:string;n:integer):string;
 
       {FunÁıes de validaÁ„o}
       class function IsCNPJ(AValue: string): boolean;
@@ -122,7 +126,7 @@ begin
   Result := True;
 end;
 
-class procedure TLib.CustomThread(AOnStart, AOnProcess, AOnComplete: TProc; AOnError: TprocedureExcept; const ADoCompleteWithError: Boolean);
+class procedure TLibrary.CustomThread(AOnStart, AOnProcess, AOnComplete: TProc; AOnError: TprocedureExcept; const ADoCompleteWithError: Boolean);
 var
   vThread: TThread;
 begin
@@ -163,7 +167,7 @@ begin
         end;
       finally
         //Complete
-        if Assigned(AOnComplete) then begin
+        if Assigned(AOnComplete) and vDoComplete then begin
           TThread.Synchronize(
             TThread.CurrentThread,
             procedure ()
@@ -183,10 +187,12 @@ class procedure TLib.VCL_OpenPDF(AFile: TFileName; ATypeForm: Integer);
 var
   vDir: PChar;
 begin
+{$IFDEF MSWINDOWS}
   GetMem(vDir, 256);
   StrPCopy(vDir, AFile);
   ShellExecute(0, nil, PChar(AFile), nil, vDir, ATypeForm);
   FreeMem(vDir, 256);
+{$ENDIF}
 end;
 
 {$ENDREGION}
@@ -207,6 +213,19 @@ begin
   Result := Valor;
 end;
 
+class function TLib.RemoveAcento(AString: String): String;
+Const
+  ComAcento = '‡‚ÍÙ˚„ı·ÈÌÛ˙Á¸¿¬ ‘€√’¡…Õ”⁄«‹∞';
+  SemAcento = 'aaeouaoaeioucuAAEOUAOAEIOUCU ';
+var
+  x : Integer;
+Begin
+  For x := 1 to Length(AString) do
+    if Pos(AString[x],ComAcento)<>0 Then
+      AString[x] := SemAcento[Pos(AString[x],ComAcento)];
+  Result := AString;
+end;
+
 class function TLib.SomenteNumero(const AValue: string): string;
 var
   I: integer;
@@ -222,6 +241,41 @@ begin
 
     end;
   end;
+end;
+
+class function TLib.PadC(sTexto: string; iTamanho: Integer): string;
+var
+  iContador                   : Integer;
+  iPosicao                    : Integer;
+begin
+  Result := sTexto;
+  iPosicao := Trunc((iTamanho - Length(Result)) / 2);
+  for iContador := 1 to iPosicao do
+    Result := ' ' + Result;
+  iPosicao := (iTamanho - Length(Result));
+  for iContador := 1 to iPosicao do
+    Result := Result + ' ';
+end;
+
+{-----------------------------------------------------------------------------
+  Completa <AString> com <Caracter> a direita, atÈ o tamanho <nLen>, Alinhando
+  a <AString> a Esquerda. Se <AString> for maior que <nLen>, ela ser· truncada
+  - tirada da unit ACBrUtil
+ ---------------------------------------------------------------------------- }
+class function TLib.padL(const AString: String; const nLen: Integer; const Caracter: AnsiChar): String;
+var
+  Tam: Integer;
+begin
+  Tam := Length(AString);
+  if Tam < nLen then
+    Result := AString + StringOfChar(Caracter, (nLen - Tam))
+  else
+    Result := copy(AString,1,nLen) ;
+end;
+
+class function TLib.Padr(s: string; n: integer): string;
+begin
+  Result:=Format('%'+IntToStr(n)+'.'+IntToStr(n)+'s',[s]);
 end;
 
 {$ENDREGION}

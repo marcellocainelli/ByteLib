@@ -16,6 +16,8 @@ type
     function InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
     function Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
     function SetReadOnly(Value: TDataSource; ANomeCampo: string; AReadOnly: boolean): iEntidadeBase<T>;
+    function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
+    function CriaCampo(ADataSoruce: TDataSource; ANomeCampo: string; ADataType: TFieldType): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;

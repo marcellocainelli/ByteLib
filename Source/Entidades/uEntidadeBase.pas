@@ -18,6 +18,7 @@ Type
     FTipoPesquisa: Integer;
     FRegraPesquisa: String;
     FInativos: boolean;
+    FDataSource: TDataSource;
   public
     constructor Create(Parent: T);
     destructor Destroy; override;
@@ -30,7 +31,10 @@ Type
     function InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
     function Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
     function SetReadOnly(Value: TDataSource; ANomeCampo: string; AReadOnly: boolean): iEntidadeBase<T>;
+    function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
+    function CriaCampo(ADataSoruce: TDataSource; ANomeCampo: string; ADataType: TFieldType): iEntidadeBase<T>;
     function &End : T;
+
     function TextoSQL(pValue: String): String; overload;
     function TextoSQL: String; overload;
     function TextoPesquisa(pValue: String): String; overload;
@@ -43,24 +47,34 @@ Type
     function Inativos: boolean; overload;
     function Iquery: iQuery; overload;
   end;
+
 implementation
+
 { TEntidadeBase<T> }
+
 constructor TEntidadeBase<T>.Create(Parent: T);
 begin
   FParent:= Parent;
   FQuery:= TControllerFactoryQuery.New.Query(DmFuncoes.Connection);
+  FDataSource:= TDataSource.Create(nil);
 end;
+
 destructor TEntidadeBase<T>.Destroy;
 begin
   inherited;
+  FreeAndNil(FDataSource);
 end;
+
 class function TEntidadeBase<T>.New(Parent: T): iEntidadeBase<T>;
 begin
   Result:= Self.Create(Parent);
 end;
+
 function TEntidadeBase<T>.Salva(Value: TDataSource): iEntidadeBase<T>;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FDataSource;
   Try
     FQuery.Salva;
     //Value.DataSet.Refresh;
@@ -71,9 +85,12 @@ begin
     end;
   End;
 end;
+
 function TEntidadeBase<T>.Exclui(Value: TDataSource): iEntidadeBase<T>;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FDataSource;
   Try
     Value.DataSet.Delete;
     FQuery.Salva;
@@ -92,6 +109,8 @@ end;
 function TEntidadeBase<T>.RefreshDataSource(Value: TDataSource): iEntidadeBase<T>;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FDataSource;
   Value.DataSet.Close;
   Value.DataSet.Open;
 end;
@@ -99,30 +118,68 @@ end;
 function TEntidadeBase<T>.SaveIfChangeCount(DataSource: TDataSource): iEntidadeBase<T>;
 begin
   Result:= Self;
+  if DataSource = nil then
+    DataSource:= FDataSource;
   if FQuery.ChangeCount(DataSource.DataSet) > 0 then
     Salva(DataSource);
 end;
 
 function TEntidadeBase<T>.SetReadOnly(Value: TDataSource; ANomeCampo: string; AReadOnly: boolean): iEntidadeBase<T>;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FDataSource;
   Value.DataSet.FieldByName(ANomeCampo).ReadOnly:= AReadOnly;
+end;
+
+function TEntidadeBase<T>.CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
+begin
+  Result:= Self;
+  FQuery.CalcFields(AEvent);
+end;
+
+function TEntidadeBase<T>.CriaCampo(ADataSoruce: TDataSource; ANomeCampo: string; ADataType: TFieldType): iEntidadeBase<T>;
+var
+  vField: TField;
+  i: integer;
+begin
+  if ADataSoruce = nil then
+    ADataSoruce:= FDataSource;
+  ADataSoruce.DataSet.Close;
+  ADataSoruce.Dataset.FieldDefs.Updated:= false;
+  ADataSoruce.Dataset.FieldDefs.Update;
+  for i := 0 to ADataSoruce.Dataset.FieldDefs.Count - 1 do
+    ADataSoruce.Dataset.FieldDefs[i].CreateField(nil);
+  case ADataType of
+    ftBoolean : vField:= TBooleanField.Create(ADataSoruce.Dataset);
+    ftCurrency: vField:= TCurrencyField.Create(ADataSoruce.Dataset);
+  end;
+  vField.FieldName:= ANomeCampo;
+  vField.FieldKind:= fkInternalCalc;
+  vField.DataSet:= ADataSoruce.Dataset;
 end;
 
 function TEntidadeBase<T>.&End: T;
 begin
   Result:= FParent;
 end;
+
 function TEntidadeBase<T>.Inativos: boolean;
 begin
   Result:= FInativos;
 end;
+
 function TEntidadeBase<T>.InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
 begin
+  if DataSource = nil then
+    DataSource:= FDataSource;
   DataSource.DataSet.BeforePost:= AEvent;
 end;
 
 function TEntidadeBase<T>.Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
 begin
+  if Value = nil then
+    Value:= FDataSource;
   Value.DataSet.FieldByName(ANomeCampo).OnValidate:= AEvent;
 end;
 
@@ -131,33 +188,40 @@ begin
   Result:= True;
   FInativos:= pValue;
 end;
+
 function TEntidadeBase<T>.RegraPesquisa: String;
 begin
   Result:= FRegraPesquisa;
 end;
+
 function TEntidadeBase<T>.RegraPesquisa(pValue: String): String;
 begin
   Result:= EmptyStr;
   FRegraPesquisa:= pValue;
 end;
+
 function TEntidadeBase<T>.TextoPesquisa: String;
 begin
   Result:= FTextoPesquisa;
 end;
+
 function TEntidadeBase<T>.TextoSQL: String;
 begin
   Result:= FTextoSQL;
 end;
+
 function TEntidadeBase<T>.TextoSQL(pValue: String): String;
 begin
   Result:= EmptyStr;
   FTextoSQL:= pValue;
 end;
+
 function TEntidadeBase<T>.TextoPesquisa(pValue: String): String;
 begin
   Result:= EmptyStr;
   FTextoPesquisa:= pValue;
 end;
+
 function TEntidadeBase<T>.TipoPesquisa: Integer;
 begin
   Result:= FTipoPesquisa;
@@ -168,8 +232,10 @@ begin
   Result:= 0;
   FTipoPesquisa:= pValue;
 end;
+
 function TEntidadeBase<T>.Iquery: iQuery;
 begin
   Result:= FQuery;
 end;
+
 end.

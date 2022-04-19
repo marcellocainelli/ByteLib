@@ -16,7 +16,6 @@ Type
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource): iEntidade;
       function InicializaDataSource(Value: TDataSource): iEntidade;
-
       procedure ModificaDisplayCampos;
   end;
 

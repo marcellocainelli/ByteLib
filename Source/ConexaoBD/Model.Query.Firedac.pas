@@ -53,6 +53,7 @@ Type
       function ChangeCount(DataSet: TDataSet): integer;
       function GetFieldNames(Table: string; List: TStrings): iQuery;
       function SetMode(pModo: string): iQuery;
+      function CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
 
       procedure CatchApplyUpdatesErrors;
       function TrataErrosApplyUpdates(AMsgErro: string): string;
@@ -210,6 +211,12 @@ end;
 function TModelQueryFiredac.ChangeCount(DataSet: TDataSet): integer;
 begin
   Result:= TFDQuery(DataSet).ChangeCount;
+end;
+
+function TModelQueryFiredac.CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
+begin
+  Result:= Self;
+  FDQuery.OnCalcFields:= AEvent;
 end;
 
 procedure TModelQueryFiredac.CatchApplyUpdatesErrors;
