@@ -126,7 +126,7 @@ begin
   Result := True;
 end;
 
-class procedure TLibrary.CustomThread(AOnStart, AOnProcess, AOnComplete: TProc; AOnError: TprocedureExcept; const ADoCompleteWithError: Boolean);
+class procedure TLib.CustomThread(AOnStart, AOnProcess, AOnComplete: TProc; AOnError: TprocedureExcept; const ADoCompleteWithError: Boolean);
 var
   vThread: TThread;
 begin

@@ -8,16 +8,16 @@ uses
 type
   iEntidadeBase<T> = interface
     ['{92115277-3ADA-479B-898C-D2D496577CA9}']
-    function Salva(Value: TDataSource): iEntidadeBase<T>;
-    function Exclui(Value: TDataSource): iEntidadeBase<T>;
+    function Salva(Value: TDataSource = nil): iEntidadeBase<T>;
+    function Exclui(Value: TDataSource = nil): iEntidadeBase<T>;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>;
-    function RefreshDataSource(Value: TDataSource): iEntidadeBase<T>;
-    function SaveIfChangeCount(DataSource: TDataSource): iEntidadeBase<T>;
-    function InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
-    function Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
-    function SetReadOnly(Value: TDataSource; ANomeCampo: string; AReadOnly: boolean): iEntidadeBase<T>;
+    function RefreshDataSource(Value: TDataSource = nil): iEntidadeBase<T>;
+    function SaveIfChangeCount(DataSource: TDataSource = nil): iEntidadeBase<T>;
+    function InsertBeforePost(DataSource: TDataSource = nil; AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
+    function Validate(Value: TDataSource = nil; ANomeCampo: string = ''; AEvent: TFieldNotifyEvent = nil): iEntidadeBase<T>;
+    function SetReadOnly(Value: TDataSource = nil; ANomeCampo: string = ''; AReadOnly: boolean = false): iEntidadeBase<T>;
     function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
-    function CriaCampo(ADataSoruce: TDataSource; ANomeCampo: string; ADataType: TFieldType): iEntidadeBase<T>;
+    function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;
