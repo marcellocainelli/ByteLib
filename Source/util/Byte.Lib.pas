@@ -57,6 +57,7 @@ type
       class function ClearDirectory(aDirectory : String) : Boolean;
       class function CheckInternet(AHost: string = 'www.google.com'; APort: integer = 80): Boolean;
       class procedure VCL_OpenPDF(AFile: TFileName; ATypeForm: Integer);
+      class function GetRandomNumber(AStartNum, AEndNum: integer): integer;
 
       {Funções de formatação}
       class function SomenteNumero(const AValue: string): string;
@@ -181,6 +182,11 @@ begin
   );
   vThread.FreeOnTerminate:= True;
   vThread.Start;
+end;
+
+class function TLib.GetRandomNumber(AStartNum, AEndNum: integer): integer;
+begin
+  Result:= AStartNum + Random(AEndNum);
 end;
 
 class procedure TLib.VCL_OpenPDF(AFile: TFileName; ATypeForm: Integer);

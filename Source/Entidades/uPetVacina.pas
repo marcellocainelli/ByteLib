@@ -1,4 +1,4 @@
-unit uIcms;
+unit uPetVacina;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   Model.Entidade.Interfaces, Data.DB;
 
 Type
-  TIcms = class(TInterfacedObject, iEntidade)
+  TPetVacina = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -24,46 +24,46 @@ implementation
 uses
   uEntidadeBase;
 
-{ TCst }
+{ TPetVacina }
 
-constructor TIcms.Create;
+
+constructor TPetVacina.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * from ICMS where COD_FILIAL = :pCod_Filial');
+  FEntidadeBase.TextoSQL('select * from PET_VACINA');
 end;
 
-destructor TIcms.Destroy;
+destructor TPetVacina.Destroy;
 begin
   inherited;
 end;
 
-class function TIcms.New: iEntidade;
+class function TPetVacina.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TIcms.EntidadeBase: iEntidadeBase<iEntidade>;
+function TPetVacina.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TIcms.Consulta(Value: TDataSource): iEntidade;
+function TPetVacina.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('COD_ICMS');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-  ModificaDisplayCampos;
+  FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TIcms.InicializaDataSource(Value: TDataSource): iEntidade;
+function TPetVacina.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
 
 end;
 
-procedure TIcms.ModificaDisplayCampos;
+procedure TPetVacina.ModificaDisplayCampos;
 begin
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ALIQ_ICMS')).DisplayFormat:= '#,0.00';
+
 end;
 
 end.
