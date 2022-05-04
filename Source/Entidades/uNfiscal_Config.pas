@@ -14,8 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -30,6 +31,8 @@ constructor TNfiscal_Config.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from NFISCAL_CONFIG where COD_FILIAL = :pCod_Filial');
+
+  InicializaDataSource;
 end;
 
 destructor TNfiscal_Config.Destroy;
@@ -50,24 +53,34 @@ end;
 function TNfiscal_Config.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('MODELO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TNfiscal_Config.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('MODELO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  vTextoSql:= 'Select * From NFISCAL_CONFIG Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TNfiscal_Config.ModificaDisplayCampos;
 begin
 
+end;
+
+function TNfiscal_Config.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

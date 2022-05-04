@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,8 @@ constructor TMsgsWhatsapp.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From WHATSAPP_MSGS');
+
+  InicializaDataSource;
 end;
 
 destructor TMsgsWhatsapp.Destroy;
@@ -53,12 +55,15 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
-  vTextoSQL:= '';
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  vTextoSQL:= '';
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
       FEntidadeBase.RegraPesquisa('Containing')
   else If FEntidadeBase.RegraPesquisa = 'Início do texto' then
     FEntidadeBase.RegraPesquisa('Starting With');
+
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= FEntidadeBase.TextoSql + ' where STATUS = :Parametro'; //consulta por status
   end;
@@ -66,24 +71,27 @@ begin
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TMsgsWhatsapp.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
-  FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.AddParametro('Parametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + 'ID = :Parametro');
-
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' where ID = :Parametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TMsgsWhatsapp.ModificaDisplayCampos;
 begin
+end;
 
+function TMsgsWhatsapp.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

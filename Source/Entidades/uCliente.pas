@@ -3,7 +3,7 @@ unit uCliente;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils, Byte.Lib;
 
 Type
   TCliente = class(TInterfacedObject, iEntidade)
@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,10 +31,13 @@ constructor TCliente.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From CADCLI Where (1=1) and ');
+
+  InicializaDataSource;
 end;
 
 destructor TCliente.Destroy;
 begin
+
   inherited;
 end;
 
@@ -54,6 +57,8 @@ var
   vNumeroAux: integer;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSql;
   {$IFDEF APP}
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
@@ -79,7 +84,7 @@ begin
     5: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
     6: begin
         vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) = :Parametro';
-        FEntidadeBase.TextoPesquisa(TLibrary.SomenteNumero(FEntidadeBase.TextoPesquisa));
+        FEntidadeBase.TextoPesquisa(TLib.SomenteNumero(FEntidadeBase.TextoPesquisa));
     end;
     7: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)';
   end;
@@ -108,24 +113,28 @@ begin
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TCliente.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
-
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.AddParametro('Parametro', '-1', ftString);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' CODIGO = :Parametro');
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TCliente.ModificaDisplayCampos;
 begin
 
+end;
+
+function TCliente.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -33,10 +33,13 @@ begin
   FEntidadeBase.TextoSQL('Select E.ID, E.LOTE, E.LOTE as CODIGO, E.COMPLEMENTO, E.VALIDADE, E.QUANTIDADE, 0 as INDICE From ESTOQUEFILIAL_LOTE E ' +
                          'Where E.COD_FILIAL = :CodFilial and E.COD_PROD = :CodProd ' +
                          'Order By 2');
+
+  InicializaDataSource;
 end;
 
 destructor TLote.Destroy;
 begin
+
   inherited;
 end;
 
@@ -53,15 +56,18 @@ end;
 function TLote.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TLote.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.AddParametro('CodFilial', '1', ftString);
   FEntidadeBase.AddParametro('CodProd', '-1', ftString);
   FEntidadeBase.Iquery.IndexFieldNames('ID');
@@ -71,6 +77,11 @@ end;
 procedure TLote.ModificaDisplayCampos;
 begin
 
+end;
+
+function TLote.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

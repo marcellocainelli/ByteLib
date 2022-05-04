@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,8 @@ constructor TNfiscal_Intermediador.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From NFISCAL_INTERMEDIADOR');
+
+  InicializaDataSource;
 end;
 
 destructor TNfiscal_Intermediador.Destroy;
@@ -51,24 +53,34 @@ end;
 function TNfiscal_Intermediador.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TNfiscal_Intermediador.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('ID');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  vTextoSql:= 'Select * From NFISCAL_INTERMEDIADOR Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TNfiscal_Intermediador.ModificaDisplayCampos;
 begin
 
+end;
+
+function TNfiscal_Intermediador.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

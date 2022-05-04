@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,7 @@ constructor TPrecos.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * from PRECOS ');
+  InicializaDataSource;
 end;
 
 destructor TPrecos.Destroy;
@@ -53,6 +54,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If FEntidadeBase.Inativos = False then
     vTextoSQL:= vTextoSQL + ' where STATUS = ''A'' ';
@@ -65,15 +68,18 @@ end;
 function TPrecos.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TPrecos.ModificaDisplayCampos;
 begin
 
+end;
+
+function TPrecos.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

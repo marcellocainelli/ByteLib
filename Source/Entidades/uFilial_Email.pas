@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,7 @@ constructor TFilial_Email.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select FE.*, 0 as INDICE From FILIAL_EMAIL FE');
+  InicializaDataSource;
 end;
 
 destructor TFilial_Email.Destroy;
@@ -53,25 +54,31 @@ var
   vTextoSQL: String;
 begin
   Result:= Self;
-
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL + ' Where FE.CODIGO = :pCodFilial';
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TFilial_Email.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TFilial_Email.ModificaDisplayCampos;
 begin
 
+end;
+
+function TFilial_Email.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

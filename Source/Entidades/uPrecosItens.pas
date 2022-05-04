@@ -17,15 +17,15 @@ Type
       destructor Destroy; override;
       class function New: iEntidadeProduto;
       function EntidadeBase: iEntidadeBase<iEntidadeProduto>;
-      function Consulta(Value: TDataSource): iEntidadeProduto;
-      function InicializaDataSource(Value: TDataSource): iEntidadeProduto;
+      function Consulta(Value: TDataSource = nil): iEntidadeProduto;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidadeProduto;
+      function DtSrc: TDataSource;
       function ValidaDepto(pValue: boolean): iEntidadeProduto; overload;
       function ValidaDepto: boolean; overload;
       function CodDeptoUsuario(pValue: Integer): iEntidadeProduto; overload;
       function CodDeptoUsuario: Integer; overload;
       function TipoConsulta(pValue: String): iEntidadeProduto; overload;
       function TipoConsulta: String; overload;
-
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
@@ -41,6 +41,8 @@ constructor TPrecosItens.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidadeProduto>.New(Self);
   FTipoConsulta:= 'Filtra';
+
+  InicializaDataSource;
 end;
 
 procedure TPrecosItens.SelecionaSQLConsulta;
@@ -87,10 +89,11 @@ end;
 function TPrecosItens.Consulta(Value: TDataSource): iEntidadeProduto;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
@@ -98,9 +101,11 @@ end;
 function TPrecosItens.InicializaDataSource(Value: TDataSource): iEntidadeProduto;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  SelecionaSQLConsulta;
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -141,6 +146,11 @@ function TPrecosItens.TipoConsulta(pValue: String): iEntidadeProduto;
 begin
   Result:= Self;
   FTipoConsulta:= pValue;
+end;
+
+function TPrecosItens.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

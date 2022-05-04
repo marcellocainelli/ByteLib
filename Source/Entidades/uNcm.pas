@@ -4,7 +4,6 @@ interface
 
 uses
   Model.Entidade.Interfaces, Data.DB;
-
 Type
   TNcm = class(TInterfacedObject, iEntidade)
     private
@@ -14,8 +13,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -23,8 +23,8 @@ implementation
 
 uses
   uEntidadeBase;
-
-{ TCst }
+
+{ TNcm }
 
 constructor TNcm.Create;
 begin
@@ -33,6 +33,8 @@ begin
     'select N.*, I.DESCRICAO as DESCR_IPIPISCOFINS ' +
     'from NCM N ' +
     'Left Join PRODUTOS_IMPOSTOS I on (I.CODIGO = N.COD_IPIPISCOFINS) ');
+
+  InicializaDataSource;
 end;
 
 destructor TNcm.Destroy;
@@ -55,6 +57,9 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   vTextoSQL:= FEntidadeBase.TextoSql;
   Case FEntidadeBase.TipoPesquisa of
     1: vTextoSQL:= vTextoSQL + ' Where N.CLASFISCAL = :Parametro';
@@ -66,13 +71,26 @@ begin
 end;
 
 function TNcm.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  vTextoSql:= 'Select * From NCM Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TNcm.ModificaDisplayCampos;
 begin
 
+end;
+
+function TNcm.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

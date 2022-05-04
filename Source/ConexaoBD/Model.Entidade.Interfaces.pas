@@ -31,21 +31,24 @@ type
     function Inativos(pValue: boolean): boolean; overload;
     function Inativos: boolean; overload;
     function Iquery: iQuery; overload;
+    function DataSource: TDataSource; overload;
   end;
 
   iEntidade = interface
     ['{896BAE51-DA7D-4D43-B145-23EF809E6D32}']
     function EntidadeBase: iEntidadeBase<iEntidade>;
-    function Consulta(Value: TDataSource): iEntidade;
-    function InicializaDataSource(Value: TDataSource): iEntidade;
+    function Consulta(Value: TDataSource = nil): iEntidade;
+    function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+    function DtSrc: TDataSource;
     procedure ModificaDisplayCampos;
   end;
 
   iEntidadeProduto = interface
     ['{C12867A3-E384-4F47-BC31-566CFC87907E}']
     function EntidadeBase: iEntidadeBase<iEntidadeProduto>;
-    function Consulta(Value: TDataSource): iEntidadeProduto;
-    function InicializaDataSource(Value: TDataSource): iEntidadeProduto;
+    function Consulta(Value: TDataSource = nil): iEntidadeProduto;
+    function InicializaDataSource(Value: TDataSource = nil): iEntidadeProduto;
+    function DtSrc: TDataSource;
     procedure ModificaDisplayCampos;
 
     function ValidaDepto(pValue: boolean): iEntidadeProduto; overload;

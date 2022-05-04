@@ -14,8 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -30,6 +31,8 @@ constructor TProdutoPromocao.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select PP.*, P.NOME_PROD From PRODUTOS_PROMOCAO PP Join PRODUTOS P On (P.COD_PROD = PP.COD_PROD)');
+
+  InicializaDataSource;
 end;
 
 destructor TProdutoPromocao.Destroy;
@@ -52,6 +55,9 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   vTextoSQL:= FEntidadeBase.TextoSql;
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= vTextoSQL + ' where PP.COD_PROD = :pParametro';
@@ -65,7 +71,12 @@ end;
 
 function TProdutoPromocao.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TProdutoPromocao.ModificaDisplayCampos;
@@ -73,8 +84,11 @@ begin
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtinicio')).EditMask:= '!99/99/00;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtfim')).EditMask:= '!99/99/00;1;_';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco')).currency:= True;
+end;
 
-  //TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('NOME_PROD')).ProviderFlags:= [];
+function TProdutoPromocao.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

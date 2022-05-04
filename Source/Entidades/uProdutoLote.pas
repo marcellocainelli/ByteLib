@@ -14,8 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -30,11 +31,12 @@ constructor TProdutoLote.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from ESTOQUEFILIAL_LOTE where COD_FILIAL = :pCod_Filial and COD_PROD = :pCod_prod');
+
+  InicializaDataSource;
 end;
 
 destructor TProdutoLote.Destroy;
 begin
-
   inherited;
 end;
 
@@ -51,6 +53,8 @@ end;
 function TProdutoLote.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('LOTE');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   ModificaDisplayCampos;
@@ -58,13 +62,26 @@ begin
 end;
 
 function TProdutoLote.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  vTextoSql:= 'Select * From ESTOQUEFILIAL_LOTE Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TProdutoLote.ModificaDisplayCampos;
 begin
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('validade')).EditMask:= '!99/99/00;1;_';
+end;
+
+function TProdutoLote.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

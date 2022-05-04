@@ -4,12 +4,9 @@ interface
 
 uses
   System.SysUtils,
-
   StrUtils,
   uDmFuncoes,
-
   Data.DB,
-
   Model.Entidade.Interfaces;
 
 Type
@@ -19,22 +16,20 @@ Type
       FValidaDepto: Boolean;
       FCodDeptoUsuario: integer;
       FTipoConsulta: string;
-
     public
       constructor Create;
       destructor Destroy; override;
       class function New: iEntidadeProduto;
       function EntidadeBase: iEntidadeBase<iEntidadeProduto>;
-      function Consulta(Value: TDataSource): iEntidadeProduto;
-      function InicializaDataSource(Value: TDataSource): iEntidadeProduto;
-
+      function Consulta(Value: TDataSource = nil): iEntidadeProduto;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidadeProduto;
       function ValidaDepto(pValue: boolean): iEntidadeProduto; overload;
       function ValidaDepto: boolean; overload;
       function CodDeptoUsuario(pValue: Integer ): iEntidadeProduto; overload;
       function CodDeptoUsuario: Integer ; overload;
       function TipoConsulta(pValue: String): iEntidadeProduto; overload;
       function TipoConsulta: String ; overload;
-
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
@@ -121,27 +116,29 @@ end;
 function TProduto.Consulta(Value: TDataSource): iEntidadeProduto;
 var
   vTextoSQL: string;
+  vNumeroAux: Int64;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
+  vTextoSQL:= FEntidadeBase.TextoPesquisa;
   vTextoSQL:= FEntidadeBase.TextoSql;
-
   {$IFDEF APP}
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
   else if FEntidadeBase.RegraPesquisa = 'Início do texto' then
     FEntidadeBase.RegraPesquisa('Starting With');
-
   Case FEntidadeBase.TipoPesquisa of
     //busca por código/cód barras/descrição
     0: begin
-        if (not FEntidadeBase.TextoPesquisa.Equals(EmptyStr)) and CharInSet(FEntidadeBase.TextoPesquisa[1], ['0'..'9']) then begin
+        if (not FEntidadeBase.TextoPesquisa.Equals(EmptyStr)) and (TryStrToInt64(FEntidadeBase.TextoPesquisa, vNumeroAux)) then begin
           if Length(FEntidadeBase.TextoPesquisa) < 12 then
             //busca por código
             vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro and P.STATUS = ''A'''
           else
             //busca por cód barras
-            vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro';
+            vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro and P.STATUS = ''A''';
         end else begin
           //busca por descrição
           if FEntidadeBase.RegraPesquisa.Equals('Containing') then
@@ -183,7 +180,6 @@ begin
   {$ELSE}
   If ValidaDepto then
     vTextoSQL:= vTextoSQL + ' and M.COD_DEPTO = ' + IntToStr(CodDeptoUsuario);
-
   if FEntidadeBase.TextoPesquisa <> '' then begin
     //Teclas de atalho
     //Tecla + usada como atalho para busca por código
@@ -203,12 +199,10 @@ begin
       FEntidadeBase.TextoPesquisa(Copy(FEntidadeBase.TextoPesquisa,2,13));
     end;
   end;
-
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
   else if FEntidadeBase.RegraPesquisa = 'Início do texto' then
     FEntidadeBase.RegraPesquisa('Starting With');
-
   case FEntidadeBase.TipoPesquisa of
     //busca por código
     0: vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro ';
@@ -238,18 +232,14 @@ begin
       FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
     end;
   end;
-
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and P.STATUS = ' + QuotedStr('A');
   {$ENDIF}
-
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
   if FEntidadeBase.TipoPesquisa <> -1 then
     ModificaDisplayCampos;
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -258,14 +248,14 @@ var
   vTextoSQL: String;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
   vTextoSQL:= FEntidadeBase.TextoSQL + ' and P.COD_PROD = :mParametro and STATUS = ''A'' Order By 2';
   FEntidadeBase.AddParametro('mCodFilial', 1, ftInteger);
   FEntidadeBase.AddParametro('mParametro', '-1', ftString);
   FEntidadeBase.Iquery.SQL(vTextoSql);
-
   ModificaDisplayCampos;
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -313,6 +303,11 @@ end;
 function TProduto.TipoConsulta: String;
 begin
   Result:= FTipoConsulta;
+end;
+
+function TProduto.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

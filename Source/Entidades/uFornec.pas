@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -33,6 +33,8 @@ begin
   FEntidadeBase.TextoSQL('Select CODIGO, NOME, CGC, IE, ENDERECO, CIDADE, ESTADO, BAIRRO, CEP, FONE, NUMERO, COD_MUNICIPIO, ' +
                          'END_COMPLEMENTO, COD_PAIS, null as INDICE ' +
                          'From FORNEC ');
+
+  InicializaDataSource;
 end;
 
 destructor TFornec.Destroy;
@@ -55,6 +57,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   If FEntidadeBase.RegraPesquisa = 'Contendo' then
       FEntidadeBase.RegraPesquisa('Containing')
   else If FEntidadeBase.RegraPesquisa = 'Início do texto' then
@@ -72,27 +76,31 @@ begin
     end;
   end;
   vTextoSQL:= vTextoSQL + ' and STATUS <> ' + QuotedStr('I') + ' Order By 2';
-
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TFornec.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.AddParametro('Parametro', '-1', ftString);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + 'Where CODIGO = :Parametro and STATUS = ''A''');
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TFornec.ModificaDisplayCampos;
 begin
+end;
 
+function TFornec.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

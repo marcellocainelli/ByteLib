@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,8 @@ constructor TNatureza.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select N.*, 0 as INDICE from NATUREZA N  Where (1 = 1) ');
+
+  InicializaDataSource;
 end;
 
 destructor TNatureza.Destroy;
@@ -53,6 +55,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
@@ -66,6 +70,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
@@ -77,6 +83,11 @@ end;
 procedure TNatureza.ModificaDisplayCampos;
 begin
 
+end;
+
+function TNatureza.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

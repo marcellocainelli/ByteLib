@@ -14,8 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -30,6 +31,8 @@ constructor TCest.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from TAB_CEST');
+
+  InicializaDataSource;
 end;
 
 destructor TCest.Destroy;
@@ -52,6 +55,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSql;
   Case FEntidadeBase.TipoPesquisa of
     1: vTextoSQL:= vTextoSQL + ' Where CEST = :pParametro';
@@ -63,13 +68,24 @@ begin
 end;
 
 function TCest.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
-
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  vTextoSql:= 'Select * From TAB_CEST Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TCest.ModificaDisplayCampos;
 begin
+end;
 
+function TCest.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

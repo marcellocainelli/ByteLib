@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,10 +31,13 @@ constructor TCondicaoVenda.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From CONDICAO_VENDA Where (1 = 1) ');
+
+  InicializaDataSource;
 end;
 
 destructor TCondicaoVenda.Destroy;
 begin
+
   inherited;
 end;
 
@@ -53,6 +56,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
@@ -66,6 +71,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
@@ -77,6 +84,11 @@ end;
 procedure TCondicaoVenda.ModificaDisplayCampos;
 begin
 
+end;
+
+function TCondicaoVenda.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

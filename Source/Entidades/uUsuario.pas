@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -35,6 +35,8 @@ begin
                          'U.CAIXA_DEVOLUCAO,U.CANCELA_CUPOMFISCAL, 0 as INDICE '+
                          'from USUARIO U '+
                          'Where STATUS = ''A''');
+
+  InicializaDataSource;
 end;
 
 destructor TUsuario.Destroy;
@@ -55,24 +57,30 @@ end;
 function TUsuario.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TUsuario.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TUsuario.ModificaDisplayCampos;
 begin
 
+end;
+
+function TUsuario.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

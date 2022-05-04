@@ -14,8 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -34,10 +35,13 @@ begin
     'from CONVENIO_DESCONTOS CD ' +
     'join MARCAS M on (M.CODIGO = CD.COD_GRUPO) ' +
     'where CD.COD_CONVENIO= :pCod_Convenio');
+
+  InicializaDataSource;
 end;
 
 destructor TConvenio_Descontos.Destroy;
 begin
+
   inherited;
 end;
 
@@ -54,6 +58,8 @@ end;
 function TConvenio_Descontos.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   ModificaDisplayCampos;
@@ -63,6 +69,8 @@ end;
 function TConvenio_Descontos.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -71,6 +79,11 @@ end;
 procedure TConvenio_Descontos.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('TX_DESCONTO')).DisplayFormat:= '#,0.00';
+end;
+
+function TConvenio_Descontos.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

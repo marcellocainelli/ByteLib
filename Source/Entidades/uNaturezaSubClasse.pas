@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -32,10 +32,13 @@ begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from NATUREZA_SUBCLASSE '+
                          'where cod_natureza_classe = :pCodNaturezaClasse');
+
+  InicializaDataSource;
 end;
 
 destructor TNaturezaSubClasse.Destroy;
 begin
+
   inherited;
 end;
 
@@ -52,24 +55,34 @@ end;
 function TNaturezaSubClasse.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('HISTORICO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TNaturezaSubClasse.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('HISTORICO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  vTextoSql:= 'Select * From NATUREZA_SUBCLASSE Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TNaturezaSubClasse.ModificaDisplayCampos;
 begin
 
+end;
+
+function TNaturezaSubClasse.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

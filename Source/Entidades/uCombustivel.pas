@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -34,10 +34,13 @@ begin
                          'From PRODUTOS p ' +
                          'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = :mCodFilial) ' +
                          'Where P.STATUS = ''A'' AND P.COD_MARCA = 1');
+
+  InicializaDataSource;
 end;
 
 destructor TCombustivel.Destroy;
 begin
+
   inherited;
 end;
 
@@ -54,28 +57,34 @@ end;
 function TCombustivel.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   ModificaDisplayCampos;
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TCombustivel.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
-  ModificaDisplayCampos;
-
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  vTextoSql:= 'Select * From PRODUTOS Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TCombustivel.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.000';
+end;
+
+function TCombustivel.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,8 @@ constructor TFunci.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select F.*, 0 as INDICE from FUNCI F where STATUS = ''A'' ');
+
+  InicializaDataSource;
 end;
 
 destructor TFunci.Destroy;
@@ -53,31 +55,36 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSql;
-
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= FEntidadeBase.TextoSql + 'and CODIGO = :pCod_Funci';
   end;
-
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.AddParametro('pCod_Funci', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TFunci.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TFunci.ModificaDisplayCampos;
 begin
 
+end;
+
+function TFunci.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

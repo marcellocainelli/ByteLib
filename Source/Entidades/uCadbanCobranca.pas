@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,7 @@ constructor TCadbanCobranca.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from CADBAN_COBRANCA where COD_FILIAL = :pCod_Filial');
+  InicializaDataSource;
 end;
 
 destructor TCadbanCobranca.Destroy;
@@ -51,24 +52,32 @@ end;
 function TCadbanCobranca.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   //FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TCadbanCobranca.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  //FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  vTextoSql:= 'Select * From CADBAN_COBRANCA Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TCadbanCobranca.ModificaDisplayCampos;
 begin
+end;
 
+function TCadbanCobranca.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

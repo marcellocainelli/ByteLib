@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,10 +31,13 @@ constructor TCfop.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From CFOP');
+
+  InicializaDataSource;
 end;
 
 destructor TCfop.Destroy;
 begin
+
   inherited;
 end;
 
@@ -51,6 +54,8 @@ end;
 function TCfop.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -59,14 +64,21 @@ end;
 function TCfop.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TCfop.ModificaDisplayCampos;
 begin
 
+end;
+
+function TCfop.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

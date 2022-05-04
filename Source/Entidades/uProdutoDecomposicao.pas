@@ -4,7 +4,6 @@ interface
 
 uses
   Model.Entidade.Interfaces, Data.DB;
-
 Type
   TProdutoDecomposicao = class(TInterfacedObject, iEntidade)
     private
@@ -14,8 +13,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -23,7 +23,7 @@ implementation
 
 uses
   uEntidadeBase;
-
+
 { TProdutoDecomposicao }
 
 constructor TProdutoDecomposicao.Create;
@@ -34,6 +34,8 @@ begin
     'From PRODUTOS_DECOMPOSICAO PD ' +
     'Join PRODUTOS P On (P.COD_PROD = PD.COD_COMPONENTE) ' +
     'Where PD.COD_PRODUTO = :pCOD_PROD');
+
+  InicializaDataSource;
 end;
 
 destructor TProdutoDecomposicao.Destroy;
@@ -54,6 +56,9 @@ end;
 function TProdutoDecomposicao.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   ModificaDisplayCampos;
@@ -62,13 +67,24 @@ end;
 
 function TProdutoDecomposicao.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  FEntidadeBase.AddParametro('pCOD_PROD', -1, ftInteger);
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TProdutoDecomposicao.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.0000';
 //  TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUST')).currency:= True;
+end;
+
+function TProdutoDecomposicao.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

@@ -1,5 +1,7 @@
 unit uEntidadeBase;
+
 interface
+
 uses
   System.SysUtils,
   uDmFuncoes,
@@ -7,6 +9,7 @@ uses
   Data.DB,
   Model.Conexao.Interfaces,
   Model.Entidade.Interfaces;
+
 Type
   TEntidadeBase<T: IInterface> = class(TInterfacedObject, iEntidadeBase<T>)
   private
@@ -46,6 +49,7 @@ Type
     function Inativos(pValue: boolean): boolean; overload;
     function Inativos: boolean; overload;
     function Iquery: iQuery; overload;
+    function DataSource: TDataSource; overload;
   end;
 
 implementation
@@ -236,6 +240,11 @@ end;
 function TEntidadeBase<T>.Iquery: iQuery;
 begin
   Result:= FQuery;
+end;
+
+function TEntidadeBase<T>.DataSource: TDataSource;
+begin
+  Result:= FDataSource;
 end;
 
 end.

@@ -11,19 +11,21 @@ Type
       FEntidadeBase: iEntidadeBase<iEntidadeProduto>;
       FValidaDepto: Boolean;
       FCodDeptoUsuario: integer;
+      FTipoConsulta: string;
     public
       constructor Create;
       destructor Destroy; override;
       class function New: iEntidadeProduto;
       function EntidadeBase: iEntidadeBase<iEntidadeProduto>;
-      function Consulta(Value: TDataSource): iEntidadeProduto;
-      function InicializaDataSource(Value: TDataSource): iEntidadeProduto;
-
+      function Consulta(Value: TDataSource = nil): iEntidadeProduto;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidadeProduto;
       function ValidaDepto(pValue: boolean): iEntidadeProduto; overload;
       function ValidaDepto: boolean; overload;
       function CodDeptoUsuario(pValue: Integer ): iEntidadeProduto; overload;
       function CodDeptoUsuario: Integer ; overload;
-
+      function TipoConsulta(pValue: String): iEntidadeProduto; overload;
+      function TipoConsulta: String ; overload;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -46,6 +48,8 @@ begin
               'and ((A.COD_MARCA1 = :mCOD_MARCA1) or (:mCOD_MARCA1 = -1)) ' +
               'and ((A.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
               'and ((A.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1))');
+
+  InicializaDataSource;
 end;
 
 destructor TProdutoCadastro.Destroy;
@@ -68,22 +72,19 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSql;
-
   If FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
   else If FEntidadeBase.RegraPesquisa = 'Início do texto' then
     FEntidadeBase.RegraPesquisa('Starting With');
-
   //busca por descrição
   vTextoSQL:= vTextoSQL + ' and upper(A.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro)';
-
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-
   ModificaDisplayCampos;
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -92,13 +93,13 @@ var
   vTextoSQL: String;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL + ' and P.COD_PROD = :mParametro and P.STATUS = ''A'' Order By 2';
   FEntidadeBase.AddParametro('mCodFilial', 1, ftInteger);
   FEntidadeBase.AddParametro('mParametro', '-1', ftString);
   FEntidadeBase.Iquery.SQL(vTextoSql);
-
   ModificaDisplayCampos;
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -129,6 +130,22 @@ function TProdutoCadastro.CodDeptoUsuario(pValue: Integer): iEntidadeProduto;
 begin
   Result:= Self;
   FCodDeptoUsuario:= pValue;
+end;
+
+function TProdutoCadastro.TipoConsulta: String;
+begin
+  Result:= FTipoConsulta;
+end;
+
+function TProdutoCadastro.TipoConsulta(pValue: String): iEntidadeProduto;
+begin
+  Result:= Self;
+  FTipoConsulta:= pValue;
+end;
+
+function TProdutoCadastro.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

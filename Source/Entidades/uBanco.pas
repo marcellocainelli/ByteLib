@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,8 @@ constructor TBanco.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From BANCO Where CONTA = :mConta and DATA > :pDt_Inicio ');
+
+  InicializaDataSource;
 end;
 
 destructor TBanco.Destroy;
@@ -53,6 +55,8 @@ var
   vTextoSql: String;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSql:= FEntidadeBase.TextoSql + 'Order by DATA, SEQ';
     1: vTextoSql:= FEntidadeBase.TextoSql + 'and Coalesce(PENDENTE,'' '') = '' '' Order by DATA, SEQ';
@@ -65,15 +69,24 @@ begin
 end;
 
 function TBanco.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  vTextoSql:= 'Select * From BANCO Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TBanco.ModificaDisplayCampos;
 begin
+end;
 
+function TBanco.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

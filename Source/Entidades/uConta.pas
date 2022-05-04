@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -33,10 +33,13 @@ begin
   FEntidadeBase.TextoSQL('select C.BANCO, C.CONTA, C.COD_FILIAL, C.AGENCIA, C.CONTATO, C.FONE, C.LIMITE_CREDITO, C.STATUS, C.CONTA as CODIGO, 0 as INDICE '+
                          'from CADBAN C '+
                          'where C.COD_FILIAL = :CodFilial');
+
+  InicializaDataSource;
 end;
 
 destructor TConta.Destroy;
 begin
+
   inherited;
 end;
 
@@ -55,6 +58,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
@@ -70,7 +75,6 @@ begin
   end;
   if not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and C.STATUS = ''A''';
-
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('BANCO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
@@ -79,17 +83,25 @@ begin
 end;
 
 function TConta.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.IndexFieldNames('BANCO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-  ModificaDisplayCampos;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  vTextoSql:= 'Select * From CADBAN Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TConta.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LIMITE_CREDITO')).DisplayFormat:= '#,0.00';
+end;
+
+function TConta.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

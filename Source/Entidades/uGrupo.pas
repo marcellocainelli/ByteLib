@@ -4,9 +4,7 @@ interface
 
 uses
   System.SysUtils,
-
   Data.DB,
-
   Model.Entidade.Interfaces;
 
 Type
@@ -18,9 +16,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -35,6 +33,8 @@ constructor TGrupo.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select M.*, 0 as INDICE from MARCAS M where (1 = 1) ');
+
+  InicializaDataSource;
 end;
 
 destructor TGrupo.Destroy;
@@ -57,6 +57,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and M.STATUS = ''A'' ';
@@ -70,6 +72,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and M.STATUS = ''A'' ';
@@ -81,6 +85,11 @@ end;
 procedure TGrupo.ModificaDisplayCampos;
 begin
 
+end;
+
+function TGrupo.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

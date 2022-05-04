@@ -14,8 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -23,7 +24,7 @@ implementation
 
 uses
   uEntidadeBase;
-
+
 { TProdutoKit }
 
 constructor TProdutoKit.Create;
@@ -34,9 +35,11 @@ begin
     'From PRODUTOS_KIT K ' +
     'Join PRODUTOS P On (P.COD_PROD = K.COD_COMPONENTE) ' +
     'Where K.COD_PRODUTO = :pCod_Prod');
+
+  InicializaDataSource;
 end;
 
-destructor TProdutoKit.Destroy;
+destructor TProdutoKit.Destroy;
 begin
   inherited;
 end;
@@ -54,6 +57,9 @@ end;
 function TProdutoKit.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -64,13 +70,24 @@ end;
 
 function TProdutoKit.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  FEntidadeBase.AddParametro('pCod_Prod', -1, ftInteger);
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TProdutoKit.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.0000';
   TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUST')).currency:= True;
+end;
+
+function TProdutoKit.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

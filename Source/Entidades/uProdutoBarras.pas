@@ -4,7 +4,6 @@ interface
 
 uses
   Model.Entidade.Interfaces, Data.DB;
-
 Type
   TProdutoBarras = class(TInterfacedObject, iEntidade)
     private
@@ -14,8 +13,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -23,7 +23,7 @@ implementation
 
 uses
   uEntidadeBase;
-
+
 { TProdutoBarras }
 
 constructor TProdutoBarras.Create;
@@ -34,6 +34,8 @@ begin
     'from PRODUTOS_BARRAS pb ' +
     'join PRODUTOS p On (p.COD_PROD = pb.COD_PROD) ' +
     'where pb.COD_PROD = :pCod_Prod');
+
+  InicializaDataSource;
 end;
 
 destructor TProdutoBarras.Destroy;
@@ -55,6 +57,9 @@ end;
 function TProdutoBarras.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   FEntidadeBase.Iquery.IndexFieldNames('COD_BARRA');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -62,12 +67,23 @@ end;
 
 function TProdutoBarras.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  FEntidadeBase.AddParametro('pCod_Prod', -1, ftInteger);
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TProdutoBarras.ModificaDisplayCampos;
 begin
 
+end;
+
+function TProdutoBarras.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

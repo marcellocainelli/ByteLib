@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -32,6 +32,7 @@ begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select SERIE as CODIGO, SERIE, MARCA, MODELO, null as INDICE From SAT_CADASTRO where STATUS = ''A'' ' +
                          'and COD_FILIAL = :CodFilial');
+  InicializaDataSource;
 end;
 
 destructor TSat.Destroy;
@@ -52,15 +53,18 @@ end;
 function TSat.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('SERIE');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TSat.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.AddParametro('CodFilial', '1', ftString);
   FEntidadeBase.Iquery.IndexFieldNames('SERIE');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
@@ -69,6 +73,11 @@ end;
 procedure TSat.ModificaDisplayCampos;
 begin
 
+end;
+
+function TSat.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

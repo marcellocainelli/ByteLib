@@ -1,7 +1,6 @@
 unit uAcessoMenu;
 
 interface
-
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 
@@ -14,8 +13,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -34,6 +34,8 @@ begin
                          'Join MENU M on (M.MENID_PK = D.MENID_PKFK) ' +
                          'Where D.USUID_PKFK = :CODUSUARIO ' +
                          'Order By M.MENNOME');
+
+  InicializaDataSource;
 end;
 
 destructor TAcessoMenu.Destroy;
@@ -54,25 +56,31 @@ end;
 function TAcessoMenu.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('MENID_PKFK');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TAcessoMenu.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.AddParametro('CODUSUARIO', -1, ftInteger);
   FEntidadeBase.Iquery.IndexFieldNames('MENID_PKFK');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TAcessoMenu.ModificaDisplayCampos;
 begin
+end;
 
+function TAcessoMenu.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

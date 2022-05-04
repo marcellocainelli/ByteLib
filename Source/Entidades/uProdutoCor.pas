@@ -4,7 +4,6 @@ interface
 
 uses
   Model.Entidade.Interfaces, Data.DB;
-
 Type
   TProdutoCor = class(TInterfacedObject, iEntidade)
     private
@@ -14,8 +13,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -23,13 +23,15 @@ implementation
 
 uses
   uEntidadeBase;
-
+
 { TProdutoCor }
 
 constructor TProdutoCor.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from PRODUTOS_CORES');
+
+  InicializaDataSource;
 end;
 
 destructor TProdutoCor.Destroy;
@@ -51,6 +53,9 @@ end;
 function TProdutoCor.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -59,12 +64,22 @@ end;
 
 function TProdutoCor.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' Where 1 <> 1');
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TProdutoCor.ModificaDisplayCampos;
 begin
 
+end;
+
+function TProdutoCor.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -31,6 +31,8 @@ constructor TAgenda.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from AGENDA where ATIVO_INATIVO = ''A'' and COD_FUNCI = :pCod_Funci');
+
+  InicializaDataSource;
 end;
 
 destructor TAgenda.Destroy;
@@ -53,34 +55,40 @@ var
   vTextoSql: String;
 begin
   Result:= Self;
-  vTextoSql:= FEntidadeBase.TextoSQL;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
 
+  vTextoSql:= FEntidadeBase.TextoSQL;
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSql:= vTextoSql + ' and STATUS = ''A''';
     1: vTextoSql:= vTextoSql + ' and STATUS = ''R''';
     2: vTextoSql:= vTextoSql + ' and STATUS = ''C''';
   end;
-
   FEntidadeBase.AddParametro('pCod_Funci', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('TITULO');
   FEntidadeBase.Iquery.SQL(vTextoSql);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TAgenda.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+
   FEntidadeBase.Iquery.IndexFieldNames('TITULO');
   FEntidadeBase.AddParametro('pCod_Funci', '-1', ftString);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TAgenda.ModificaDisplayCampos;
 begin
+end;
 
+function TAgenda.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

@@ -14,9 +14,9 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
-
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
 
@@ -37,6 +37,8 @@ begin
     'left join estoquefilial_grade efg on ((efg.cod_prod = rci.cod_prod) and (efg.cod_filial = :mcodfilial or :mcodfilial = -1))' +
     'left join produtos_tamanho pt on (pt.codigo = efg.cod_tamanho) ' +
     'left join produtos_cores pc on (pc.codigo = efg.cod_cor) ');
+
+  InicializaDataSource;
 end;
 
 destructor TRequisicaoCompraGrades.Destroy;
@@ -59,6 +61,8 @@ var
   vTextoSQL: string;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL + ' where rcg.ID_REQUISICAO_COMPRA_ITENS = :pIdReqCompraItens';
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -67,13 +71,20 @@ end;
 function TRequisicaoCompraGrades.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TRequisicaoCompraGrades.ModificaDisplayCampos;
 begin
 
+end;
+
+function TRequisicaoCompraGrades.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.

@@ -14,23 +14,30 @@ Type
       destructor Destroy; override;
       class function New: iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
-      function Consulta(Value: TDataSource): iEntidade;
-      function InicializaDataSource(Value: TDataSource): iEntidade;
+      function Consulta(Value: TDataSource = nil): iEntidade;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidade;
+      function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
+
 implementation
 
 uses
   uEntidadeBase;
+
 { TBanco }
+
 constructor TEstoqueColetor.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From ESTOQUE_COLETOR');
+
+  InicializaDataSource;
 end;
 
 destructor TEstoqueColetor.Destroy;
 begin
+
   inherited;
 end;
 
@@ -49,6 +56,8 @@ var
   vTextoSql: String;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   vTextoSql:= FEntidadeBase.TextoSql;
   case FEntidadeBase.TipoPesquisa of
     1: vTextoSql:= vTextoSql + ' Where ID = :Parametro';
@@ -64,15 +73,25 @@ begin
 end;
 
 function TEstoqueColetor.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  vTextoSql:= 'Select * From ESTOQUE_COLETOR Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TEstoqueColetor.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
+end;
+
+function TEstoqueColetor.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.
