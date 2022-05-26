@@ -132,7 +132,7 @@ begin
   Case FEntidadeBase.TipoPesquisa of
     //busca por código/cód barras/descrição
     0: begin
-        if (not FEntidadeBase.TextoPesquisa.Equals(EmptyStr)) and (TryStrToInt64(FEntidadeBase.TextoPesquisa, vNumeroAux)) then begin
+        if (TryStrToInt64(FEntidadeBase.TextoPesquisa, vNumeroAux)) then begin
           if Length(FEntidadeBase.TextoPesquisa) < 12 then
             //busca por código
             vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro and P.STATUS = ''A'''
