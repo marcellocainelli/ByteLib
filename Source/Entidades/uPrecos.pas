@@ -68,6 +68,8 @@ end;
 function TPrecos.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;

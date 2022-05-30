@@ -64,7 +64,7 @@ begin
       'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
       'and p.nome_prod Containing :pNome_prod');
   2: FEntidadeBase.TextoSQL(
-      'Select p.descricao as nome_prod, pi.preco, pi.preco as preco_vend ' +
+      'Select p.descricao as nome_prod, pi.preco, pi.preco as preco_vend, p.multiplicador ' +
       'from preco_itens pi ' +
       'join precos p on (p.codigo = pi.cod_precos) ' +
       'where pi.cod_prod = :pCod_prod');
@@ -113,6 +113,8 @@ procedure TPrecosItens.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco_vend')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco')).currency:= True;
+  If FTipoConsulta = 'Produto' then
+    TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('multiplicador')).DisplayFormat:= '#,0.00';
 end;
 
 function TPrecosItens.ValidaDepto: boolean;
