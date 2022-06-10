@@ -58,6 +58,7 @@ type
       class function CheckInternet(AHost: string = 'www.google.com'; APort: integer = 80): Boolean;
       class procedure VCL_OpenPDF(AFile: TFileName; ATypeForm: Integer);
       class function GetRandomNumber(AStartNum, AEndNum: integer): integer;
+      class function IIf(pCond:Boolean;pTrue,pFalse:Variant): Variant;
 
       {Funções de formatação}
       class function SomenteNumero(const AValue: string): string;
@@ -199,6 +200,11 @@ begin
   ShellExecute(0, nil, PChar(AFile), nil, vDir, ATypeForm);
   FreeMem(vDir, 256);
 {$ENDIF}
+end;
+
+class function TLib.IIf(pCond: Boolean; pTrue, pFalse: Variant): Variant;
+begin
+  If pCond Then Result:= pTrue else Result:= pFalse;
 end;
 
 {$ENDREGION}

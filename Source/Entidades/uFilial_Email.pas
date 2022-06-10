@@ -56,7 +56,7 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  vTextoSQL:= FEntidadeBase.TextoSQL + ' Where FE.CODIGO = :pCodFilial';
+  vTextoSQL:= FEntidadeBase.TextoSQL + ' Where FE.ID = :pCodFilial';
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
@@ -66,7 +66,7 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
+  FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
