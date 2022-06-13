@@ -76,6 +76,7 @@ end;
 
 procedure TProdutoLote.ModificaDisplayCampos;
 begin
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dt_fabricacao')).EditMask:= '!99/99/00;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('validade')).EditMask:= '!99/99/00;1;_';
 end;
 

@@ -17,15 +17,15 @@ Type
       destructor Destroy; override;
       class function New: iEntidadeProduto;
       function EntidadeBase: iEntidadeBase<iEntidadeProduto>;
-      function Consulta(Value: TDataSource): iEntidadeProduto;
-      function InicializaDataSource(Value: TDataSource): iEntidadeProduto;
+      function Consulta(Value: TDataSource = nil): iEntidadeProduto;
+      function InicializaDataSource(Value: TDataSource = nil): iEntidadeProduto;
+      function DtSrc: TDataSource;
       function ValidaDepto(pValue: boolean): iEntidadeProduto; overload;
       function ValidaDepto: boolean; overload;
       function CodDeptoUsuario(pValue: Integer): iEntidadeProduto; overload;
       function CodDeptoUsuario: Integer; overload;
       function TipoConsulta(pValue: String): iEntidadeProduto; overload;
       function TipoConsulta: String; overload;
-
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
@@ -41,6 +41,8 @@ constructor TPrecosItens.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidadeProduto>.New(Self);
   FTipoConsulta:= 'Filtra';
+
+  InicializaDataSource;
 end;
 
 procedure TPrecosItens.SelecionaSQLConsulta;
@@ -62,9 +64,10 @@ begin
       'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
       'and p.nome_prod Containing :pNome_prod');
   2: FEntidadeBase.TextoSQL(
-      'Select p.descricao as nome_prod, pi.preco, pi.preco as preco_vend ' +
+      'Select p.descricao as nome_prod, pi.preco, pi.preco as preco_vend, (((pi.preco / pd.preco_cust) - 1) *100) as multiplicador ' +
       'from preco_itens pi ' +
       'join precos p on (p.codigo = pi.cod_precos) ' +
+      'join produtos pd on (pd.cod_prod = pi.cod_prod) ' +
       'where pi.cod_prod = :pCod_prod');
   end;
 end;
@@ -87,10 +90,11 @@ end;
 function TPrecosItens.Consulta(Value: TDataSource): iEntidadeProduto;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
@@ -98,9 +102,11 @@ end;
 function TPrecosItens.InicializaDataSource(Value: TDataSource): iEntidadeProduto;
 begin
   Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  SelecionaSQLConsulta;
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
-
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -108,6 +114,8 @@ procedure TPrecosItens.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco_vend')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco')).currency:= True;
+  If FTipoConsulta = 'Produto' then
+    TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('multiplicador')).DisplayFormat:= '#,0.00';
 end;
 
 function TPrecosItens.ValidaDepto: boolean;
@@ -141,6 +149,11 @@ function TPrecosItens.TipoConsulta(pValue: String): iEntidadeProduto;
 begin
   Result:= Self;
   FTipoConsulta:= pValue;
+end;
+
+function TPrecosItens.DtSrc: TDataSource;
+begin
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.
