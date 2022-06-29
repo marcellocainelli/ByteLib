@@ -30,7 +30,7 @@ uses
 constructor TFunci.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select F.*, 0 as INDICE from FUNCI F where STATUS = ''A'' ');
+  FEntidadeBase.TextoSQL('select F.*, 0 as INDICE from FUNCI F where (1 = 1) ');
 
   InicializaDataSource;
 end;
@@ -59,11 +59,14 @@ begin
     Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSql;
   case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSql + 'and CODIGO = :pCod_Funci';
+    0: vTextoSQL:= FEntidadeBase.TextoSql + ' and CODIGO = :pCod_Funci';
   end;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and F.STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.AddParametro('pCod_Funci', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.SQL(vTextoSQL);
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -74,12 +77,17 @@ begin
     Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
+
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TFunci.ModificaDisplayCampos;
 begin
-
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtnascimento')).EditMask:= '!99/99/00;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtadimissao')).EditMask:= '!99/99/00;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtdemissao')).EditMask:= '!99/99/00;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtferias')).EditMask:= '!99/99/00;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('cep')).EditMask:= '00000\-999;1;_';
 end;
 
 function TFunci.DtSrc: TDataSource;

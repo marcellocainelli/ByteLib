@@ -97,7 +97,7 @@ begin
             'Left Join PRODUTOS_PROMOCAO PP on ((PP.COD_PROD = P.COD_PROD) and (current_date >= PP.dtinicio and current_date <= PP.dtfim)) ' +
             'where (1=1)');
   1: FEntidadeBase.TextoSQL(
-            'Select P.*, B.QUANTIDADE ' +
+            'Select P.*, P.PRECO_VEND as PRECO, P.PRECO_PRAZ as PRAZO, B.QUANTIDADE, B.QUANTIDADE as ESTOQUE ' +
             'From PRODUTOS P ' +
             'Left Join ESTOQUEFILIAL B on (P.COD_PROD = B.COD_PROD and B.COD_FILIAL = :mCodFilial)' +
             'Where STATUS = ''A'' ' +
@@ -153,8 +153,8 @@ begin
         //busca por cód barras
         vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro '
         //Se trabalha com multiplos cod barras
-        //If DmFuncoes.MultiplosCodBarras then
-        //  FEntidadeBase.TextoPesquisa(DmFuncoes.MultBarrasGetCodBarPrincipal(FEntidadeBase.TextoPesquisa));
+        If DmFuncoes.MultiplosCodBarras then
+          FEntidadeBase.TextoPesquisa(DmFuncoes.MultBarrasGetCodBarPrincipal(FEntidadeBase.TextoPesquisa));
       else
         //busca por descricao
         vTextoSQL:= vTextoSQL + ' upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2';

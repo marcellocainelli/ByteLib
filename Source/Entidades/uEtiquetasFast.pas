@@ -54,7 +54,7 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-//  FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
+  FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
@@ -67,6 +67,7 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   vTextoSql:= 'Select * From ETIQUETAS_FAST Where 1 <> 1';
+  FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
