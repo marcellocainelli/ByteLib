@@ -75,6 +75,7 @@ begin
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= FEntidadeBase.TextoSql + 'Where CODIGO = :Parametro';
     1: vTextoSQL:= FEntidadeBase.TextoSql + 'Where Upper(NOME) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
+    2: vTextoSQL:= FEntidadeBase.TextoSql;
   end;
   {$ENDIF}
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
