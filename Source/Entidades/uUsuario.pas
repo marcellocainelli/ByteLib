@@ -30,12 +30,7 @@ uses
 constructor TUsuario.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select U.COD_CAIXA,U.COD_CAIXA as CODIGO,U.NOME,U.SENHA,U.PRIORIDADE,U.PATHBYTESUPER,U.DTSINC,U.DESCONTOMAXIMO,U.DESCMAXRECTO,U.LIBERABLOQUEIO,U.LEMBRETES,U.DTLEMBRETE, '+
-                         'U.STATUS,U.COD_FUNCI,U.COD_FILIAL,U.TROCAFILIAL,U.LANCAOUTRASSAIDAS,U.COD_DEPTO,U.CAIXA_RECEBIMENTO,U.CAIXA_MOVIMENTO,U.CAIXA_DESPESAS,U.CAIXA_ORCAMENTO, '+
-                         'U.CAIXA_DEVOLUCAO,U.CANCELA_CUPOMFISCAL, 0 as INDICE '+
-                         'from USUARIO U '+
-                         'Where STATUS = ''A''');
-
+  FEntidadeBase.TextoSQL('Select U.*, U.COD_CAIXA as CODIGO, 0 as INDICE from USUARIO U Where (1 = 1)');
   InicializaDataSource;
 end;
 
@@ -55,12 +50,17 @@ begin
 end;
 
 function TUsuario.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
+  vTextoSQL:= FEntidadeBase.TextoSql;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and U.STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
