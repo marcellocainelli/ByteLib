@@ -30,8 +30,7 @@ uses
 constructor TCondicaoPagamento.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select DATAPAGTO as CODIGO, DESCRICAO as NOME, TIPO, CONDICAO1, CONDICAO2, CONDICAO3 From "CONDPGTO" Order By 2');
-
+  FEntidadeBase.TextoSQL('');
   InicializaDataSource;
 end;
 
@@ -51,12 +50,18 @@ begin
 end;
 
 function TCondicaoPagamento.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  Case FEntidadeBase.TipoPesquisa of
+    0: vTextoSQL:= 'Select DATAPAGTO as CODIGO, DESCRICAO as NOME, TIPO, CONDICAO1, CONDICAO2, CONDICAO3 From CONDPGTO';
+    1: vTextoSQL:= 'select * from CONDPGTO';
+  End;
+  vTextoSQL:= vTextoSQL + ' Order By 2';
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -67,7 +72,7 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  vTextoSql:= 'Select * From DATAPAGTO Where 1 <> 1';
+  vTextoSql:= 'Select * From CONDPGTO Where 1 <> 1';
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
