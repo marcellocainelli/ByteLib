@@ -30,8 +30,7 @@ uses
 constructor TSat.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select SERIE as CODIGO, SERIE, MARCA, MODELO, null as INDICE From SAT_CADASTRO where STATUS = ''A'' ' +
-                         'and COD_FILIAL = :CodFilial');
+  FEntidadeBase.TextoSQL('');
   InicializaDataSource;
 end;
 
@@ -51,23 +50,36 @@ begin
 end;
 
 function TSat.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
+  Case FEntidadeBase.TipoPesquisa of
+    0: vTextoSQL:= 'Select SERIE as CODIGO, SERIE, MARCA, MODELO, null as INDICE From SAT_CADASTRO where STATUS = ''A'' and COD_FILIAL = :CodFilial';
+    1:
+    begin
+      vTextoSQL:= 'Select * From SAT_CADASTRO where COD_FILIAL = :CodFilial ';
+      If not FEntidadeBase.Inativos then
+        vTextoSQL:= vTextoSQL + ' and STATUS = ''A'' ';
+    end;
+  End;
   FEntidadeBase.Iquery.IndexFieldNames('SERIE');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 function TSat.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSql: String;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.AddParametro('CodFilial', '1', ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('SERIE');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  vTextoSql:= 'Select * From SAT_CADASTRO Where 1 <> 1';
+  FEntidadeBase.Iquery.SQL(vTextoSql);
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TSat.ModificaDisplayCampos;
