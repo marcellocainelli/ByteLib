@@ -78,7 +78,7 @@ end;
 
 function TOrdemOticaLentes.DtSrc: TDataSource;
 begin
-
+  Result:= FEntidadeBase.DataSource;
 end;
 
 end.
