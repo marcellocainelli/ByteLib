@@ -30,8 +30,12 @@ uses
 constructor TAgenda.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from AGENDA where ATIVO_INATIVO = ''A'' and COD_FUNCI = :pCod_Funci');
-
+  FEntidadeBase.TextoSQL(
+    'Select a.* From AGENDA a ' +
+    'Where ((a.cod_usuario = :pCod_Usuario) ' +
+    'or (a.visualizacao = 1) ' +
+    'or (a.visualizacao = 2 and a.agenda_grupos_codigo in ' +
+    '(select agu.agenda_grupos_codigo from agenda_grupos_usuarios agu where agu.usuario_cod_caixa = :pCod_Usuario))) ');
   InicializaDataSource;
 end;
 
@@ -57,16 +61,15 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
   vTextoSql:= FEntidadeBase.TextoSQL;
   case FEntidadeBase.TipoPesquisa of
-    0: vTextoSql:= vTextoSql + ' and STATUS = ''A''';
-    1: vTextoSql:= vTextoSql + ' and STATUS = ''R''';
-    2: vTextoSql:= vTextoSql + ' and STATUS = ''C''';
+    0: vTextoSql:= vTextoSql + ' and a.DATA = :pData Order By a.HORA';
+    1: vTextoSql:= vTextoSql + ' and Extract(Year From a.DATA) = :pAno and Extract(Month From a.DATA) = :pMes Order By a.DATA, a.HORA';
+    2: vTextoSql:= vTextoSql + ' and Extract(Year From a.DATA) = :pAno Order By a.DATA, a.HORA';
   end;
-  FEntidadeBase.AddParametro('pCod_Funci', FEntidadeBase.TextoPesquisa, ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('TITULO');
+  FEntidadeBase.AddParametro('pCod_Usuario', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.SQL(vTextoSql);
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -75,15 +78,13 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
-  FEntidadeBase.Iquery.IndexFieldNames('TITULO');
-  FEntidadeBase.AddParametro('pCod_Funci', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  FEntidadeBase.Iquery.SQL('Select * From AGENDA Where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
 procedure TAgenda.ModificaDisplayCampos;
 begin
+  TTimeField(FEntidadeBase.Iquery.Dataset.FieldByName('hora')).EditMask:= '!99:99;1;_';
 end;
 
 function TAgenda.DtSrc: TDataSource;
