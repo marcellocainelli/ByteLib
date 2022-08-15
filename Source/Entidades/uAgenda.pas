@@ -84,6 +84,7 @@ end;
 
 procedure TAgenda.ModificaDisplayCampos;
 begin
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('data')).EditMask:= '!99/99/00;1;_';
   TTimeField(FEntidadeBase.Iquery.Dataset.FieldByName('hora')).EditMask:= '!99:99;1;_';
 end;
 
