@@ -30,7 +30,7 @@ uses
 constructor TFilial.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select F.*, 0 as INDICE From FILIAL F');
+  FEntidadeBase.TextoSQL('Select F.*, 0 as INDICE From FILIAL F where (1 = 1) ');
   FEntidadeBase.TipoPesquisa(1);
 
   InicializaDataSource;
@@ -60,28 +60,39 @@ begin
     Value:= FEntidadeBase.DataSource;
 
   vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and F.STATUS = ''A'' ';
+
   case FEntidadeBase.TipoPesquisa of
-    1: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where F.CODIGO = :CodFilial';
+    1: vTextoSQL:= FEntidadeBase.TextoSQL + ' and F.CODIGO = :CodFilial';
   end;
 
+  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
+  ModificaDisplayCampos;
+  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+end;
+
+function TFilial.InicializaDataSource(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
+begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FEntidadeBase.DataSource;
+  vTextoSQL:= 'Select F.*, 0 as INDICE From FILIAL F where (1 <> 1) ';
   FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TFilial.InicializaDataSource(Value: TDataSource): iEntidade;
-begin
-  Result:= Self;
-  if Value = nil then
-    Value:= FEntidadeBase.DataSource;
-
-  FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' where 1 <> 1');
-  Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-end;
-
 procedure TFilial.ModificaDisplayCampos;
 begin
+  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cnpj')).EditMask:= '##.###.###/####-##;1;_';
+  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cep')).EditMask:= '00000\-999;1;_';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota_simples')).DisplayFormat:= '####0.0000';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota_funrural')).DisplayFormat:= '####0.00';
+  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('pixavulso_cep')).EditMask:= '00000\-999;1;_';
 end;
 
 function TFilial.DtSrc: TDataSource;
