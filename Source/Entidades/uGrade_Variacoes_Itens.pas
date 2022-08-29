@@ -30,8 +30,12 @@ uses
 constructor TGrade_Variacoes_Itens.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from GRADE_VARIACOES_ITENS where COD_GRADE_VARIACOES = :pCod_Grade_Variacoes');
-
+  FEntidadeBase.TextoSQL(
+    'select gvi.*, pt.descricao as tamanho, pc.descricao as cor ' +
+    'from GRADE_VARIACOES_ITENS gvi ' +
+    'left join produtos_tamanho pt on (pt.codigo = gvi.cod_tamanho) ' +
+    'left join produtos_cores pc on (pc.codigo = gvi.cod_cor) ' +
+    'where COD_GRADE_VARIACOES = :pCod_Grade_Variacoes ');
   InicializaDataSource;
 end;
 
@@ -55,8 +59,6 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
-  //FEntidadeBase.Iquery.IndexFieldNames('');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
