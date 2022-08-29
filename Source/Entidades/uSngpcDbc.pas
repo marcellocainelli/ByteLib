@@ -1,11 +1,12 @@
-unit uClienteCarro;
+unit uSngpcDbc;
 
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB;
+  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+
 Type
-  TClienteCarro = class(TInterfacedObject, iEntidade)
+  TSngpcDbc = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -18,66 +19,64 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
+
 implementation
+
 uses
   uEntidadeBase;
 
+{ TSngpcDbc }
 
-{ TClienteCarro }
-
-constructor TClienteCarro.Create;
+constructor TSngpcDbc.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from CARRO where COD_CLI = :pCod_Cli');
-
+  FEntidadeBase.TextoSQL('select * from SNGPC_DCB');
   InicializaDataSource;
 end;
 
-destructor TClienteCarro.Destroy;
+destructor TSngpcDbc.Destroy;
 begin
   inherited;
 end;
 
-class function TClienteCarro.New: iEntidade;
+class function TSngpcDbc.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TClienteCarro.EntidadeBase: iEntidadeBase<iEntidade>;
+function TSngpcDbc.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TClienteCarro.Consulta(Value: TDataSource): iEntidade;
+function TSngpcDbc.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
-  FEntidadeBase.Iquery.IndexFieldNames('NOME_CARRO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
-  ModificaDisplayCampos;
+  FEntidadeBase.Iquery.IndexFieldNames('DENOMINACAO');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TClienteCarro.InicializaDataSource(Value: TDataSource): iEntidade;
+function TSngpcDbc.InicializaDataSource(Value: TDataSource): iEntidade;
 var
   vTextoSql: String;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  vTextoSql:= 'Select * From CARRO Where 1 <> 1';
+  vTextoSql:= 'select * from SNGPC_DCB Where 1 <> 1';
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-procedure TClienteCarro.ModificaDisplayCampos;
+procedure TSngpcDbc.ModificaDisplayCampos;
 begin
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LIMITE')).DisplayFormat:= '#,0.00';
+
 end;
 
-function TClienteCarro.DtSrc: TDataSource;
+function TSngpcDbc.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
