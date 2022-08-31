@@ -1,5 +1,7 @@
 unit Model.Conexao.Firedac;
+
 interface
+
 uses
   System.IOUtils,
   System.IniFiles,
@@ -33,6 +35,7 @@ uses
   FireDAC.VCLUI.Wait,
   {$ENDIF}
   Model.Conexao.Interfaces;
+
 Type
   TModelConexaoFiredac = class(TInterfacedObject, iConexao)
     private
@@ -45,22 +48,23 @@ Type
       class function New(ACaminhoIni: String = ''): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
+      procedure ConnWindows;
+      procedure ConnApp;
       procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
       procedure FDConnBeforeConnect(Sender: TObject);
   end;
+
 implementation
+
 { TModelConexaoFiredac }
+
 constructor TModelConexaoFiredac.Create;
 begin
   FConexao:= TFDConnection.Create(nil);
   {$IFDEF APP}
-    InsertOnBeforeConnectEvent(FDConnBeforeConnect);
+    ConnApp;
   {$ELSE}
-    FArqIni:= TiniFile.Create(FCaminhoIni);
-    FConexao.DriverName:= 'FB';
-    FConexao.Params.Database:= FArqIni.ReadString('SISTEMA','Database','');
-    FConexao.Params.UserName:= 'SYSDBA';
-    FConexao.Params.Password:= 'masterkey';
+    ConnWindows;
   {$ENDIF}
   FConexao.Connected:= true;
 end;
@@ -85,9 +89,35 @@ begin
   Result:= FConexao.Params.Database;
 end;
 
+procedure TModelConexaoFiredac.ConnApp;
+begin
+  InsertOnBeforeConnectEvent(FDConnBeforeConnect);
+end;
+
 function TModelConexaoFiredac.Connection: TCustomConnection;
 begin
   Result:= FConexao;
+end;
+
+procedure TModelConexaoFiredac.ConnWindows;
+var
+  vDatabase: string;
+begin
+  vDatabase:= '';
+  {$IFDEF BYTESUPER}
+    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
+  {$ELSE}
+    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
+  {$ENDIF}
+  {$IFDEF APPSERVER}
+    vDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
+  {$ENDIF}
+  if vDatabase.Equals(EmptyStr) then
+    vDatabase:= FArqIni.ReadString('SISTEMA','Database','');
+  FConexao.DriverName:= 'FB';
+  FConexao.Params.Database:= vDatabase;
+  FConexao.Params.UserName:= 'SYSDBA';
+  FConexao.Params.Password:= 'masterkey';
 end;
 
 procedure TModelConexaoFiredac.InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);

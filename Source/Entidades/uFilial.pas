@@ -3,16 +3,16 @@ unit uFilial;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TFilial = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -27,9 +27,9 @@ uses
 
 { TFilial }
 
-constructor TFilial.Create;
+constructor TFilial.Create(AConn: iConexao);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TextoSQL('Select F.*, 0 as INDICE From FILIAL F where (1 = 1) ');
   FEntidadeBase.TipoPesquisa(1);
 
@@ -41,9 +41,9 @@ begin
   inherited;
 end;
 
-class function TFilial.New: iEntidade;
+class function TFilial.New(AConn: iConexao): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TFilial.EntidadeBase: iEntidadeBase<iEntidade>;

@@ -23,9 +23,9 @@ Type
     FInativos: boolean;
     FDataSource: TDataSource;
   public
-    constructor Create(Parent: T);
+    constructor Create(Parent: T; AConn: iConexao = nil);
     destructor Destroy; override;
-    class function New(Parent: T): iEntidadeBase<T>;
+    class function New(Parent: T; AConn: iConexao = nil): iEntidadeBase<T>;
     function Salva(Value: TDataSource = nil): iEntidadeBase<T>;
     function Exclui(Value: TDataSource = nil): iEntidadeBase<T>;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>;
@@ -56,10 +56,12 @@ implementation
 
 { TEntidadeBase<T> }
 
-constructor TEntidadeBase<T>.Create(Parent: T);
+constructor TEntidadeBase<T>.Create(Parent: T; AConn: iConexao);
 begin
   FParent:= Parent;
-  FQuery:= TControllerFactoryQuery.New.Query(DmFuncoes.Connection);
+  if not Assigned(AConn) then
+    AConn:= dmFuncoes.Connection;
+  FQuery:= TControllerFactoryQuery.New.Query(AConn);
   FDataSource:= TDataSource.Create(nil);
 end;
 
@@ -69,9 +71,9 @@ begin
   FreeAndNil(FDataSource);
 end;
 
-class function TEntidadeBase<T>.New(Parent: T): iEntidadeBase<T>;
+class function TEntidadeBase<T>.New(Parent: T; AConn: iConexao): iEntidadeBase<T>;
 begin
-  Result:= Self.Create(Parent);
+  Result:= Self.Create(Parent, AConn);
 end;
 
 function TEntidadeBase<T>.Salva(Value: TDataSource): iEntidadeBase<T>;

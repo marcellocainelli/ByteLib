@@ -3,16 +3,16 @@ unit uEntidade;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TEntidade = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -27,9 +27,9 @@ uses
 
 { TEntidade }
 
-constructor TEntidade.Create;
+constructor TEntidade.Create(AConn: iConexao);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
 end;
 
 destructor TEntidade.Destroy;
@@ -38,9 +38,9 @@ begin
   inherited;
 end;
 
-class function TEntidade.New: iEntidade;
+class function TEntidade.New(AConn: iConexao): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TEntidade.EntidadeBase: iEntidadeBase<iEntidade>;
