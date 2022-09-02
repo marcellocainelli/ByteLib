@@ -28,6 +28,8 @@ type
     function TipoPesquisa: Integer ; overload;
     function RegraPesquisa(pValue: String): String; overload;
     function RegraPesquisa: String; overload;
+    function TipoConsulta(pValue: String ): iEntidadeBase<T>; overload;
+    function TipoConsulta: String ; overload;
     function Inativos(pValue: boolean): boolean; overload;
     function Inativos: boolean; overload;
     function Iquery: iQuery; overload;

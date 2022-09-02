@@ -20,6 +20,7 @@ Type
     FTextoPesquisa: String;
     FTipoPesquisa: Integer;
     FRegraPesquisa: String;
+    FTipoConsulta: string;
     FInativos: boolean;
     FDataSource: TDataSource;
   public
@@ -46,6 +47,8 @@ Type
     function TipoPesquisa: Integer ; overload;
     function RegraPesquisa(pValue: String): String; overload;
     function RegraPesquisa: String; overload;
+    function TipoConsulta(pValue: String ): iEntidadeBase<T>; overload;
+    function TipoConsulta: String ; overload;
     function Inativos(pValue: boolean): boolean; overload;
     function Inativos: boolean; overload;
     function Iquery: iQuery; overload;
@@ -63,6 +66,7 @@ begin
     AConn:= dmFuncoes.Connection;
   FQuery:= TControllerFactoryQuery.New.Query(AConn);
   FDataSource:= TDataSource.Create(nil);
+  FTipoConsulta:= 'Consulta';
 end;
 
 destructor TEntidadeBase<T>.Destroy;
@@ -83,7 +87,6 @@ begin
     Value:= FDataSource;
   Try
     FQuery.Salva;
-    //Value.DataSet.Refresh;
   Except
     on E: Exception do begin
       Value.DataSet.Edit;
@@ -226,6 +229,17 @@ function TEntidadeBase<T>.TextoPesquisa(pValue: String): String;
 begin
   Result:= EmptyStr;
   FTextoPesquisa:= pValue;
+end;
+
+function TEntidadeBase<T>.TipoConsulta: String;
+begin
+  Result:= FTipoConsulta;
+end;
+
+function TEntidadeBase<T>.TipoConsulta(pValue: String): iEntidadeBase<T>;
+begin
+  Result:= Self;
+  FTipoConsulta:= pValue;
 end;
 
 function TEntidadeBase<T>.TipoPesquisa: Integer;
