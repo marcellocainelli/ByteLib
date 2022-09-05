@@ -49,12 +49,12 @@ procedure TPrecosItens.SelecionaSQLConsulta;
 begin
   case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra','Produto']) of
   0: FEntidadeBase.TextoSQL(
-      'select pi.*, p.nome_prod, p.preco_vend ' +
+      'select pi.*, p.nome_prod, p.preco_cust, p.preco_vend ' +
       'from preco_itens pi ' +
       'join produtos p on (p.cod_prod = pi.cod_prod) ' +
       'where p.status = ''A'' and pi.cod_precos = :pCod_Precos ');
   1: FEntidadeBase.TextoSQL(
-      'select pi.*, p.nome_prod, p.preco_vend ' +
+      'select pi.*, p.nome_prod, p.preco_cust, p.preco_vend ' +
       'from preco_itens pi ' +
       'join produtos p on (p.cod_prod = pi.cod_prod) ' +
       'where p.status = ''A'' and pi.cod_precos = :pCod_Precos ' +
@@ -64,7 +64,7 @@ begin
       'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
       'and p.nome_prod Containing :pNome_prod');
   2: FEntidadeBase.TextoSQL(
-      'Select p.descricao as nome_prod, pi.preco, pi.preco as preco_vend, (((pi.preco / pd.preco_cust) - 1) *100) as multiplicador ' +
+      'Select p.descricao as nome_prod, p.preco_cust, pi.preco, pi.preco as preco_vend, (((pi.preco / pd.preco_cust) - 1) *100) as multiplicador ' +
       'from preco_itens pi ' +
       'join precos p on (p.codigo = pi.cod_precos) ' +
       'join produtos pd on (pd.cod_prod = pi.cod_prod) ' +
@@ -112,6 +112,7 @@ end;
 
 procedure TPrecosItens.ModificaDisplayCampos;
 begin
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco_cust')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco_vend')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco')).currency:= True;
   If FTipoConsulta = 'Produto' then
