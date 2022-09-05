@@ -1,10 +1,7 @@
 unit uProdutoKit;
-
 interface
-
 uses
   Model.Entidade.Interfaces, Data.DB;
-
 Type
   TProdutoKit = class(TInterfacedObject, iEntidade)
     private
@@ -19,47 +16,37 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
-
 { TProdutoKit }
-
 constructor TProdutoKit.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
-    'Select K.*, P.NOME_PROD, P.UNIDADE, P.PRECO_CUST ' +
-    'From PRODUTOS_KIT K ' +
-    'Join PRODUTOS P On (P.COD_PROD = K.COD_COMPONENTE) ' +
-    'Where K.COD_PRODUTO = :pCod_Prod');
-
+    'select k.*, p.nome_prod, p.unidade, p.preco_cust, iif(k.flg_prc_venda_kit = ''S'', k.prc_venda_kit, p.preco_vend) as preco_vend ' +
+    'from produtos_kit k ' +
+    'join produtos p on (p.cod_prod = k.cod_componente) ' +
+    'where k.cod_produto = :pcod_prod');
   InicializaDataSource;
 end;
-
 destructor TProdutoKit.Destroy;
 begin
   inherited;
 end;
-
 class function TProdutoKit.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-
 function TProdutoKit.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-
 function TProdutoKit.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -67,27 +54,24 @@ begin
   ModificaDisplayCampos;
   Value.DataSet.Open;
 end;
-
 function TProdutoKit.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
   FEntidadeBase.AddParametro('pCod_Prod', -1, ftInteger);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TProdutoKit.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.0000';
   TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUST')).currency:= True;
+  TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
+  TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRC_VENDA_KIT')).currency:= True;
 end;
-
 function TProdutoKit.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-
 end.
