@@ -49,7 +49,7 @@ procedure TFornec.SelecionaSQLConsulta;
 begin
   case AnsiIndexStr(FEntidadeBase.TipoConsulta, ['Consulta', 'Cadastro']) of
   0: FEntidadeBase.TextoSQL('Select CODIGO, NOME, CGC, IE, ENDERECO, CIDADE, ESTADO, BAIRRO, CEP, FONE, NUMERO, COD_MUNICIPIO, ' +
-                            'END_COMPLEMENTO, COD_PAIS, null as INDICE ' +
+                            'END_COMPLEMENTO, COD_PAIS, DTCADASTRO, null as INDICE ' +
                             'From FORNEC ');
   1: FEntidadeBase.TextoSQL('Select * From FORNEC ');
   end;
