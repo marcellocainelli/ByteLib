@@ -97,15 +97,18 @@ begin
     0: vTextoSQL:= FEntidadeBase.TextoSql + 'CODIGO = :Parametro';
     1: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(NOME) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
     2: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(ENDERECO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    3: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(BAIRRO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    4: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(CIDADE) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    5: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(FONE) Containing Upper(:Parametro)';
-    6: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    7: begin
+    3: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(END_COMPLEMENTO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
+    4: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(BAIRRO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
+    5: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(CIDADE) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
+    6: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(FONE) Containing Upper(:Parametro)';
+    7: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
+    8: begin
         vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) = :Parametro';
         FEntidadeBase.TextoPesquisa(ApenasNumerosStr(FEntidadeBase.TextoPesquisa));
     end;
-    8: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)';
+    9: vTextoSQL:= FEntidadeBase.TextoSql + 'DETALHE containing :Parametro';
+    10: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)';
+    11: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (' + FEntidadeBase.TextoPesquisa + ')';
   end;
   {$ENDIF}
   if FEntidadeBase.Inativos then
@@ -113,6 +116,7 @@ begin
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -129,7 +133,19 @@ end;
 
 procedure TCliente.ModificaDisplayCampos;
 begin
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('nasc')).EditMask:= '!99/99/00;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('nas_co')).EditMask:= '!99/99/00;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('emp_admissao')).EditMask:= '!99/99/00;1;_';
 
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('cep')).EditMask:= '00000\-999;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('cob_cep')).EditMask:= '00000\-999;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('emp_cep')).EditMask:= '00000\-999;1;_';
+
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('limite')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('honorario')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('emp_renda')).currency:= True;
+
+  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cpf_co')).EditMask:= '###.###.###-##;1;_';
 end;
 
 function TCliente.DtSrc: TDataSource;
