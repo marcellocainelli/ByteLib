@@ -1,7 +1,7 @@
 unit uProdutoKit;
 interface
 uses
-  Model.Entidade.Interfaces, Data.DB;
+  Model.Entidade.Interfaces, Data.DB, sysutils, dialogs;
 Type
   TProdutoKit = class(TInterfacedObject, iEntidade)
     private
@@ -54,15 +54,16 @@ begin
   ModificaDisplayCampos;
   Value.DataSet.Open;
 end;
+
 function TProdutoKit.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.AddParametro('pCod_Prod', -1, ftInteger);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
+  FEntidadeBase.AddParametro('pCod_Prod', '-1', ftString);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
+
 procedure TProdutoKit.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.0000';

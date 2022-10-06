@@ -57,8 +57,18 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSql;
+  If FEntidadeBase.RegraPesquisa = 'Contendo' then
+      FEntidadeBase.RegraPesquisa('Containing')
+  else If FEntidadeBase.RegraPesquisa = 'Início do texto' then
+    FEntidadeBase.RegraPesquisa('Starting With');
+
+  Case FEntidadeBase.TipoPesquisa of
+    1: vTextoSQL:= vTextoSQL + ' and U.COD_CAIXA = :mParametro';//busca por código
+  End;
+
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and U.STATUS = ''A'' ';
+  FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
