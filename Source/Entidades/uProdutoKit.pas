@@ -27,7 +27,7 @@ begin
     'select k.*, p.nome_prod, p.unidade, p.preco_cust, iif(k.flg_prc_venda_kit = ''S'', k.prc_venda_kit, p.preco_vend) as preco_vend ' +
     'from produtos_kit k ' +
     'join produtos p on (p.cod_prod = k.cod_componente) ' +
-    'where k.cod_produto = :pcod_prod');
+    'where k.cod_produto = :pcod_prod ');
   InicializaDataSource;
 end;
 destructor TProdutoKit.Destroy;
@@ -43,12 +43,17 @@ begin
   Result:= FEntidadeBase;
 end;
 function TProdutoKit.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  If not FEntidadeBase.Inativos then
+    vTextoSQL:= vTextoSQL + ' and k.status = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
   FEntidadeBase.CriaCampo(Value, 'VALOR', ftCurrency);
   ModificaDisplayCampos;
