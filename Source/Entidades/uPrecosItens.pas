@@ -62,13 +62,14 @@ begin
       'and ((P.COD_MARCA1 = :mCOD_MARCA1) or (:mCOD_MARCA1 = -1)) ' +
       'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
       'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
-      'and p.nome_prod Containing :pNome_prod');
+      'and p.nome_prod Containing :pNome_prod ');
   2: FEntidadeBase.TextoSQL(
-      'Select p.descricao as nome_prod, pd.preco_cust, pi.preco, pi.preco as preco_vend, (((pi.preco / pd.preco_cust) - 1) *100) as multiplicador ' +
+      'Select p.descricao as nome_prod, pd.preco_cust, pi.preco, pi.preco as preco_vend, ' +
+      'iif(pd.preco_cust > 0, (((pi.preco / pd.preco_cust) - 1) *100),0) as multiplicador ' +
       'from preco_itens pi ' +
       'join precos p on (p.codigo = pi.cod_precos) ' +
       'join produtos pd on (pd.cod_prod = pi.cod_prod) ' +
-      'where pi.cod_prod = :pCod_prod');
+      'where pi.cod_prod = :pCod_prod ');
   end;
 end;
 
