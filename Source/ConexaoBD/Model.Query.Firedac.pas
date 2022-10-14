@@ -40,7 +40,8 @@ Type
       class function New(Parent: iConexao): iQuery;
       function SQL(Value: String): iQuery;
       function Dataset: TDataSet;
-      function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery;
+      function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery; overload;
+      function AddParametro(NomeParametro: String; ValorParametro: integer): iQuery; overload;
       function Close: iQuery;
       function ExecQuery(Value: String): iQuery;
       function Salva(Commit: Boolean = True): iQuery;
@@ -129,6 +130,15 @@ begin
   FDQuery.Params.Add.DataType:= DataType;
   if DataType = ftString then
     FDQuery.Params.Add.Size:= Length(NomeParametro);
+  FDQuery.Params.Add.ParamType:= ptInput;
+end;
+
+function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: integer): iQuery;
+begin
+  Result:= Self;
+  FDQuery.Params.Add.Name:= NomeParametro;
+  FDQuery.Params.ParamValues[NomeParametro]:= ValorParametro;
+  FDQuery.Params.Add.DataType:= ftInteger;
   FDQuery.Params.Add.ParamType:= ptInput;
 end;
 

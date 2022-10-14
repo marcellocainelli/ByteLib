@@ -9,7 +9,7 @@ uses
   Data.DB,
   Model.Entidade.Interfaces;
 
-Type
+  Type
   TProduto = class(TInterfacedObject, iEntidadeProduto)
     private
       FEntidadeBase: iEntidadeBase<iEntidadeProduto>;
@@ -33,35 +33,27 @@ Type
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
-
 { TProduto }
-
 constructor TProduto.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidadeProduto>.New(Self);
   FTipoConsulta:= 'Consulta';
 end;
-
 destructor TProduto.Destroy;
 begin
   inherited;
 end;
-
 class function TProduto.New: iEntidadeProduto;
 begin
   Result:= Self.Create;
 end;
-
 function TProduto.EntidadeBase: iEntidadeBase<iEntidadeProduto>;
 begin
   Result:= FEntidadeBase;
 end;
-
 procedure TProduto.SelecionaSQLConsulta;
 begin
   {$IFDEF APP}
@@ -106,9 +98,9 @@ begin
             'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
             'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1))');
   2: FEntidadeBase.TextoSQL(
-            'Select A.*, B.QUANTIDADE From PRODUTOS A ' +
-            'Left Join ESTOQUEFILIAL B on (A.COD_PROD = B.COD_PROD and B.COD_FILIAL = :mCodFilial) ' +
-            'where (1=1)');
+            'Select P.*, EF.QUANTIDADE From PRODUTOS P ' +
+            'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = :mCodFilial) ' +
+            'where (1=1) ');
   end;
   {$ENDIF}
 end;
@@ -122,7 +114,7 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
-  vTextoSQL:= FEntidadeBase.TextoPesquisa;
+//  vTextoSQL:= FEntidadeBase.TextoPesquisa;
   vTextoSQL:= FEntidadeBase.TextoSql;
   {$IFDEF APP}
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
@@ -231,6 +223,14 @@ begin
       vTextoSQL:= vTextoSQL + ' and P.PRECO_VEND = :mParametro ';
       FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
     end;
+    8: begin
+      vTextoSQL:= vTextoSQL + ' and P.COD_BARRA =  :mParametro ';
+      FEntidadeBase.TextoPesquisa(FormatFloat('0000000000000', StrToInt(FEntidadeBase.TextoPesquisa)));
+    end;
+    9:  vTextoSQL:= vTextoSQL + ' and P.COD_FORNEC = :mParametro and P.NOME_PROD Containing :mNome_Prod';
+    10: vTextoSQL:= vTextoSQL + ' and P.COD_MARCA = :mParametro and P.NOME_PROD Containing :mNome_Prod';
+    11: vTextoSQL:= vTextoSQL + ' and P.COD_MARCA1 = :mParametro and P.NOME_PROD Containing :mNome_Prod';
+    12: vTextoSQL:= vTextoSQL + ' and P.COD_SUBGRUPO = :mParametro and P.NOME_PROD Containing :mNome_Prod';
   end;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and P.STATUS = ' + QuotedStr('A');
@@ -266,48 +266,81 @@ begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_PRAZ')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
   {$ELSE}
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO')).currency:= True;
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRAZO')).currency:= True;
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ESTOQUE')).DisplayFormat:= '#,0.00';
+  case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra', 'Cadastro']) of
+  0,1:
+    begin
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRAZO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ESTOQUE')).DisplayFormat:= '#,0.00';
+    end;
+  2:
+    begin
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUST')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('C_MEDIO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('MARGEM')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANT_MIN')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PESO')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('REDBASECALC')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ISS')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECOCOMPRA')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('IPI')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FRETE')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FINANCEIRO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('SUBSTITUICAO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('IVAST')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('REDBCICMSST')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('IPI_SAIDA')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PIS_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COFINS_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PIS_ENTRADA_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COFINS_ENTRADA_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QTD_EMBALAGEM_COMPRA')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_UN_PRECO')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_PRECO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VOLUME')).DisplayFormat:= '#,0.000000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COMPRIMENTO')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LARGURA')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ALTURA')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ICMS_DIFERENCA')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('MARGEM_LUCRO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DECOMPOSICAO_PORC_PERDA')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_ECOMMERCE')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_PRAZ')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
+    end;
+  end;
   {$ENDIF}
 end;
-
 function TProduto.ValidaDepto: boolean;
 begin
   Result:= FValidaDepto;
 end;
-
 function TProduto.ValidaDepto(pValue: boolean): iEntidadeProduto;
 begin
   Result:= Self;
   FValidaDepto:= pValue;
 end;
-
 function TProduto.CodDeptoUsuario: Integer;
 begin
   Result:= FCodDeptoUsuario;
 end;
-
 function TProduto.CodDeptoUsuario(pValue: Integer): iEntidadeProduto;
 begin
   Result:= Self;
   FCodDeptoUsuario:= pValue;
 end;
-
 function TProduto.TipoConsulta(pValue: String): iEntidadeProduto;
 begin
   Result:= Self;
   FTipoConsulta:= pValue;
 end;
-
 function TProduto.TipoConsulta: String;
 begin
   Result:= FTipoConsulta;
 end;
-
 function TProduto.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-
 end.

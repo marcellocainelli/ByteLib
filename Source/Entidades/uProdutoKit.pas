@@ -65,7 +65,7 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.AddParametro('pCod_Prod', '-1', ftString);
+  FEntidadeBase.AddParametro('pCod_Prod', -1);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
