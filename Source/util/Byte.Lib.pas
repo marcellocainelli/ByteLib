@@ -59,6 +59,8 @@ type
       class procedure VCL_OpenPDF(AFile: TFileName; ATypeForm: Integer);
       class function GetRandomNumber(AStartNum, AEndNum: integer): integer;
       class function IIf(pCond:Boolean;pTrue,pFalse:Variant): Variant;
+      class function MyBoolToStr(S: Boolean): string;
+      class function MyStrToBool(S: string): boolean;
 
       {Funções de formatação}
       class function SomenteNumero(const AValue: string): string;
@@ -205,6 +207,20 @@ end;
 class function TLib.IIf(pCond: Boolean; pTrue, pFalse: Variant): Variant;
 begin
   If pCond Then Result:= pTrue else Result:= pFalse;
+end;
+
+//Converte boolean para string - S = True N = False
+class function TLib.MyBoolToStr(S: Boolean): string;
+begin
+  Result := 'N';
+  If S then Result := 'S';
+end;
+
+//Converte string para boolean - S = True N = False
+class function TLib.MyStrToBool(S: string): boolean;
+begin
+  Result := false;
+  if S = 'S' then Result := True;
 end;
 
 {$ENDREGION}
