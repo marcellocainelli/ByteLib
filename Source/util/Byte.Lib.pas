@@ -61,6 +61,7 @@ type
       class function IIf(pCond:Boolean;pTrue,pFalse:Variant): Variant;
       class function MyBoolToStr(S: Boolean): string;
       class function MyStrToBool(S: string): boolean;
+      class function Extenso(pValor: extended): String;
 
       {Funções de formatação}
       class function SomenteNumero(const AValue: string): string;
@@ -69,6 +70,7 @@ type
       class function PadC(sTexto: string; iTamanho: Integer): string;
       class function padL(const AString: String; const nLen : Integer; const Caracter : AnsiChar = ' ') : String;
       class function Padr(s:string;n:integer):string;
+      class function RoundTo2(const AValue: Double; const ADigit: TRoundToRange): Double;
 
       {Funções de validação}
       class function IsCNPJ(AValue: string): boolean;
@@ -223,6 +225,103 @@ begin
   if S = 'S' then Result := True;
 end;
 
+//------------------------------------------------------------------------------
+// função que retorna valores em extenso
+// esta função tem uma limitação. no caso este projeto foi desenvolvido no
+// Delphi 3, e no Delphi 3 ainda não existia o tipo de dado LongWord, que
+// seria um LongInt com o dobro da capacidade. Sendo assim, a função fica
+// limitada para traduzir números até 2147483647. Se for usado o parâmetro
+// com o tipo LongWord, podemos usar até 4294967295.
+//------------------------------------------------------------------------------
+class function TLib.Extenso(pValor: extended): String;
+const
+  Unidades: array[1..19] of string = ('um', 'dois', 'três', 'quatro','cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze',
+  'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito','dezenove');
+
+  Dezenas: array[1..9] of string = ('dez', 'vinte', 'trinta', 'quarenta','cinqüenta', 'sessenta', 'setenta', 'oitenta', 'noventa');
+  Centenas: array[1..9] of string = ('cem', 'duzentos', 'trezentos','quatrocentos', 'quinhentos', 'seiscentos', 'setecentos',          'oitocentos','novecentos');
+  Min = 0.01;
+  Max = 4294967295.99;
+  ErrorString = 'Valor fora da faixa';
+  Moeda = ' real ';
+  Moedas = ' reais ';
+  Centesimo = ' centavo ';
+  Centesimos = ' centavos ';
+var
+  lResultado : string;
+  //myE : erangeerror;
+
+      //------------------------------------------------------------------------
+      function ConversaoRecursiva(N: LongInt): string;
+      begin
+        case N of
+                1..19:
+                        Result := Unidades[N];
+                20, 30, 40, 50, 60, 70, 80, 90:
+                        Result := Dezenas[N div 10] + ' ';
+                21..29, 31..39, 41..49, 51..59, 61..69, 71..79, 81..89, 91..99:
+                        Result := Dezenas[N div 10] + ' e ' + ConversaoRecursiva(N mod 10);
+                100, 200, 300, 400, 500, 600, 700, 800, 900:
+                        Result := Centenas[N div 100] + ' ';
+                101..199:
+                        Result := ' cento e ' + ConversaoRecursiva(N mod 100);
+                201..299, 301..399, 401..499, 501..599, 601..699, 701..799, 801..899, 901..999:
+                        Result := Centenas[N div 100] + ' e ' + ConversaoRecursiva(N mod 100);
+                1000..999999:
+                        Result := ConversaoRecursiva(N div 1000) + ' mil ' + ConversaoRecursiva(N mod 1000);
+                1000000..1999999:
+                        Result := ConversaoRecursiva(N div 1000000) + ' milhão '+ ConversaoRecursiva(N mod 1000000);
+                2000000..999999999:
+                        Result := ConversaoRecursiva(N div 1000000) + ' milhões '+ ConversaoRecursiva(N mod 1000000);
+                1000000000..1999999999:
+                        Result := ConversaoRecursiva(N div 1000000000) + ' bilhão ' + ConversaoRecursiva(N mod 1000000000);
+                //Se existir definição de longWord na versão do Delphi, pode usar 4294967295 e trocar o tipo do parâmetro da função para LongWord
+                2000000000..2147483647:
+                        Result := ConversaoRecursiva(N div 1000000000) + ' bilhões ' + ConversaoRecursiva(N mod 1000000000);
+        end;
+      end;
+
+begin // início Extenso
+  try try
+    if (pValor >= Min) and (pValor <= Max) then
+    begin
+      //Tratar reais
+      lResultado := ConversaoRecursiva(Round(Int(pValor)));
+      if Round(Int(pValor)) = 1 then
+          lResultado := lResultado + Moeda
+      else
+          if Round(Int(pValor)) <> 0 then
+             lResultado := lResultado + Moedas;
+
+      //Tratar centavos
+      if not(Frac(pValor) = 0.00) then
+      begin
+        if Round(Int(pValor)) <> 0 then
+          lResultado := lResultado + ' e ';
+        lResultado := lResultado + ConversaoRecursiva(Round(Frac(pValor) * 100));
+        if (Round(Frac(pValor) * 100) = 1) then
+          lResultado := lResultado + centesimo
+        else
+          lResultado := lResultado + centesimos;
+      end;
+    end
+    else
+       begin // temos erros. tratar exceção. retorno como resultado uma exceção.
+         //if(pRetornaErroVazio) then
+           lResultado := '';
+         //else begin
+         //       myE := ERangeError.CreateFmt(ErrorString + ' (%g). Intervalo aceito: %g..%g',[pValor, Min, Max]);
+         //       lResultado := myE.Message;
+         //     end;
+       end;
+  except
+    lResultado := 'erro no except';
+  end;
+  finally
+    result := lResultado;
+  end;
+end;
+
 {$ENDREGION}
 
 {$REGION 'FUNÇÕES DE FORMATAÇÃO'}
@@ -252,6 +351,14 @@ Begin
     if Pos(AString[x],ComAcento)<>0 Then
       AString[x] := SemAcento[Pos(AString[x],ComAcento)];
   Result := AString;
+end;
+
+class function TLib.RoundTo2(const AValue: Double; const ADigit: TRoundToRange): Double;
+var
+  LFactor: Double;
+begin
+  LFactor := IntPower(10, ADigit);
+  Result := Round((AValue / LFactor) + 0.05) * LFactor;
 end;
 
 class function TLib.SomenteNumero(const AValue: string): string;
