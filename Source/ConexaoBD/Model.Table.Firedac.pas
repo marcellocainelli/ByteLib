@@ -62,7 +62,7 @@ end;
 function TModelTableFiredac.CopiaDataSet(DataSet: TDataSet): iTable;
 begin
   Result:= Self;
-  FDMemTable.CopyDataSet(DataSet, [coStructure, coRestart, coAppend]);
+  FDMemTable.CopyDataSet(DataSet, [coStructure, coAppend]);
 end;
 
 function TModelTableFiredac.CloneCursor(DataSet: TDataSet): iTable;
