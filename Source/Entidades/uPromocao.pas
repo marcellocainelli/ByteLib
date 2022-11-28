@@ -3,30 +3,33 @@ unit uPromocao;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils;
+
 Type
   TPromocao = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
+
 implementation
+
 uses
   uEntidadeBase;
 
 { TPromocao }
 
-constructor TPromocao.Create;
+constructor TPromocao.Create(AConn: iConexao);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TextoSQL('Select * from PROMOCAO where 1 = 1 ');
   InicializaDataSource;
 end;
@@ -36,9 +39,9 @@ begin
   inherited;
 end;
 
-class function TPromocao.New: iEntidade;
+class function TPromocao.New(AConn: iConexao): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TPromocao.EntidadeBase: iEntidadeBase<iEntidade>;

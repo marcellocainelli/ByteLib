@@ -3,16 +3,16 @@ unit uPromocaoCupons;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TPromocaoCupons = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -27,9 +27,9 @@ uses
 
 { TPromocaoCupons }
 
-constructor TPromocaoCupons.Create;
+constructor TPromocaoCupons.Create(AConn: iConexao);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TextoSQL(
     'Select pc.*, co.nome, co.fone, co.celular ' +
     'from promocao_cupons pc ' +
@@ -43,9 +43,9 @@ begin
   inherited;
 end;
 
-class function TPromocaoCupons.New: iEntidade;
+class function TPromocaoCupons.New(AConn: iConexao): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TPromocaoCupons.EntidadeBase: iEntidadeBase<iEntidade>;

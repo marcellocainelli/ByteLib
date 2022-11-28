@@ -41,11 +41,11 @@ Type
     private
       FConexao: TFDConnection;
       FArqIni: TIniFile;
-      class var FCaminhoIni: String;
+      class var FDatabase: String;
     public
       constructor Create;
       destructor Destroy; override;
-      class function New(ACaminhoIni: String = ''): iConexao;
+      class function New(ADatabase: String = ''): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
       procedure ConnWindows;
@@ -76,11 +76,9 @@ begin
   inherited;
 end;
 
-class function TModelConexaoFiredac.New(ACaminhoIni: String): iConexao;
+class function TModelConexaoFiredac.New(ADatabase: String): iConexao;
 begin
-  FCaminhoIni:= ACaminhoIni;
-  if ACaminhoIni.IsEmpty then
-    FCaminhoIni:= ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini';
+  FDatabase:= ADatabase;
   Result:= Self.Create;
 end;
 
@@ -100,22 +98,41 @@ begin
 end;
 
 procedure TModelConexaoFiredac.ConnWindows;
-var
-  vDatabase: string;
+//var
+//  vDatabase: string;
 begin
-  vDatabase:= '';
-  {$IFDEF BYTESUPER}
-    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
-  {$ELSE}
-    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
-  {$ENDIF}
-  {$IFDEF APPSERVER}
-    vDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
-  {$ENDIF}
-  if vDatabase.Equals(EmptyStr) then
-    vDatabase:= FArqIni.ReadString('SISTEMA','Database','');
+//  vDatabase:= '';
+//  {$IFDEF BYTESUPER}
+//    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
+//  {$ELSE}
+//    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
+//  {$ENDIF}
+//  {$IFDEF APPSERVER}
+//    vDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
+//  {$ENDIF}
+//  if vDatabase.Equals(EmptyStr) then
+//    vDatabase:= FArqIni.ReadString('SISTEMA','Database','');
+//  FConexao.DriverName:= 'FB';
+//  FConexao.Params.Database:= vDatabase;
+//  FConexao.Params.UserName:= 'SYSDBA';
+//  FConexao.Params.Password:= 'masterkey';
+
+  if FDatabase.Equals(EmptyStr) then begin
+    {$IFDEF BYTESUPER}
+      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
+    {$ELSE}
+      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
+    {$ENDIF}
+
+    {$IFDEF APPSERVER}
+      FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
+    {$ELSE}
+      FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
+    {$ENDIF}
+  end;
+
   FConexao.DriverName:= 'FB';
-  FConexao.Params.Database:= vDatabase;
+  FConexao.Params.Database:= FDatabase;
   FConexao.Params.UserName:= 'SYSDBA';
   FConexao.Params.Password:= 'masterkey';
 end;
