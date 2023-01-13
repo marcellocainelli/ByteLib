@@ -30,16 +30,16 @@ uses
 constructor TEstoqueFilial.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select EF.COD_FILIAL, EF.COD_PROD, EF.QUANTIDADE, F.NOME from ESTOQUEFILIAL EF ' +
-                         'join FILIAL F on (F.CODIGO = EF.COD_FILIAL) ' +
-                         'where EF.COD_PROD = :CodProd');
+//  FEntidadeBase.TextoSQL('select EF.COD_FILIAL, EF.COD_PROD, EF.QUANTIDADE, F.NOME from ESTOQUEFILIAL EF ' +
+//                         'join FILIAL F on (F.CODIGO = EF.COD_FILIAL) ' +
+//                         'where EF.COD_PROD = :CodProd');
 
+  FEntidadeBase.TextoSQL('select * from ESTOQUEFILIAL Where COD_FILIAL = :pCodFilial and COD_PROD = :pCodProd');
   InicializaDataSource;
 end;
 
 destructor TEstoqueFilial.Destroy;
 begin
-
   inherited;
 end;
 
@@ -58,7 +58,7 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.Iquery.IndexFieldNames('NOME');
+  FEntidadeBase.Iquery.IndexFieldNames('COD_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -69,8 +69,9 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.AddParametro('CodProd', '-1', ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('NOME');
+  FEntidadeBase.AddParametro('pCodFilial', '-1', ftString);
+  FEntidadeBase.AddParametro('pCodProd', '-1', ftString);
+  FEntidadeBase.Iquery.IndexFieldNames('COD_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
