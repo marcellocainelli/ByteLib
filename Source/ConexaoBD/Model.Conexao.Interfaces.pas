@@ -43,6 +43,8 @@ type
     function CopiaDataSet(DataSet: TDataSet): iTable;
     function CloneCursor(DataSet: TDataSet): iTable;
     function IndexFieldNames(FieldName: String): iTable;
+    function CriaCampo(ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iTable;
+    function CalcFields(AEvent: TDataSetNotifyEvent): iTable;
   end;
 
   iScript = interface

@@ -25,6 +25,8 @@ Type
       function CopiaDataSet(DataSet: TDataSet): iTable;
       function CloneCursor(DataSet: TDataSet): iTable;
       function IndexFieldNames(FieldName: String): iTable;
+      function CriaCampo(ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iTable;
+      function CalcFields(AEvent: TDataSetNotifyEvent): iTable;
   end;
 
 implementation
@@ -73,7 +75,34 @@ end;
 
 function TModelTableFiredac.IndexFieldNames(FieldName: String): iTable;
 begin
+  Result:= Self;
   FDMemTable.IndexFieldNames:= FieldName;
+end;
+
+function TModelTableFiredac.CalcFields(AEvent: TDataSetNotifyEvent): iTable;
+begin
+  Result:= Self;
+  FDMemTable.OnCalcFields:= AEvent;
+end;
+
+function TModelTableFiredac.CriaCampo(ANomeCampo: string; ADataType: TFieldType): iTable;
+var
+  vField: TField;
+  i: integer;
+begin
+  Result:= Self;
+  Tabela.Close;
+  Tabela.FieldDefs.Updated:= false;
+  Tabela.FieldDefs.Update;
+  for i := 0 to Tabela.FieldDefs.Count - 1 do
+    Tabela.FieldDefs[i].CreateField(nil);
+  case ADataType of
+    ftBoolean : vField:= TBooleanField.Create(Tabela);
+    ftCurrency: vField:= TCurrencyField.Create(Tabela);
+  end;
+  vField.FieldName:= ANomeCampo;
+  vField.FieldKind:= fkInternalCalc;
+  vField.DataSet:= Tabela;
 end;
 
 end.
