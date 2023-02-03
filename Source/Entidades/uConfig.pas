@@ -30,8 +30,11 @@ implementation
 constructor TConfig.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  {$IFDEF MSWINDOWS}
+  FEntidadeBase.TextoSQL('select * from CONFIG');
+  {$ELSE}
   FEntidadeBase.TextoSQL('select * from CONFIG WHERE CODIGO = 1');
-
+  {$ENDIF}
   InicializaDataSource;
 end;
 

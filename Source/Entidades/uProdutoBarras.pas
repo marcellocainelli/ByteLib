@@ -3,7 +3,7 @@ unit uProdutoBarras;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB;
+  Model.Entidade.Interfaces, Data.DB,  SysUtils, Dialogs;
 Type
   TProdutoBarras = class(TInterfacedObject, iEntidade)
     private
@@ -63,6 +63,10 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames('COD_BARRA');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+
+  ShowMessage(inttostr( Value.DataSet.RecordCount));
+
+
 end;
 
 function TProdutoBarras.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -71,7 +75,7 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
 
-  FEntidadeBase.AddParametro('pCod_Prod', -1, ftInteger);
+  FEntidadeBase.AddParametro('pCod_Prod', -1);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
