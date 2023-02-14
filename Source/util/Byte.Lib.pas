@@ -19,6 +19,8 @@ uses
   IdCoderMIME,
   {$IFDEF MSWINDOWS}
   ShellAPI,
+  Registry,
+  Winapi.Windows,
   {$ENDIF}
   //Componentes Indy
   IdComponent,
@@ -62,9 +64,11 @@ type
       class function MyBoolToStr(S: Boolean): string;
       class function MyStrToBool(S: string): boolean;
       class function Extenso(pValor: extended): String;
+      class procedure RegistraInicializarWindows(const AProgTitle: string; const AExePath: string; ARunOnce: Boolean);
 
       {Funções de formatação}
       class function SomenteNumero(const AValue: string): string;
+      class function SomenteLetras(const AValue: String): string;
       class function PoeZeros(Valor: String; Tamanho,Decimais:Integer): String;
       class function RemoveAcento(AString: String): String;
       class function PadC(sTexto: string; iTamanho: Integer): string;
@@ -322,6 +326,30 @@ begin // início Extenso
   end;
 end;
 
+class procedure TLib.RegistraInicializarWindows(const AProgTitle, AExePath: string; ARunOnce: Boolean);
+var
+  vSKey: string;
+  {$IFDEF MSWINDOWS}
+  vReg: TRegIniFile;
+  {$ENDIF}
+begin
+  if (AProgTitle.IsEmpty) or (AExePath.IsEmpty) then
+    Exit;
+{$IFDEF MSWINDOWS}
+  vSKey:= '';
+  if ARunOnce then
+    vSKey:= 'Once';
+
+  vReg:= TRegIniFile.Create('');
+  try
+    vReg.RootKey:= HKEY_LOCAL_MACHINE;
+    vReg.WriteString('Software\Microsoft\Windows\CurrentVersion\Run' + vSKey + #0, AProgTitle, AExePath);
+  finally
+    vReg.Free;
+  end;
+{$ENDIF}
+end;
+
 {$ENDREGION}
 
 {$REGION 'FUNÇÕES DE FORMATAÇÃO'}
@@ -359,6 +387,19 @@ var
 begin
   LFactor := IntPower(10, ADigit);
   Result := Round((AValue / LFactor) + 0.05) * LFactor;
+end;
+
+class function TLib.SomenteLetras(const AValue: String): string;
+var
+  vStr: String;
+  I: integer;
+begin
+  Result:= '';
+  vStr:= UpperCase(AValue);
+  for I := 1 to Length(vStr) do
+    if CharInSet(vStr[I],
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y', 'W', 'Z', ' ']) then
+      Result:= Result + vStr[I];
 end;
 
 class function TLib.SomenteNumero(const AValue: string): string;

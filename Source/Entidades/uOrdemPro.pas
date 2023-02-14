@@ -1,11 +1,11 @@
-unit uOrdemCli;
+unit uOrdemPro;
 
 interface
 
 uses
   Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
 Type
-  TOrdemCli = class(TInterfacedObject, iEntidade)
+  TOrdemPro = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -26,30 +26,30 @@ uses
 
 { TOrdemEquipamento }
 
-constructor TOrdemCli.Create;
+constructor TOrdemPro.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from ORD_CLI');
+  FEntidadeBase.TextoSQL('select * from ORD_PRO');
 
   InicializaDataSource;
 end;
 
-destructor TOrdemCli.Destroy;
+destructor TOrdemPro.Destroy;
 begin
   inherited;
 end;
 
-class function TOrdemCli.New: iEntidade;
+class function TOrdemPro.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TOrdemCli.EntidadeBase: iEntidadeBase<iEntidade>;
+function TOrdemPro.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TOrdemCli.Consulta(Value: TDataSource): iEntidade;
+function TOrdemPro.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
 begin
@@ -57,16 +57,9 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
 
-  vTextoSQL:= FEntidadeBase.TextoSql + ' where COD_FILIAL = :pCod_Filial ';
+  vTextoSQL:= FEntidadeBase.TextoSql;
   Case FEntidadeBase.TipoPesquisa of
-    1: vTextoSQL:= vTextoSQL + ' and CAIXA_NUM_OPER = :Parametro';
-    2: vTextoSQL:= vTextoSQL + ' and COD_FUN = :Parametro';
-    3: vTextoSQL:= vTextoSQL + ' and COD_CLI = :Parametro';
-    4: vTextoSQL:= vTextoSQL + ' and DT_SINCRONISMO is :Parametro';
-    5: vTextoSQL:= vTextoSQL + ' and COD_FUN = :Parametro and DT_ORDEM between :pDtInicio and :pDtFim';
-    6: vTextoSQL:= vTextoSQL + ' and NR_ORDEM = :Parametro';
-    7: vTextoSQL:= vTextoSQL + ' and NR_ORDEM_SYNC = :Parametro';
-    8: vTextoSQL:= vTextoSQL + ' and DT_ORDEM between :pDtInicio and :pDtFim';
+    1: vTextoSQL:= vTextoSQL + ' where NR_ORDEM = :pNr_Ordem';
   end;
 
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
@@ -75,7 +68,7 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TOrdemCli.InicializaDataSource(Value: TDataSource): iEntidade;
+function TOrdemPro.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
@@ -85,12 +78,12 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-procedure TOrdemCli.ModificaDisplayCampos;
+procedure TOrdemPro.ModificaDisplayCampos;
 begin
 
 end;
 
-function TOrdemCli.DtSrc: TDataSource;
+function TOrdemPro.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
