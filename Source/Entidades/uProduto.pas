@@ -89,7 +89,7 @@ begin
             'Left Join PRODUTOS_PROMOCAO PP on ((PP.COD_PROD = P.COD_PROD) and (current_date >= PP.dtinicio and current_date <= PP.dtfim)) ' +
             'where (1=1)');
   1: FEntidadeBase.TextoSQL(
-            'Select P.*, P.PRECO_VEND as PRECO, P.PRECO_PRAZ as PRAZO, B.QUANTIDADE, B.QUANTIDADE as ESTOQUE ' +
+            'Select P.*, P.PRECO_VEND as PRECO, P.PRECO_PRAZ as PRAZO, B.QUANTIDADE ' + //, B.QUANTIDADE as ESTOQUE ' +
             'From PRODUTOS P ' +
             'Left Join ESTOQUEFILIAL B on (P.COD_PROD = B.COD_PROD and B.COD_FILIAL = :mCodFilial)' +
             'Where STATUS = ''A'' ' +
@@ -98,7 +98,8 @@ begin
             'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
             'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1))');
   2: FEntidadeBase.TextoSQL(
-            'Select P.*, EF.QUANTIDADE From PRODUTOS P ' +
+            'Select P.*, EF.QUANTIDADE ' +
+            'From PRODUTOS P ' +
             'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = :mCodFilial) ' +
             'where (1=1) ');
   end;
@@ -114,7 +115,6 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
-//  vTextoSQL:= FEntidadeBase.TextoPesquisa;
   vTextoSQL:= FEntidadeBase.TextoSql;
   {$IFDEF APP}
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
@@ -271,7 +271,8 @@ begin
     begin
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRAZO')).currency:= True;
-      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ESTOQUE')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
+      //TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ESTOQUE')).DisplayFormat:= '#,0.00';
     end;
   2:
     begin

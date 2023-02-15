@@ -126,6 +126,8 @@ begin
 
     {$IFDEF APPSERVER}
       FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
+      if FDatabase.Equals(EmptyStr) then
+        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
     {$ELSE}
       FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
     {$ENDIF}
