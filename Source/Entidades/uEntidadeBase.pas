@@ -61,6 +61,8 @@ begin
   FQuery:= TControllerFactoryQuery.New.Query(AConn);
   FDataSource:= TDataSource.Create(nil);
   FTipoConsulta:= 'Consulta';
+  FTextoPesquisa:= '';
+  FTipoPesquisa:= 0;
 end;
 destructor TEntidadeBase<T>.Destroy;
 begin

@@ -42,16 +42,16 @@ Type
       FConexao: TFDConnection;
       FArqIni: TIniFile;
       class var FDatabase: String;
+      procedure ConnWindows;
+      procedure ConnApp;
+      procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
+      procedure FDConnBeforeConnect(Sender: TObject);
     public
       constructor Create;
       destructor Destroy; override;
       class function New(ADatabase: String = ''): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
-      procedure ConnWindows;
-      procedure ConnApp;
-      procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
-      procedure FDConnBeforeConnect(Sender: TObject);
   end;
 
 implementation
