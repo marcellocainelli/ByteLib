@@ -41,6 +41,8 @@ Type
     private
       FConexao: TFDConnection;
       FArqIni: TIniFile;
+      FUsername: String;
+      FPassword: String;
       class var FDatabase: String;
       procedure ConnWindows;
       procedure ConnApp;
@@ -52,6 +54,8 @@ Type
       class function New(ADatabase: String = ''): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
+      function Username(AValue: String): iConexao;
+      function Password(AValue: String): iConexao;
   end;
 
 implementation
@@ -60,6 +64,8 @@ implementation
 
 constructor TModelConexaoFiredac.Create;
 begin
+  FUsername:= 'SYSDBA';
+  FPassword:= 'masterkey';
   FConexao:= TFDConnection.Create(nil);
   {$IFDEF APP}
     ConnApp;
@@ -98,25 +104,7 @@ begin
 end;
 
 procedure TModelConexaoFiredac.ConnWindows;
-//var
-//  vDatabase: string;
 begin
-//  vDatabase:= '';
-//  {$IFDEF BYTESUPER}
-//    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
-//  {$ELSE}
-//    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
-//  {$ENDIF}
-//  {$IFDEF APPSERVER}
-//    vDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
-//  {$ENDIF}
-//  if vDatabase.Equals(EmptyStr) then
-//    vDatabase:= FArqIni.ReadString('SISTEMA','Database','');
-//  FConexao.DriverName:= 'FB';
-//  FConexao.Params.Database:= vDatabase;
-//  FConexao.Params.UserName:= 'SYSDBA';
-//  FConexao.Params.Password:= 'masterkey';
-
   if FDatabase.Equals(EmptyStr) then begin
     {$IFDEF BYTESUPER}
       FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
@@ -135,8 +123,8 @@ begin
 
   FConexao.DriverName:= 'FB';
   FConexao.Params.Database:= FDatabase;
-  FConexao.Params.UserName:= 'SYSDBA';
-  FConexao.Params.Password:= 'masterkey';
+  FConexao.Params.UserName:= FUsername;
+  FConexao.Params.Password:= FPassword;
 end;
 
 procedure TModelConexaoFiredac.InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
@@ -153,6 +141,20 @@ begin
     FConexao.Params.Values['OpenMode'] := 'CreateUTF8';
     FConexao.Params.Values['Database']:= TPath.Combine(TPath.GetDocumentsPath, 'bempresaapp.db');
   {$ENDIF}
+  FConexao.Params.Values['Username']:= FUsername;
+  FConexao.Params.Values['Password']:= FPassword;
+end;
+
+function TModelConexaoFiredac.Password(AValue: String): iConexao;
+begin
+  Result:= Self;
+  FPassword:= AValue;
+end;
+
+function TModelConexaoFiredac.Username(AValue: String): iConexao;
+begin
+  Result:= Self;
+  FUsername:= AValue;
 end;
 
 end.

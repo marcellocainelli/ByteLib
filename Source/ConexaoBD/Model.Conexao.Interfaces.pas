@@ -11,6 +11,8 @@ type
 
   iConexao = interface
     ['{253621FF-A06A-48B8-8F63-211FAE6B5C70}']
+    function Username(AValue: String): iConexao;
+    function Password(AValue: String): iConexao;
     function Connection: TCustomConnection;
     function CaminhoBanco: String;
   end;
