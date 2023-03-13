@@ -3,7 +3,7 @@ unit uProdutoPromocao;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils, StrUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
 
 Type
   TProdutoPromocao = class(TInterfacedObject, iEntidade)

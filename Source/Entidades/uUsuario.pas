@@ -1,10 +1,7 @@
 unit uUsuario;
-
 interface
-
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
-
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 Type
   TUsuario = class(TInterfacedObject, iEntidade)
     private
@@ -19,36 +16,28 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
-
 { TUsuario }
-
 constructor TUsuario.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select U.*, U.COD_CAIXA as CODIGO, 0 as INDICE from USUARIO U Where (1 = 1)');
   InicializaDataSource;
 end;
-
 destructor TUsuario.Destroy;
 begin
   inherited;
 end;
-
 class function TUsuario.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-
 function TUsuario.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-
 function TUsuario.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
@@ -61,7 +50,6 @@ begin
       FEntidadeBase.RegraPesquisa('Containing')
   else If FEntidadeBase.RegraPesquisa = 'Início do texto' then
     FEntidadeBase.RegraPesquisa('Starting With');
-
   Case FEntidadeBase.TipoPesquisa of
     1: vTextoSQL:= vTextoSQL + ' and U.COD_CAIXA = :mParametro';//busca por código
   End;
@@ -73,7 +61,6 @@ begin
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 function TUsuario.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
@@ -82,15 +69,11 @@ begin
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TUsuario.ModificaDisplayCampos;
 begin
-
 end;
-
 function TUsuario.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-
 end.

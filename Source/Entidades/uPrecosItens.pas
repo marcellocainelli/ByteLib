@@ -3,7 +3,7 @@ unit uPrecosItens;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils, StrUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
 
 Type
   TPrecosItens = class(TInterfacedObject, iEntidadeProduto)

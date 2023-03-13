@@ -41,9 +41,7 @@ Type
     private
       FConexao: TFDConnection;
       FArqIni: TIniFile;
-      FUsername: String;
-      FPassword: String;
-      class var FDatabase: String;
+      class var FDatabase, FUsername, FPassword: String;
       procedure ConnWindows;
       procedure ConnApp;
       procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
@@ -51,11 +49,9 @@ Type
     public
       constructor Create;
       destructor Destroy; override;
-      class function New(ADatabase: String = ''): iConexao;
+      class function New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
-      function Username(AValue: String): iConexao;
-      function Password(AValue: String): iConexao;
   end;
 
 implementation
@@ -64,8 +60,6 @@ implementation
 
 constructor TModelConexaoFiredac.Create;
 begin
-  FUsername:= 'SYSDBA';
-  FPassword:= 'masterkey';
   FConexao:= TFDConnection.Create(nil);
   {$IFDEF APP}
     ConnApp;
@@ -82,9 +76,11 @@ begin
   inherited;
 end;
 
-class function TModelConexaoFiredac.New(ADatabase: String): iConexao;
+class function TModelConexaoFiredac.New(ADatabase: String; AUsername: String; APassword: String): iConexao;
 begin
   FDatabase:= ADatabase;
+  FUsername:= AUsername;
+  FPassword:= APassword;
   Result:= Self.Create;
 end;
 
@@ -143,18 +139,6 @@ begin
   {$ENDIF}
   FConexao.Params.Values['Username']:= FUsername;
   FConexao.Params.Values['Password']:= FPassword;
-end;
-
-function TModelConexaoFiredac.Password(AValue: String): iConexao;
-begin
-  Result:= Self;
-  FPassword:= AValue;
-end;
-
-function TModelConexaoFiredac.Username(AValue: String): iConexao;
-begin
-  Result:= Self;
-  FUsername:= AValue;
 end;
 
 end.

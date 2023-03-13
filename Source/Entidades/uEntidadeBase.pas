@@ -2,11 +2,11 @@ unit uEntidadeBase;
 interface
 uses
   System.SysUtils,
-  uDmFuncoes,
+  uDmConn,
   Controller.Factory.Query,
   Data.DB,
   Model.Conexao.Interfaces,
-  Model.Entidade.Interfaces;
+  Model.Entidade.Interfaces, Controller.Factory.Connection;
 Type
   TEntidadeBase<T: IInterface> = class(TInterfacedObject, iEntidadeBase<T>)
   private
@@ -57,13 +57,15 @@ implementation
 constructor TEntidadeBase<T>.Create(Parent: T; AConn: iConexao);
 begin
   FParent:= Parent;
-  if not Assigned(AConn) then
-    AConn:= dmFuncoes.Connection;
+  if not Assigned(AConn) then begin
+    if Assigned(dmConn.Connection) then
+      AConn:= dmConn.Connection
+    else
+      AConn:= TControllerFactoryConn.New.Conn(FDConn);
+  end;
   FQuery:= TControllerFactoryQuery.New.Query(AConn);
   FDataSource:= TDataSource.Create(nil);
   FTipoConsulta:= 'Consulta';
-  FTextoPesquisa:= '';
-  FTipoPesquisa:= 0;
 end;
 destructor TEntidadeBase<T>.Destroy;
 begin
@@ -145,7 +147,6 @@ var
   vField: TField;
   i: integer;
 begin
-  Result:= Self;
   if ADataSource = nil then
     ADataSource:= FDataSource;
   ADataSource.DataSet.Close;
@@ -169,15 +170,6 @@ function TEntidadeBase<T>.Inativos: boolean;
 begin
   Result:= FInativos;
 end;
-
-function TEntidadeBase<T>.InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
-begin
-  Result:= Self;
-  if DataSource = nil then
-    DataSource:= FDataSource;
-  DataSource.DataSet.BeforePost:= AEvent;
-end;
-
 function TEntidadeBase<T>.InsertAfterEditEvent(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
 begin
   Result:= Self;
@@ -186,9 +178,14 @@ begin
   DataSource.DataSet.AfterEdit:= AEvent;
 end;
 
+function TEntidadeBase<T>.InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
+begin
+  if DataSource = nil then
+    DataSource:= FDataSource;
+  DataSource.DataSet.BeforePost:= AEvent;
+end;
 function TEntidadeBase<T>.Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
 begin
-  Result:= Self;
   if Value = nil then
     Value:= FDataSource;
   Value.DataSet.FieldByName(ANomeCampo).OnValidate:= AEvent;

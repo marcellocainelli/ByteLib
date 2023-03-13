@@ -3,7 +3,7 @@ unit uMunicipio;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TMunicipio = class(TInterfacedObject, iEntidade)

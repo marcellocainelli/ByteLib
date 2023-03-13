@@ -3,8 +3,7 @@ unit uEstoqueLocaisGrades;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
-
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 Type
   TEstoqueLocaisGrades = class(TInterfacedObject, iEntidade)
     private
@@ -19,9 +18,7 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
 

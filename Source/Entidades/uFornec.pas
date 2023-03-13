@@ -3,7 +3,7 @@ unit uFornec;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils, StrUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils, Byte.Lib;
 
 Type
   TFornec = class(TInterfacedObject, iEntidade)
@@ -81,7 +81,7 @@ begin
     5: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where FONE containing :mParametro';//busca por fone
     6: begin
         vTextoSQL:= FEntidadeBase.TextoSQL + ' Where (SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) = :mParametro';
-        FEntidadeBase.TextoPesquisa(ApenasNumerosStr(FEntidadeBase.TextoPesquisa));
+        FEntidadeBase.TextoPesquisa(TLib.SomenteNumero(FEntidadeBase.TextoPesquisa));
     end;
   end;
   If not FEntidadeBase.Inativos then

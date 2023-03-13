@@ -3,7 +3,7 @@ unit uCliente;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils, Byte.Lib;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
 
 Type
   TCliente = class(TInterfacedObject, iEntidade)
@@ -104,7 +104,7 @@ begin
     7: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
     8: begin
         vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) = :Parametro';
-        FEntidadeBase.TextoPesquisa(ApenasNumerosStr(FEntidadeBase.TextoPesquisa));
+        FEntidadeBase.TextoPesquisa(TLib.SomenteNumero(FEntidadeBase.TextoPesquisa));
     end;
     9: vTextoSQL:= FEntidadeBase.TextoSql + 'DETALHE containing :Parametro';
     10: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)';

@@ -3,7 +3,7 @@ unit uCondicaoVendaParcelas;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TCondicaoVendaParcelas = class(TInterfacedObject, iEntidade)

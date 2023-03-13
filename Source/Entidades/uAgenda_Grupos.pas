@@ -3,7 +3,7 @@ unit uAgenda_Grupos;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 Type
   TAgenda_Grupos = class(TInterfacedObject, iEntidade)
     private

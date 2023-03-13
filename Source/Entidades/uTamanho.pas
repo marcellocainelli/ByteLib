@@ -3,7 +3,7 @@ unit uTamanho;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TTamanho = class(TInterfacedObject, iEntidade)

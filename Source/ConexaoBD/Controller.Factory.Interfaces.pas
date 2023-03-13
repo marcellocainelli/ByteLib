@@ -21,6 +21,8 @@ type
     ['{3C9751A5-BED1-4477-A0B6-7DC69F07C7D1}']
     function Conn(ATipoConn: TipoConn): iConexao;
     function Database(ADatabase: string): iFactoryConn;
+    function Username(AUsername: string): iFactoryConn;
+    function Password(APassword: string): iFactoryConn;
   end;
 
 implementation

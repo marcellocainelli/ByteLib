@@ -3,7 +3,7 @@ unit uSat;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TSat = class(TInterfacedObject, iEntidade)

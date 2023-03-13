@@ -3,7 +3,7 @@ unit uNfse_CodTributacao;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 Type
   TNfse_CodTributacao = class(TInterfacedObject, iEntidade)
     private

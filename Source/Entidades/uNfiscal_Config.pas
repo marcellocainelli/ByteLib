@@ -3,7 +3,7 @@ unit uNfiscal_Config;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TNfiscal_Config = class(TInterfacedObject, iEntidade)
