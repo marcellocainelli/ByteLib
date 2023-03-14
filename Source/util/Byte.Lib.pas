@@ -83,6 +83,11 @@ type
       {FUNÇÕES BASE64}
       class function Base64_Encode(AFile: string): string;
       class procedure Base64_Decode(ABase64: string; AStream: TMemoryStream);
+
+      {Encriptação}
+      class function Crypt(Texto,Chave :String): String;
+      class function Crypto (aText: string): string;
+      class function Decrypto (aText: string): string;
   end;
 
 implementation
@@ -587,6 +592,7 @@ end;
 
 {$ENDREGION}
 
+
 {$REGION 'FUNÇÕES BASE64'}
 
 class function TLib.Base64_Encode(AFile: string): string;
@@ -639,4 +645,32 @@ begin
 end;
 
 {$ENDREGION}
+
+
+{$REGION 'ENCRIPTAÇÃO'}
+class function TLib.Crypt(Texto, Chave: String): String;
+var
+  x, y: Integer;
+  NovaSenha: String;
+begin
+  for x := 1 to Length(Chave) do begin
+    NovaSenha := '';
+    for y := 1 to Length(Texto) do
+      NovaSenha := NovaSenha + Chr((Ord(Chave[x]) xor Ord(Texto[y])));
+    Texto := NovaSenha;
+  end;
+  Result := Texto;
+end;
+
+class function TLib.Crypto(aText: string): string;
+begin
+  Result:= Crypt(aText, 'DOUTORBY');
+end;
+
+class function TLib.Decrypto(aText: string): string;
+begin
+  Result:= Crypt(aText, 'DOUTORBY');
+end;
+{$ENDREGION}
+
 end.
