@@ -193,6 +193,8 @@ var
   vStream: TBytesStream;
   vCloudResponse: TCloudResponseInfo;
 begin
+  Result:= Self;
+
   vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
   vCloudResponse:= TCloudResponseInfo.Create;
   vStream:= TBytesStream.Create;

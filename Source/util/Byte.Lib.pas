@@ -15,6 +15,7 @@ uses
   System.Math,
 
   Data.DB,
+  Byte.Consts,
 
   IdCoderMIME,
   {$IFDEF MSWINDOWS}
@@ -44,6 +45,8 @@ uses
 
 type
   TProcedureExcept = reference to procedure (const AExcpetion: String);
+
+  TTipoValidacao = (tvCPFCNPJ, tvEmail, tvFixoCelular, tvRG, tvIE, tvCEP);
 
   TLib = class
     private
@@ -79,6 +82,7 @@ type
       {Funções de validação}
       class function IsCNPJ(AValue: string): boolean;
       class function IsCPF(AValue: string): boolean;
+      class function Valida(AValue: String; ATipoValidacao: TTipoValidacao): Boolean;
 
       {FUNÇÕES BASE64}
       class function Base64_Encode(AFile: string): string;
@@ -587,6 +591,35 @@ begin
       isCPF := false;
   except
     isCPF := false
+  end;
+end;
+
+class function TLib.Valida(AValue: String; ATipoValidacao: TTipoValidacao): Boolean;
+begin
+  Result:= False;
+
+  if AValue.IsEmpty then
+    Exit;
+
+  case ATipoValidacao of
+    tvCPFCNPJ: begin
+      Result:= TRegEx.IsMatch(AValue, C_EXP_CPF_CNPJ);
+    end;
+    tvEmail: begin
+      Result:= TRegEx.IsMatch(AValue, C_EXP_EMAIL);
+    end;
+    tvFixoCelular: begin
+      Result:= TRegEx.IsMatch(AValue, C_EXP_FIXO_CEL);
+    end;
+    tvRG: begin
+      Result:= TRegEx.IsMatch(AValue, C_EXP_RG);
+    end;
+    tvIE: begin
+      Result:= TRegEx.IsMatch(AValue, C_EXP_INSCRICAO);
+    end;
+    tvCEP: begin
+      Result:= TRegEx.IsMatch(AValue, C_EXP_CEP);
+    end;
   end;
 end;
 
