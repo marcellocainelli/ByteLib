@@ -139,16 +139,21 @@ begin
   Result:= FJsonObj.ToString;
 end;
 
+
 function TJsonObj.AddPair(const AKey: String; const AValue: Boolean): iJsonObj;
 begin
   Result:= Self;
+  {$IFNDEF VER340}
   FJsonObj.AddPair(AKey, AValue);
+  {$ENDIF}
 end;
 
 function TJsonObj.AddPair(const AKey: String; const AValue: integer): iJsonObj;
 begin
   Result:= Self;
+  {$IFNDEF VER340}
   FJsonObj.AddPair(AKey, AValue);
+  {$ENDIF}
 end;
 
 function TJsonObj.AddPair(const AKey, AValue: String): iJsonObj;
@@ -160,19 +165,27 @@ end;
 function TJsonObj.AddPair(const AKey: String; const AValue: TDateTime): iJsonObj;
 begin
   Result:= Self;
+  {$IFNDEF VER340}
   FJsonObj.AddPair(AKey, AValue);
+  {$ENDIF}
 end;
+
 
 function TJsonObj.AddPair(const AKey: String; const AValue: TDate): iJsonObj;
 begin
   Result:= Self;
+  {$IFNDEF VER340}
   FJsonObj.AddPair(AKey, AValue);
+  {$ENDIF}
 end;
+
 
 function TJsonObj.AddPair(const AKey: String; const AValue: Double): iJsonObj;
 begin
   Result:= Self;
+  {$IFNDEF VER340}
   FJsonObj.AddPair(AKey, AValue);
+  {$ENDIF}
 end;
 
 { TJsonValue }
