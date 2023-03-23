@@ -1,0 +1,336 @@
+unit Plugzapi.Service;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Classes,
+  Byte.Json,
+
+  RESTRequest4D,
+  Dataset.Serialize,
+  Byte.Lib;
+
+const
+  C_URL_API = 'https://api.plugzapi.com.br/instances/%s/token/%s';
+  C_TIMEOUT = 5000;
+
+type
+  iPlugzapi<T> = interface
+    ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
+    function Instancia(AValue: String): iPlugzapi<T>;
+    function Token(AValue: String): iPlugzapi<T>;
+    function Sucesso: Boolean;
+    function Mensagem: String;
+    procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
+    function Get(const AResource: String; out AJSONResult: String): iPlugzapi<T>;
+    function Send(const AResource: String; AJSON: String): iPlugzapi<T>;
+    function &End : T;
+  end;
+
+  TPlugzapi<T: IInterface> = class(TInterfacedObject, iPlugzapi<T>)
+  protected
+    procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
+  private
+    [Weak]
+    FParent: T;
+    FInstancia, FToken, FMensagem: String;
+    FSucesso: Boolean;
+  public
+    constructor Create(Parent: T);
+    destructor Destroy; override;
+    class function New(Parent: T): iPlugzapi<T>;
+    function &End : T;
+    function Instancia(AValue: String): iPlugzapi<T>;
+    function Token(AValue: String): iPlugzapi<T>;
+    function Sucesso: Boolean;
+    function Mensagem: String;
+    function Get(const AResource: String; out AJSONResult: String): iPlugzapi<T>;
+    function Send(const AResource: String; AJSON: String): iPlugzapi<T>;
+  end;
+
+  iPlugzapiInstancia = interface
+    ['{9B2152F0-19F5-4898-8A74-7280F1763A1D}']
+    function Plugzapi: iPlugzapi<iPlugzapiInstancia>;
+    function Status: boolean;
+    function QrCode: String;
+  end;
+
+  TPlugzapiInstancia = class(TInterfacedObject, iPlugzapiInstancia)
+    private
+      FPlugzapi: iPlugzapi<iPlugzapiInstancia>;
+    public
+      constructor Create;
+      destructor Destroy; override;
+      class function New: iPlugzapiInstancia;
+      function Plugzapi: iPlugzapi<iPlugzapiInstancia>;
+      function Status: boolean;
+      function QrCode: String;
+  end;
+
+  iPlugzapiMsg = interface
+    ['{1EDD7045-3348-48AE-AB6A-AA936890B42C}']
+    function EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
+    function EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iPlugzapiMsg;
+  end;
+
+  TPlugzapiMsg = class(TInterfacedObject, iPlugzapiMsg)
+    private
+      FPlugzapi: iPlugzapi<iPlugzapiMsg>;
+    public
+      constructor Create;
+      destructor Destroy; override;
+      class function New: iPlugzapiMsg;
+      function Plugzapi: iPlugzapi<iPlugzapiMsg>;
+      function EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
+      function EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iPlugzapiMsg;
+  end;
+
+implementation
+
+{ TPlugzapi<T> }
+
+class function TPlugzapi<T>.New(Parent: T): iPlugzapi<T>;
+begin
+  Result:= Self.Create(Parent);
+end;
+
+constructor TPlugzapi<T>.Create(Parent: T);
+begin
+  FParent:= Parent;
+  FSucesso:= False;
+  FMensagem:= '';
+end;
+
+destructor TPlugzapi<T>.Destroy;
+begin
+
+  inherited;
+end;
+
+function TPlugzapi<T>.&End: T;
+begin
+  Result:= FParent;
+end;
+
+function TPlugzapi<T>.Token(AValue: string): iPlugzapi<T>;
+begin
+  Result:= Self;
+  FToken:= AValue;
+end;
+
+function TPlugzapi<T>.Instancia(AValue: string): iPlugzapi<T>;
+begin
+  Result:= Self;
+  FInstancia:= AValue;
+end;
+
+function TPlugzapi<T>.Sucesso: Boolean;
+begin
+  Result:= FSucesso;
+end;
+
+function TPlugzapi<T>.Mensagem: String;
+begin
+  Result:= Mensagem;
+end;
+
+function TPlugzapi<T>.Get(const AResource: string; out AJSONResult: string): iPlugzapi<T>;
+var
+  vResp: IResponse;
+  vJSONResp: iJsonVal;
+begin
+  Result:= Self;
+  try
+    TLib.CheckInternet;
+
+    vResp:= TRequest.New.BaseURL(Format(C_URL_API,[FInstancia, FToken]))
+          .Timeout(C_TIMEOUT)
+          .Resource(AResource)
+          .ContentType('application/json')
+          .AcceptEncoding('UTF-8')
+          .Get;
+
+    if not (vResp.StatusCode = 200) then begin
+      vJSONResp:= TJsonVal.New(vResp.Content);
+      raise Exception.Create(vJSONResp.GetValueAsString('Erro'));
+    end else
+      SetReqResult(True, vResp.StatusText);
+
+    AJSONResult:= vResp.Content;
+  except
+    on E:Exception do
+      SetReqResult(False, E.Message);
+  end;
+end;
+
+function TPlugzapi<T>.Send(const AResource: string; AJSON: string): iPlugzapi<T>;
+var
+  vResp: IResponse;
+  vJSONResp: iJsonVal;
+begin
+  Result:= Self;
+
+  try
+    TLib.CheckInternet;
+
+    vResp:= TRequest.New.BaseURL(Format(C_URL_API,[FInstancia, FToken]))
+          .Timeout(C_TIMEOUT)
+          .Resource(AResource)
+          .ContentType('application/json')
+          .AcceptEncoding('UTF-8')
+          .AddBody(AJSON)
+          .Post;
+
+    if not (vResp.StatusCode = 200) then begin
+      vJSONResp:= TJsonVal.New(vResp.Content);
+      raise Exception.Create(vJSONResp.GetValueAsString('Erro'));
+    end else
+      SetReqResult(True, 'Enviado com sucesso');
+
+  except
+    on E:Exception do
+      SetReqResult(False, E.Message);
+  end;
+end;
+
+procedure TPlugzapi<T>.SetReqResult(ASucesso: Boolean; AMensagem: String);
+begin
+  FSucesso:= ASucesso;
+  FMensagem:= AMensagem;
+end;
+
+{ TPlugzapiInstancia }
+
+class function TPlugzapiInstancia.New: iPlugzapiInstancia;
+begin
+  Result:= Self.Create;
+end;
+
+constructor TPlugzapiInstancia.Create;
+begin
+  FPlugzapi:= TPlugzapi<iPlugzapiInstancia>.New(Self);
+end;
+
+destructor TPlugzapiInstancia.Destroy;
+begin
+
+  inherited;
+end;
+
+function TPlugzapiInstancia.Plugzapi: iPlugzapi<iPlugzapiInstancia>;
+begin
+  Result:= FPlugzapi;
+end;
+
+function TPlugzapiInstancia.QrCode: string;
+var
+  vJSONResp: iJsonVal;
+  vJSONResult: string;
+begin
+  try
+    FPlugzapi.Get('qr-code/image', vJSONResult);
+    vJSONResp:= TJsonVal.New(vJSONResult);
+
+    if vJSONResp.GetValueAsString('connected').Equals('true') then
+      raise Exception.Create('Já está conectado!')
+    else
+      Result:= vJSONResult;
+  except
+    on E:Exception do
+      raise Exception.Create(E.Message);
+  end;
+end;
+
+function TPlugzapiInstancia.Status: boolean;
+var
+  vJSONResp: iJsonVal;
+  vJSONResult: string;
+begin
+  Result:= False;
+  try
+    FPlugzapi.Get('status', vJSONResult);
+    vJSONResp:= TJsonVal.New(vJSONResult);
+    Result:= vJSONResp.GetValueAsString('connected').Equals('true');
+  except
+    on E:Exception do
+      raise Exception.Create('Erro:' + #13#10 + E.Message);
+  end;
+end;
+
+{ TPlugzapiMsg }
+
+class function TPlugzapiMsg.New: iPlugzapiMsg;
+begin
+  Result:= Self.Create;
+end;
+
+constructor TPlugzapiMsg.Create;
+begin
+  FPlugzapi:= TPlugzapi<iPlugzapiMsg>.New(Self);
+end;
+
+destructor TPlugzapiMsg.Destroy;
+begin
+
+  inherited;
+end;
+
+function TPlugzapiMsg.Plugzapi: iPlugzapi<iPlugzapiMsg>;
+begin
+  Result:= FPlugzapi;
+end;
+
+function TPlugzapiMsg.EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
+var
+  vJSONObj: iJsonObj;
+begin
+  Result:= Self;
+  ATelefone:= TLib.SomenteNumero(ATelefone);
+
+  vJSONObj:= TJsonObj.New;
+  try
+    vJSONObj.AddPair('phone', '55' + ATelefone);
+    vJSONObj.AddPair('message', AMsg);
+
+    FPlugzapi.Send('send-text', vJSONObj.ToString);
+  except
+    on E:Exception do
+      FPlugzapi.SetReqResult(False, 'Erro ao enviar a mensagem:' + #13#10 + E.Message);
+  end;
+end;
+
+function TPlugzapiMsg.EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iPlugzapiMsg;
+var
+  vJSONObj: iJsonObj;
+  vBase64, vPath: string;
+begin
+  Result:= Self;
+  ATelefone:= TLib.SomenteNumero(ATelefone);
+
+  vJSONObj:= TJsonObj.New;
+  try
+    vPath:= APath;
+    if not AFileName.Equals('Teste') then
+      vPath:= vPath + '\' + AFileName;
+    vBase64:= TLib.Base64_Encode(vPath);
+
+    if vBase64.Contains('Erro') then begin
+      vBase64:= StringReplace(vBase64, 'Erro', '', [rfReplaceAll, rfIgnoreCase]);
+      raise Exception.Create(vBase64);
+    end;
+
+    vJSONObj.AddPair('phone', '55' + ATelefone);
+    vJSONObj.AddPair('document', 'data:file/pdf;base64,' + vBase64);
+    vJSONObj.AddPair('fileName', AFileName);
+    vJSONObj.AddPair('delayMessage', 5);
+
+    FPlugzapi.Send('send-document/pdf', vJSONObj.ToString);
+    EnviaMsg(ATelefone, AMsg);
+  except
+    on E:Exception do
+      FPlugzapi.SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);
+  end;
+end;
+
+end.
