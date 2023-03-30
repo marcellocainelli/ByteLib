@@ -20,17 +20,12 @@ type
     ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
     function Instancia(AValue: String): iPlugzapi<T>;
     function Token(AValue: String): iPlugzapi<T>;
-    function Sucesso: Boolean;
-    function Mensagem: String;
-    procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
     function Get(const AResource: String; out AJSONResult: String): iPlugzapi<T>;
     function Send(const AResource: String; AJSON: String): iPlugzapi<T>;
     function &End : T;
   end;
 
   TPlugzapi<T: IInterface> = class(TInterfacedObject, iPlugzapi<T>)
-  protected
-    procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
   private
     [Weak]
     FParent: T;
@@ -43,8 +38,6 @@ type
     function &End : T;
     function Instancia(AValue: String): iPlugzapi<T>;
     function Token(AValue: String): iPlugzapi<T>;
-    function Sucesso: Boolean;
-    function Mensagem: String;
     function Get(const AResource: String; out AJSONResult: String): iPlugzapi<T>;
     function Send(const AResource: String; AJSON: String): iPlugzapi<T>;
   end;
@@ -52,6 +45,8 @@ type
   iPlugzapiInstancia = interface
     ['{9B2152F0-19F5-4898-8A74-7280F1763A1D}']
     function Plugzapi: iPlugzapi<iPlugzapiInstancia>;
+    function Sucesso: Boolean;
+    function Mensagem: String;
     function Status: boolean;
     function QrCode: String;
   end;
@@ -59,17 +54,25 @@ type
   TPlugzapiInstancia = class(TInterfacedObject, iPlugzapiInstancia)
     private
       FPlugzapi: iPlugzapi<iPlugzapiInstancia>;
+      FSucesso: Boolean;
+      FMensagem: String;
+      procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
     public
       constructor Create;
       destructor Destroy; override;
       class function New: iPlugzapiInstancia;
       function Plugzapi: iPlugzapi<iPlugzapiInstancia>;
+      function Sucesso: Boolean;
+      function Mensagem: String;
       function Status: boolean;
       function QrCode: String;
   end;
 
   iPlugzapiMsg = interface
     ['{1EDD7045-3348-48AE-AB6A-AA936890B42C}']
+    function Plugzapi: iPlugzapi<iPlugzapiMsg>;
+    function Sucesso: Boolean;
+    function Mensagem: String;
     function EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
     function EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iPlugzapiMsg;
   end;
@@ -77,11 +80,16 @@ type
   TPlugzapiMsg = class(TInterfacedObject, iPlugzapiMsg)
     private
       FPlugzapi: iPlugzapi<iPlugzapiMsg>;
+      FSucesso: Boolean;
+      FMensagem: String;
+      procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
     public
       constructor Create;
       destructor Destroy; override;
       class function New: iPlugzapiMsg;
       function Plugzapi: iPlugzapi<iPlugzapiMsg>;
+      function Sucesso: Boolean;
+      function Mensagem: String;
       function EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
       function EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iPlugzapiMsg;
   end;
@@ -125,16 +133,6 @@ begin
   FInstancia:= AValue;
 end;
 
-function TPlugzapi<T>.Sucesso: Boolean;
-begin
-  Result:= FSucesso;
-end;
-
-function TPlugzapi<T>.Mensagem: String;
-begin
-  Result:= Mensagem;
-end;
-
 function TPlugzapi<T>.Get(const AResource: string; out AJSONResult: string): iPlugzapi<T>;
 var
   vResp: IResponse;
@@ -154,13 +152,12 @@ begin
     if not (vResp.StatusCode = 200) then begin
       vJSONResp:= TJsonVal.New(vResp.Content);
       raise Exception.Create(vJSONResp.GetValueAsString('Erro'));
-    end else
-      SetReqResult(True, vResp.StatusText);
+    end;
 
     AJSONResult:= vResp.Content;
   except
     on E:Exception do
-      SetReqResult(False, E.Message);
+      raise Exception.Create(E.Message);
   end;
 end;
 
@@ -185,19 +182,12 @@ begin
     if not (vResp.StatusCode = 200) then begin
       vJSONResp:= TJsonVal.New(vResp.Content);
       raise Exception.Create(vJSONResp.GetValueAsString('Erro'));
-    end else
-      SetReqResult(True, 'Enviado com sucesso');
+    end;
 
   except
     on E:Exception do
-      SetReqResult(False, E.Message);
+      raise Exception.Create(E.Message);
   end;
-end;
-
-procedure TPlugzapi<T>.SetReqResult(ASucesso: Boolean; AMensagem: String);
-begin
-  FSucesso:= ASucesso;
-  FMensagem:= AMensagem;
 end;
 
 { TPlugzapiInstancia }
@@ -258,6 +248,22 @@ begin
   end;
 end;
 
+function TPlugzapiInstancia.Mensagem: String;
+begin
+  Result:= FMensagem;
+end;
+
+function TPlugzapiInstancia.Sucesso: Boolean;
+begin
+  Result:= FSucesso;
+end;
+
+procedure TPlugzapiInstancia.SetReqResult(ASucesso: Boolean; AMensagem: String);
+begin
+  FSucesso:= ASucesso;
+  FMensagem:= AMensagem;
+end;
+
 { TPlugzapiMsg }
 
 class function TPlugzapiMsg.New: iPlugzapiMsg;
@@ -281,6 +287,22 @@ begin
   Result:= FPlugzapi;
 end;
 
+procedure TPlugzapiMsg.SetReqResult(ASucesso: Boolean; AMensagem: String);
+begin
+  FSucesso:= ASucesso;
+  FMensagem:= AMensagem;
+end;
+
+function TPlugzapiMsg.Sucesso: Boolean;
+begin
+  Result:= FSucesso;
+end;
+
+function TPlugzapiMsg.Mensagem: String;
+begin
+  Result:= FMensagem;
+end;
+
 function TPlugzapiMsg.EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
 var
   vJSONObj: iJsonObj;
@@ -294,9 +316,11 @@ begin
     vJSONObj.AddPair('message', AMsg);
 
     FPlugzapi.Send('send-text', vJSONObj.ToString);
+
+    SetReqResult(True, 'Enviado com sucesso');
   except
     on E:Exception do
-      FPlugzapi.SetReqResult(False, 'Erro ao enviar a mensagem:' + #13#10 + E.Message);
+      SetReqResult(False, 'Erro ao enviar a mensagem:' + #13#10 + E.Message);
   end;
 end;
 
@@ -329,7 +353,7 @@ begin
     EnviaMsg(ATelefone, AMsg);
   except
     on E:Exception do
-      FPlugzapi.SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);
+      SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);
   end;
 end;
 
