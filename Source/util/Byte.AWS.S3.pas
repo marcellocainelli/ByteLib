@@ -227,7 +227,7 @@ begin
     FResponseCode:= vCloudResponse.StatusCode;
   finally
     vStorageService.Free;
-//    vStream.Free;
+    vStream.DisposeOf;
     vCloudResponse.Free;
   end;
 end;
