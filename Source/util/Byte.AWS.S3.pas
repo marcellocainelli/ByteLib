@@ -37,6 +37,7 @@ type
     ['{5C313EBB-54BA-4899-9D99-60D2C0CA2701}']
     function SendObject: iAWSs3; overload;
     function SendObject(AStream: TStream): iAWSs3; overload;
+    function GetObject: iAWSs3; overload;
     function GetObjectMetaDataValue(AValue: String): String;
     function DeleteObject: iAWSs3;
     function FilePath(AValue: String): iAWSs3;
@@ -61,6 +62,7 @@ type
       class function New: iAWSs3;
       function SendObject: iAWSs3; overload;
       function SendObject(AStream: TStream): iAWSs3; overload;
+      function GetObject: iAWSs3; overload;
       function DeleteObject: iAWSs3;
       function GetObjectMetaDataValue(AValue: String): String;
       function FilePath(AValue: String): iAWSs3;
@@ -227,8 +229,36 @@ begin
     FResponseCode:= vCloudResponse.StatusCode;
   finally
     vStorageService.Free;
-    vStream.DisposeOf;
+    vStream.Free;
     vCloudResponse.Free;
+  end;
+end;
+
+function TAWSs3.GetObject: iAWSs3;
+var
+  vStorageService: TAmazonStorageService;
+  vCloudResponse: TCloudResponseInfo;
+  vStream: TMemoryStream;
+begin
+  vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
+  vCloudResponse:= TCloudResponseInfo.Create;
+  vStream:= TMemoryStream.Create;
+  try
+    if vStorageService.GetObject(FBucketName,
+                                    FObjectName,
+                                    TAmazonGetObjectOptionals.Create,
+                                    vStream,
+                                    vCloudResponse,
+                                    FRegion) then
+      FResponseMsg:= 'Enviado com sucesso'
+    else
+      FResponseMsg:= 'Erro: ' + vCloudResponse.StatusMessage;
+    FResponseCode:= vCloudResponse.StatusCode;
+    vStream.SaveToFile(FFilePath);
+  finally
+    vStorageService.Free;
+    vCloudResponse.Free;
+    vStream.Free;
   end;
 end;
 
