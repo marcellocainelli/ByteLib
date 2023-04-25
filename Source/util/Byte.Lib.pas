@@ -19,9 +19,11 @@ uses
 
   IdCoderMIME,
   {$IFDEF MSWINDOWS}
+  Vcl.Controls,
   ShellAPI,
   Registry,
   Winapi.Windows,
+  Winapi.Messages,
   {$ENDIF}
   //Componentes Indy
   IdComponent,
@@ -68,6 +70,7 @@ type
       class function MyStrToBool(S: string): boolean;
       class function Extenso(pValor: extended): String;
       class procedure RegistraInicializarWindows(const AProgTitle: string; const AExePath: string; ARunOnce: Boolean);
+      class procedure VclRoundCornerOf(Control: TWinControl);
 
       {Funções de formatação}
       class function SomenteNumero(const AValue: string): string;
@@ -621,6 +624,23 @@ begin
       Result:= TRegEx.IsMatch(AValue, C_EXP_CEP);
     end;
   end;
+end;
+
+class procedure TLib.VclRoundCornerOf(Control: TWinControl);
+var
+   R: TRect;
+   Rgn: HRGN;
+begin
+   with Control do
+   begin
+     R := ClientRect;
+     rgn := CreateRoundRectRgn(R.Left, R.Top, R.Right, R.Bottom, 20, 20) ;
+     Perform(EM_GETRECT, 0, lParam(@r)) ;
+     InflateRect(r, - 4, - 4) ;
+     Perform(EM_SETRECTNP, 0, lParam(@r)) ;
+     SetWindowRgn(Handle, rgn, True) ;
+     Invalidate;
+   end;
 end;
 
 {$ENDREGION}
