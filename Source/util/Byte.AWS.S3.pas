@@ -38,6 +38,7 @@ type
     function SendObject: iAWSs3; overload;
     function SendObject(AStream: TStream): iAWSs3; overload;
     function GetObject: iAWSs3; overload;
+    function GetObjectStream: TStream; overload;
     function GetObjectMetaDataValue(AValue: String): String;
     function DeleteObject: iAWSs3;
     function FilePath(AValue: String): iAWSs3;
@@ -63,6 +64,7 @@ type
       function SendObject: iAWSs3; overload;
       function SendObject(AStream: TStream): iAWSs3; overload;
       function GetObject: iAWSs3; overload;
+      function GetObjectStream: TStream; overload;
       function DeleteObject: iAWSs3;
       function GetObjectMetaDataValue(AValue: String): String;
       function FilePath(AValue: String): iAWSs3;
@@ -262,6 +264,33 @@ begin
   end;
 end;
 
+function TAWSs3.GetObjectStream: TStream;
+var
+  vStorageService: TAmazonStorageService;
+  vCloudResponse: TCloudResponseInfo;
+  vStream: TMemoryStream;
+begin
+  vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
+  vCloudResponse:= TCloudResponseInfo.Create;
+  vStream:= TMemoryStream.Create;
+  try
+    if vStorageService.GetObject(FBucketName,
+                                    FObjectName,
+                                    TAmazonGetObjectOptionals.Create,
+                                    vStream,
+                                    vCloudResponse,
+                                    FRegion) then
+      FResponseMsg:= 'Enviado com sucesso'
+    else
+      FResponseMsg:= 'Erro: ' + vCloudResponse.StatusMessage;
+    FResponseCode:= vCloudResponse.StatusCode;
+    Result:= vStream;
+  finally
+    vStorageService.Free;
+    vCloudResponse.Free;
+  end;
+end;
+
 function TAWSs3.GetObjectMetaDataValue(AValue: String): String;
 var
   vStorageService: TAmazonStorageService;
@@ -286,6 +315,7 @@ begin
     vCloudResponse.Free;
   end;
 end;
+
 function TAWSs3.AddHeader(AKey, AValue: String): iAWSs3;
 begin
   Result:= Self;
