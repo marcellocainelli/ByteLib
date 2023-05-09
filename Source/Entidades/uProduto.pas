@@ -267,12 +267,51 @@ begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
   {$ELSE}
   case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra', 'Cadastro']) of
-  0,1:
+  0:
     begin
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRAZO')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
-      //TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ESTOQUE')).DisplayFormat:= '#,0.00';
+    end;
+  1:
+    begin
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRAZO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
+
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUST')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('C_MEDIO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('MARGEM')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANT_MIN')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PESO')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('REDBASECALC')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ISS')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECOCOMPRA')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('IPI')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FRETE')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FINANCEIRO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('SUBSTITUICAO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('IVAST')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('REDBCICMSST')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('IPI_SAIDA')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PIS_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COFINS_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PIS_ENTRADA_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COFINS_ENTRADA_ALIQ')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QTD_EMBALAGEM_COMPRA')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_UN_PRECO')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_PRECO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VOLUME')).DisplayFormat:= '#,0.000000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COMPRIMENTO')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LARGURA')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ALTURA')).DisplayFormat:= '#,0.000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ICMS_DIFERENCA')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('MARGEM_LUCRO')).DisplayFormat:= '#,0.0000';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DECOMPOSICAO_PORC_PERDA')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_ECOMMERCE')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_PRAZ')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
     end;
   2:
     begin
