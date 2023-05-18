@@ -30,7 +30,7 @@ uses
 constructor TConta.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select C.BANCO, C.CONTA, C.COD_FILIAL, C.AGENCIA, C.CONTATO, C.FONE, C.LIMITE_CREDITO, C.STATUS, C.CONTA as CODIGO, 0 as INDICE '+
+  FEntidadeBase.TextoSQL('select C.*, C.CONTA as CODIGO, 0 as INDICE '+
                          'from CADBAN C '+
                          'where C.COD_FILIAL = :CodFilial');
 

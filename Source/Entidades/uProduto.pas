@@ -199,7 +199,13 @@ begin
     //busca por código
     0: vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro ';
     //busca por descrição
-    1: vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro) ';
+    1: begin
+      If pos('@', FEntidadeBase.TextoPesquisa) > 0 then begin
+        vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) like upper(:mParametro) ';
+        FEntidadeBase.TextoPesquisa('%' + StringReplace(FEntidadeBase.TextoPesquisa,'@','%',[rfReplaceAll, rfIgnoreCase]) + '%');
+      end else
+        vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro) ';
+    end;
     2: begin
       vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro ';
       //Se trabalha com multiplos cod barras

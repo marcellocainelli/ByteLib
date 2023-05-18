@@ -3,7 +3,7 @@ unit PlugStorage.Service;
 interface
 
 uses
-  System.Classes, System.SysUtils, System.JSON, RESTRequest4D, Xml.Reader;
+  System.Classes, System.SysUtils, System.JSON, RESTRequest4D, Xml.Reader, Byte.Json;
 
 type
 
@@ -19,6 +19,8 @@ type
     function DesvinculaContador: iPlugStorage;
     function VinculaGrupo(AId: String): iPlugStorage;
     function CriaGrupo(out AId: String): iPlugStorage;
+    function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): String;
+    function ConfigDestinadas(AFilePath: String): iPlugStorage;
 
     //Parametros
     function URL(AValue: String): iPlugStorage;
@@ -64,6 +66,8 @@ type
       function DesvinculaContador: iPlugStorage;
       function VinculaGrupo(AId: String): iPlugStorage;
       function CriaGrupo(out AId: String): iPlugStorage;
+      function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): String;
+      function ConfigDestinadas(AFilePath: String): iPlugStorage;
       function Usuario(AUsuario: String): iPlugStorage;
       function Senha(ASenha: String): iPlugStorage;
       function XML(AXml: String): iPlugStorage; overload;
@@ -163,7 +167,7 @@ begin
 
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
-              .Resource('invoices/invoices/export?token='+ FToken + '&invoice_key=' + FChaveXml + '&mode=XML&xml=XML')
+              .Resource('invoices/export?token='+ FToken + '&invoice_key=' + FChaveXml + '&mode=XML&downloaded=true&xml=XML')
               .Accept('application/xml')
               .ContentType('application/x-www-form-urlencoded')
               .BasicAuthentication(FUsuario, FSenha)
@@ -173,6 +177,8 @@ begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
         vJsonResp.TryGetValue<Boolean>('error', vSucesso);
+        vSucesso:= not vSucesso;
+
         if vSucesso then
           FXml:= vJsonResp.GetValue<string>('data.xml');
 
@@ -386,6 +392,137 @@ begin
   except
     on E:Exception do
       SetReqResult(False, E.Message);
+  end;
+end;
+
+function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String): String;
+var
+  vResp: IResponse;
+  vJsonContent, vJsonData: iJsonVal;
+  vInvoices: iJsonArr;
+  vSucesso: boolean;
+  vResource, vData, vLastID: String;
+  vCount, vTotal, vQtddReq: integer;
+begin
+  Result:= '';
+  vLastID:= '';
+  vResource:= 'invoices/keys?token=' + FToken + '&date_ini=' + FormatDateTime('yyyy-mm-dd', ADtInicio) + '&date_end=' + FormatDateTime('yyyy-mm-dd', ADtFim)
+                + '&mod=' + AModDoc + '&transaction=received&limit=30&last_id=';
+
+  try
+    vResp:= TRequest.New.BaseURL(FUrl)
+              .Timeout(FTimeout)
+              .Resource(vResource)
+              .ContentType('application/x-www-form-urlencoded')
+              .BasicAuthentication(FUsuario, FSenha)
+              .Get;
+
+    if not vResp.Content.IsEmpty then begin
+      vJsonContent:= TJsonVal.New(vResp.Content);
+      var vStr: string := vResp.Content;
+      vJsonContent.GetValue('error', vSucesso);
+      vSucesso:= not vSucesso;
+
+      if not vSucesso then
+        raise Exception.Create(vJsonContent.GetValueAsString('message'));
+
+      SetReqResult(vSucesso, vJsonContent.GetValueAsString('message'));
+
+      vJsonContent.GetValue('count', vCount);
+      vJsonContent.GetValue('total', vTotal);
+
+      if vCount = 0 then
+        Exit;
+
+      vData:= vJsonContent.GetValueAsString('data');
+
+      vJsonData:= TJsonVal.New(vData);
+      vInvoices:= TJsonArr.New;
+      vInvoices.Add(vJsonData.GetValueAsString('invoices'));
+
+      vQtddReq:= (vTotal div vCount) - 1;
+
+      for var I := 1 to vQtddReq do begin
+        vLastID:= vJsonContent.GetValueAsString('last_id');
+
+        vResp:= TRequest.New.BaseURL(FUrl)
+                  .Timeout(FTimeout)
+                  .Resource(vResource + vLastID)
+                  .ContentType('application/x-www-form-urlencoded')
+                  .BasicAuthentication(FUsuario, FSenha)
+                  .Get;
+
+        if not vResp.Content.IsEmpty then begin
+          vJsonContent:= TJsonVal.New(vResp.Content);
+          vJsonContent.GetValue('error', vSucesso);
+          vSucesso:= not vSucesso;
+
+          if not vSucesso then
+            raise Exception.Create(vJsonContent.GetValueAsString('message'));
+
+          vJsonContent.GetValue('count', vCount);
+          vJsonContent.GetValue('total', vTotal);
+
+          SetReqResult(vSucesso, vJsonContent.GetValueAsString('message'));
+
+          vData:= vJsonContent.GetValueAsString('data');
+          vInvoices.Add(vJsonData.GetValueAsString('invoices'));
+        end;
+      end;
+
+      Result:= vInvoices.AsString;
+    end;
+
+  except
+    on E:Exception do
+      SetReqResult(False, E.Message);
+  end;
+end;
+
+function TPlugStorage.ConfigDestinadas(AFilePath: String): iPlugStorage;
+var
+  vResp: IResponse;
+  vStream: TMemoryStream;
+  vResource: String;
+  vSucesso: boolean;
+  vJsonContent: iJsonVal;
+  vJson: String;
+begin
+  Result:= Self;
+
+  vResource:= 'destinadas/configdestined?token=' + FToken;
+
+  vStream:= TMemoryStream.Create;
+  vStream.LoadFromFile(AFilePath);
+  vJson:= MontaBodyReq(FJson);
+  try
+
+    try
+      vResp:= TRequest.New.BaseURL(FUrl)
+                .Timeout(FTimeout)
+                .Resource(vResource)
+                .ContentType('multipart/form-data')
+                .BasicAuthentication(FUsuario, FSenha)
+                .AddFile('cert_pfx', vStream)
+                .AddBody(vJson)
+                .Post;
+
+      if not vResp.Content.IsEmpty then begin
+        vJsonContent:= TJsonVal.New(vResp.Content);
+        vJsonContent.GetValue('error', vSucesso);
+        vSucesso:= not vSucesso;
+
+        if not vSucesso then
+          raise Exception.Create(vJsonContent.GetValueAsString('message'));
+
+        SetReqResult(vSucesso, vJsonContent.GetValueAsString('message'));
+      end;
+    except
+      on E:Exception do
+        SetReqResult(False, E.Message);
+    end;
+  finally
+    vStream.Free;
   end;
 end;
 
