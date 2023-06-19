@@ -199,14 +199,29 @@ function TPlugStorage.PostXML: iPlugStorage;
 var
   vResp: IResponse;
   vXMLReader: IXMLReader;
+  vPosTagInicio, vPosTagFim: integer;
+  vDataRecbto, vDataRecbtoNew: string;
 begin
   Result:= Self;
   try
+    vPosTagInicio:= Pos('<dhRecbto>', FXml) + 10;
+    vDataRecbto:= Copy(FXml, vPosTagInicio, FXml.Length - vPosTagInicio);
+    vPosTagFim:= Pos('</dhRecbto>', vDataRecbto) - 1;
+    vDataRecbto:= Copy(vDataRecbto, 1, vPosTagFim);
+    if vDataRecbto.Contains('+') then begin
+      vDataRecbtoNew:= Copy(vDataRecbto, 1, Pos('+', vDataRecbto) - 1);
+      FXml:= StringReplace(FXml, vDataRecbto, vDataRecbtoNew, [rfReplaceAll, rfIgnoreCase]);
+    end;
+
+
+
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
               .Resource('invoices?token=' + FToken)
               .Accept('application/xml')
               .ContentType('application/x-www-form-urlencoded')
+              .AcceptEncoding('gzip, deflate, br')
+              .AcceptCharset('UTF-8')
               .BasicAuthentication(FUsuario, FSenha)
               .AddBody('xml=' + FXml)
               .Post;

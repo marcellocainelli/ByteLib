@@ -33,6 +33,8 @@ uses
   FireDAC.UI.Intf,
   {$IFDEF MSWINDOWS}
   FireDAC.VCLUI.Wait,
+  Vcl.Forms,
+  Vcl.Dialogs,
   {$ENDIF}
   Model.Conexao.Interfaces;
 
@@ -46,6 +48,8 @@ Type
       procedure ConnApp;
       procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
       procedure FDConnBeforeConnect(Sender: TObject);
+      procedure InsertOnLostConnection(AEvent: TNotifyEvent);
+      procedure FDConnLostConnection(Sender: TObject);
     public
       constructor Create;
       destructor Destroy; override;
@@ -121,11 +125,18 @@ begin
   FConexao.Params.Database:= FDatabase;
   FConexao.Params.UserName:= FUsername;
   FConexao.Params.Password:= FPassword;
+
+//  InsertOnLostConnection(FDConnLostConnection);
 end;
 
 procedure TModelConexaoFiredac.InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
 begin
   FConexao.BeforeConnect:= AEvent;
+end;
+
+procedure TModelConexaoFiredac.InsertOnLostConnection(AEvent: TNotifyEvent);
+begin
+  FConexao.OnLost:= AEvent;
 end;
 
 procedure TModelConexaoFiredac.FDConnBeforeConnect(Sender: TObject);
@@ -139,6 +150,14 @@ begin
   {$ENDIF}
   FConexao.Params.Values['Username']:= FUsername;
   FConexao.Params.Values['Password']:= FPassword;
+end;
+
+procedure TModelConexaoFiredac.FDConnLostConnection(Sender: TObject);
+begin
+{$IFDEF MSWINDOWS}
+  Showmessage('A conexão com o banco de dados foi perdida devido ao um problema local ou na rede. O sistema será encerrado.');
+  Application.Terminate;
+{$ENDIF}
 end;
 
 end.

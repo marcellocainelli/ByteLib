@@ -70,7 +70,9 @@ type
       class function MyStrToBool(S: string): boolean;
       class function Extenso(pValor: extended): String;
       class procedure RegistraInicializarWindows(const AProgTitle: string; const AExePath: string; ARunOnce: Boolean);
+      {$IFDEF MSWINDOWS}
       class procedure VclRoundCornerOf(Control: TWinControl);
+      {$ENDIF}
 
       {Funções de formatação}
       class function SomenteNumero(const AValue: string): string;

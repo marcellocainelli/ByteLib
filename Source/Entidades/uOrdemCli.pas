@@ -29,7 +29,7 @@ uses
 constructor TOrdemCli.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from ORD_CLI');
+  FEntidadeBase.TextoSQL('select * from ORD_CLI ');
 
   InicializaDataSource;
 end;
@@ -57,7 +57,7 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
 
-  vTextoSQL:= FEntidadeBase.TextoSql + ' where COD_FILIAL = :pCod_Filial ';
+  vTextoSQL:= FEntidadeBase.TextoSql + ' where ((:pCod_Filial = ''-1'') or (COD_FILIAL = :pCod_Filial))';
   Case FEntidadeBase.TipoPesquisa of
     1: vTextoSQL:= vTextoSQL + ' and CAIXA_NUM_OPER = :Parametro';
     2: vTextoSQL:= vTextoSQL + ' and COD_FUN = :Parametro';
@@ -66,8 +66,10 @@ begin
     5: vTextoSQL:= vTextoSQL + ' and COD_FUN = :Parametro and DT_ORDEM between :pDtInicio and :pDtFim';
     6: vTextoSQL:= vTextoSQL + ' and NR_ORDEM = :Parametro';
     7: vTextoSQL:= vTextoSQL + ' and NR_ORDEM_SYNC = :Parametro';
-    8: vTextoSQL:= vTextoSQL + ' and DT_ORDEM between :pDtInicio and :pDtFim';
+    8: vTextoSQL:= vTextoSQL + ' and DT_ORDEM between :pDtInicio and :pDtFim and ((:pCod_Cli = ''-1'') or (COD_CLI = :pCod_Cli))';
   end;
+
+  vTextoSQL:= vTextoSQL + ' and ((:pStatus = ''-1'') or (STATUS = :pStatus))';
 
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NR_ORDEM');

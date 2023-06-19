@@ -69,7 +69,9 @@ begin
 
   FEntidadeBase.Iquery.IndexFieldNames('CODIGO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
+  {$IFNDEF APP}
   ModificaDisplayCampos;
+  {$ENDIF}
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 

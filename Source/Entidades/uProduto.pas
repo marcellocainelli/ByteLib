@@ -1,14 +1,11 @@
 ﻿unit uProduto;
-
 interface
-
 uses
   System.SysUtils,
   StrUtils,
   uDmFuncoes,
   Data.DB,
   Model.Entidade.Interfaces;
-
   Type
   TProduto = class(TInterfacedObject, iEntidadeProduto)
     private
@@ -105,7 +102,6 @@ begin
   end;
   {$ENDIF}
 end;
-
 function TProduto.Consulta(Value: TDataSource): iEntidadeProduto;
 var
   vTextoSQL: string;
@@ -145,8 +141,8 @@ begin
         //busca por cód barras
         vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro '
         //Se trabalha com multiplos cod barras
-        If DmFuncoes.MultiplosCodBarras then
-          FEntidadeBase.TextoPesquisa(DmFuncoes.MultBarrasGetCodBarPrincipal(FEntidadeBase.TextoPesquisa));
+//        If DmFuncoes.MultiplosCodBarras then
+//          FEntidadeBase.TextoPesquisa(DmFuncoes.MultBarrasGetCodBarPrincipal(FEntidadeBase.TextoPesquisa));
       else
         //busca por descricao
         vTextoSQL:= vTextoSQL + ' upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' Upper(:mParametro) || ' + QuotedStr('%') + ' and P.STATUS = ''A'' Order By 2';
@@ -248,7 +244,6 @@ begin
     ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 function TProduto.InicializaDataSource(Value: TDataSource): iEntidadeProduto;
 var
   vTextoSQL: String;
@@ -264,7 +259,6 @@ begin
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TProduto.ModificaDisplayCampos;
 begin
   {$IFDEF APP}
@@ -284,7 +278,6 @@ begin
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRAZO')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
-
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUST')).DisplayFormat:= '#,0.0000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('C_MEDIO')).DisplayFormat:= '#,0.0000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('MARGEM')).DisplayFormat:= '#,0.00';

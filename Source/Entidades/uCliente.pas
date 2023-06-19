@@ -116,7 +116,9 @@ begin
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
+  {$IFNDEF APP}
   ModificaDisplayCampos;
+  {$ENDIF}
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
