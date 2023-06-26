@@ -103,7 +103,7 @@ begin
     6: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(FONE) Containing Upper(:Parametro)';
     7: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
     8: begin
-        vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) = :Parametro';
+        vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) Containing :Parametro';
         FEntidadeBase.TextoPesquisa(TLib.SomenteNumero(FEntidadeBase.TextoPesquisa));
     end;
     9: vTextoSQL:= FEntidadeBase.TextoSql + 'DETALHE containing :Parametro';
