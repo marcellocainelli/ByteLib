@@ -8,6 +8,7 @@ type
   iJsonObj = interface
   ['{9AB362E5-43DE-4372-86F3-CCF2B18C19B6}']
     function SetJsonObj(AValue: TJSONObject)                      : iJsonObj;
+    function ParseJsonValue(AValue: String)                       : iJsonObj;
     function ToString                                             : String;
     function ToJsonObject                                         : TJSONObject;
     function AddPair(const AKey: String; const AValue: String)    : iJsonObj; overload;
@@ -25,6 +26,7 @@ type
       destructor Destroy; override;
       class function New: iJsonObj;
       function SetJsonObj(AValue: TJSONObject)                      : iJsonObj;
+      function ParseJsonValue(AValue: String)                       : iJsonObj;
       function ToString                                             : String;
       function ToJsonObject                                         : TJSONObject;
       function AddPair(const AKey: String; const AValue: String)    : iJsonObj; overload;
@@ -112,6 +114,11 @@ function TJsonObj.SetJsonObj(AValue: TJSONObject): iJsonObj;
 begin
   Result:= Self;
   FJsonObj:= AValue;
+end;
+function TJsonObj.ParseJsonValue(AValue: String): iJsonObj;
+begin
+  Result:= Self;
+  FJsonObj:= TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(AValue), 0) as TJSONObject;
 end;
 function TJsonObj.ToJsonObject: TJSONObject;
 begin
