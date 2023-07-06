@@ -171,7 +171,7 @@ begin
 
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
-              .Resource('invoices/export?token='+ FToken + '&invoice_key=' + FChaveXml + '&mode=XML&downloaded=true&xml=XML')
+              .Resource('invoices/export?token='+ FToken + '&invoice_key=' + FChaveXml + '&mode=XML&downloaded=true&xml=XML&resume=false')
               .Accept('application/xml')
               .ContentType('application/x-www-form-urlencoded')
               .BasicAuthentication(FUsuario, FSenha)

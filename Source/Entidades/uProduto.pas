@@ -69,7 +69,7 @@ begin
             //'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1))');
   end;
   {$ELSE}
-  case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra', 'Cadastro']) of
+  case AnsiIndexStr(TipoConsulta, ['Consulta', 'Filtra', 'Cadastro', 'PDV']) of
   0: FEntidadeBase.TextoSQL(
             'Select P.COD_PROD, P.COD_PROD as CODIGO, P.NOME_PROD, P.UNIDADE as UN, P.PRECO_VEND as PRECO, ' +
             'P.PRECO_PRAZ as PRAZO, E.QUANTIDADE, P.PESO, P.COD_BARRA, P.REFERENCIA, P.LOCAL, P.DETALHE, ' +
@@ -99,6 +99,21 @@ begin
             'From PRODUTOS P ' +
             'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = :mCodFilial) ' +
             'where (1=1) ');
+  3: FEntidadeBase.TextoSQL(
+            'Select P.COD_PROD, P.COD_PROD as CODIGO, P.NOME_PROD, P.UNIDADE as UN, P.PRECO_VEND as PRECO, ' +
+            'P.PRECO_PRAZ as PRAZO, E.QUANTIDADE, P.PESO, P.COD_BARRA, P.REFERENCIA, P.LOCAL, P.DETALHE, ' +
+            'M.DESCRICAO as GRUPO, M1.DESCRICAO as MARCA, SUBG.DESCRICAO as SUBGRUPO, PP.PRECO as PROMOCAO, PP.QTDD_MINIMA, P.COMPLEMENTO, P.COD_MARCA, P.ICMS, ' +
+            'P.C_MEDIO,P.MARGEM,P.SITTRIBUTARIA, ' +
+            'P.COD_FORNEC,P.PRECOCOMPRA,P.BALANCA,P.IMAGEM, ' +
+            'P.CLASFISCAL,P.DESCONTO,P.COD_TAMANHO, ' +
+            'P.VALIDADE,P.FLG_GRADE,P.CEST ' +
+            'From PRODUTOS P ' +
+            'Join MARCAS M on (M.CODIGO = P.COD_MARCA) ' +
+            'Left Join ESTOQUEFILIAL E on (E.COD_PROD = P.COD_PROD and E.COD_FILIAL = :mCodFilial) ' +
+            'Left Join MARCAS1 M1 on (M1.CODIGO = P.COD_MARCA1) ' +
+            'Left Join SUBGRUPOS SUBG on (SUBG.CODIGO = P.COD_SUBGRUPO) ' +
+            'Left Join PRODUTOS_PROMOCAO PP on ((PP.COD_PROD = P.COD_PROD) and (current_date >= PP.dtinicio and current_date <= PP.dtfim)) ' +
+            'where (1=1) and P.STATUS = ''A''');
   end;
   {$ENDIF}
 end;
