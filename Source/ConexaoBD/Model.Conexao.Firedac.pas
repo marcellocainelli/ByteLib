@@ -155,7 +155,7 @@ end;
 procedure TModelConexaoFiredac.FDConnLostConnection(Sender: TObject);
 begin
 {$IFDEF MSWINDOWS}
-  Showmessage('A conexão com o banco de dados foi perdida devido ao um problema local ou na rede. O sistema será encerrado.');
+  ShowMessage('A conexão com o banco de dados foi perdida devido a um problema nessa máquina ou na rede. O sistema será encerrado.');
   Application.Terminate;
 {$ENDIF}
 end;

@@ -22,6 +22,7 @@ type
     function CriaGrupo(out AId: String): iPlugStorage;
     function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): iPlugStorage;
     function ConfigDestinadas(AFilePath: String): iPlugStorage;
+    function ContadorVinculado(ACnpj: String): Boolean;
 
     //Parametros
     function URL(AValue: String): iPlugStorage;
@@ -71,6 +72,7 @@ type
       function CriaGrupo(out AId: String): iPlugStorage;
       function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): iPlugStorage;
       function ConfigDestinadas(AFilePath: String): iPlugStorage;
+      function ContadorVinculado(ACnpj: String): Boolean;
       function Usuario(AUsuario: String): iPlugStorage;
       function Senha(ASenha: String): iPlugStorage;
       function XML(AXml: String): iPlugStorage; overload;
@@ -531,112 +533,6 @@ begin
   end;
 end;
 
-//function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String): iPlugStorage;
-//  procedure GeraTableDestinadas(ATable: iTable);
-//  begin
-//    if not Assigned(ATable) then
-//      raise Exception.Create('Tabela não instanciada');
-//    ATable.Tabela.FieldDefs.Add('XML_CHAVE', ftString, 100);
-//    FTable.CriaDataSet;
-//  end;
-//var
-//  vResp: IResponse;
-//  vJsonObj, vJsonObjData, vJsonObjInvoice: TJSONObject;
-//  vJsonArrayInvoices: TJSONArray;
-//  vSucesso: boolean;
-//  vResource, vData, vLastID, vMsg: String;
-//  vCount, vTotal, vQtddReq: integer;
-//  vReqCount, vArrayCount: integer;
-//begin
-//  Result:= Self;
-//  vLastID:= '';
-//  GeraTableDestinadas(FTable);
-//  vResource:= 'invoices/keys?token=' + FToken + '&date_ini=' + FormatDateTime('yyyy-mm-dd', ADtInicio) + '&date_end=' + FormatDateTime('yyyy-mm-dd', ADtFim)
-//                + '&mod=' + AModDoc + '&transaction=received&limit=30&last_id=';
-//
-//  try
-//    vResp:= TRequest.New.BaseURL(FUrl)
-//              .Timeout(FTimeout)
-//              .Resource(vResource)
-//              .ContentType('application/x-www-form-urlencoded')
-//              .BasicAuthentication(FUsuario, FSenha)
-//              .Get;
-//
-//    if not vResp.Content.IsEmpty then begin
-//      vJsonObj:= TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(vResp.Content), 0) as TJSONObject;
-//      vJsonObjData:= vJsonObj.Get('data').JsonValue as TJSONObject;
-//      try
-//        vSucesso:= vJsonObj.GetValue<boolean>('error');
-//        vSucesso:= not vSucesso;
-//        vMsg:= vJsonObj.GetValue<String>('message');
-//
-//        if not vSucesso then
-//          raise Exception.Create(vMsg);
-//
-//        SetReqResult(vSucesso, vMsg);
-//
-//        vCount:= vJsonObjData.GetValue<integer>('count');
-//        vTotal:= vJsonObjData.GetValue<integer>('total');
-//
-//        if vCount = 0 then
-//          Exit;
-//
-//        vJsonArrayInvoices:= vJsonObjData.Get('invoices').JsonValue as TJSONArray;
-//
-//        for vArrayCount := 0 to vJsonArrayInvoices.Size - 1 do begin
-//          vjsonObjInvoice:= vJsonArrayInvoices.Get(vArrayCount) as TJSONObject;
-//          FTable.Tabela.Append;
-//          FTable.Tabela.FieldByName('XML_CHAVE').AsString:= vjsonObjInvoice.Get('key').JsonValue.Value;
-//          FTable.Tabela.Post;
-//        end;
-//
-//        vQtddReq:= (vTotal div vCount);
-//
-//        for vReqCount := 1 to vQtddReq do begin
-//          vJsonObjData.TryGetValue<String>('last_id', vLastID);
-//
-//          vResp:= TRequest.New.BaseURL(FUrl)
-//                    .Timeout(FTimeout)
-//                    .Resource(vResource + vLastID)
-//                    .ContentType('application/x-www-form-urlencoded')
-//                    .BasicAuthentication(FUsuario, FSenha)
-//                    .Get;
-//
-//          if not vResp.Content.IsEmpty then begin
-//            if Assigned(vJsonObj) then
-//              vJsonObj.Free;
-//            vJsonObj:= TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(vResp.Content), 0) as TJSONObject;
-//            vJsonObjData:= vJsonObj.Get('data').JsonValue as TJSONObject;
-//
-//            vSucesso:= vJsonObj.GetValue<boolean>('error');
-//            vSucesso:= not vSucesso;
-//            vMsg:= vJsonObj.GetValue<String>('message');
-//
-//            if not vSucesso then
-//              raise Exception.Create(vMsg);
-//
-//            vJsonObj:= TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(vResp.Content), 0) as TJSONObject;
-//            vJsonObjData:= vJsonObj.Get('data').JsonValue as TJSONObject;
-//
-//            vJsonArrayInvoices:= vJsonObjData.Get('invoices').JsonValue as TJSONArray;
-//
-//            for vArrayCount := 0 to vJsonArrayInvoices.Size - 1 do begin
-//              vjsonObjInvoice:= vJsonArrayInvoices.Get(vArrayCount) as TJSONObject;
-//              FTable.Tabela.Append;
-//              FTable.Tabela.FieldByName('XML_CHAVE').AsString:= vjsonObjInvoice.Get('key').JsonValue.Value;
-//              FTable.Tabela.Post;
-//            end;
-//          end;
-//        end;
-//      finally
-//      end;
-//    end;
-//  except
-//    on E:Exception do
-//      SetReqResult(False, E.Message);
-//  end;
-//end;
-
 function TPlugStorage.ConfigDestinadas(AFilePath: String): iPlugStorage;
 var
   vResp: IResponse;
@@ -681,6 +577,44 @@ begin
     end;
   finally
     vStream.Free;
+  end;
+end;
+
+function TPlugStorage.ContadorVinculado(ACnpj: String): Boolean;
+var
+  vResp: IResponse;
+  vJsonResp: TJSONValue;
+  vSucesso: boolean;
+  vVinculado: String;
+begin
+  Result:= False;
+
+  try
+    vResp:= TRequest.New.BaseURL(FUrl)
+              .Timeout(FTimeout)
+              .Resource('clients/accountant?cnpj_cpf=' + ACnpj)
+              .ContentType('application/x-www-form-urlencoded')
+              .BasicAuthentication(FToken, FSenha)
+              .AddBody(MontaBodyReq(FJson))
+              .Post;
+
+    if not vResp.Content.IsEmpty then begin
+      vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
+      try
+        vJsonResp.TryGetValue<Boolean>('error', vSucesso);
+        vSucesso:= not vSucesso;
+        SetReqResult(vSucesso, vJsonResp.GetValue<String>('message'));
+        if vSucesso then begin
+          vJsonResp.TryGetValue<String>('confirmation', vVinculado);
+          Result:= vVinculado.Equals('CONFIRMADO');
+        end;
+      finally
+        vJsonResp.Free;
+      end;
+    end;
+  except
+    on E:Exception do
+      SetReqResult(False, E.Message);
   end;
 end;
 
