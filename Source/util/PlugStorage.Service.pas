@@ -21,6 +21,7 @@ type
     function VinculaGrupo(AId: String): iPlugStorage;
     function CriaGrupo(out AId: String): iPlugStorage;
     function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): iPlugStorage;
+    function ValidaCertificado(ACnpj: String): iPlugStorage;
     function ConfigDestinadas(AFilePath: String): iPlugStorage;
     function ContadorVinculado(ACnpj: String): Boolean;
 
@@ -71,6 +72,7 @@ type
       function VinculaGrupo(AId: String): iPlugStorage;
       function CriaGrupo(out AId: String): iPlugStorage;
       function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): iPlugStorage;
+      function ValidaCertificado(ACnpj: String): iPlugStorage;
       function ConfigDestinadas(AFilePath: String): iPlugStorage;
       function ContadorVinculado(ACnpj: String): Boolean;
       function Usuario(AUsuario: String): iPlugStorage;
@@ -268,6 +270,39 @@ begin
           SetReqResult(False, vJsonResp.GetValue<String>('message'))
         else
           SetReqResult(True, vJsonResp.GetValue<String>('message'));
+      finally
+        vJsonResp.Free;
+      end;
+    end;
+
+  except
+    on E:Exception do
+      SetReqResult(False, E.Message);
+  end;
+end;
+
+function TPlugStorage.ValidaCertificado(ACnpj: String): iPlugStorage;
+var
+  vResp: IResponse;
+  vJsonResp: TJSONValue;
+  vSucesso: boolean;
+begin
+  Result:= Self;
+  try
+    vResp:= TRequest.New.BaseURL(FUrl)
+              .Timeout(FTimeout)
+              .Resource('https://app.plugstorage.com.br/api/clients/certificate?cnpj_cpf=' + ACnpj)
+              .Accept('application/json')
+              .ContentType('application/x-www-form-urlencoded')
+              .BasicAuthentication(FToken, FSenha)
+              .Post;
+
+    if not vResp.Content.IsEmpty then begin
+      vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
+      try
+        vJsonResp.TryGetValue<Boolean>('error', vSucesso);
+        vSucesso:= not vSucesso;
+        SetReqResult(vSucesso, vJsonResp.GetValue<String>('message'))
       finally
         vJsonResp.Free;
       end;
@@ -595,8 +630,7 @@ begin
               .Resource('clients/accountant?cnpj_cpf=' + ACnpj)
               .ContentType('application/x-www-form-urlencoded')
               .BasicAuthentication(FToken, FSenha)
-              .AddBody(MontaBodyReq(FJson))
-              .Post;
+              .Get;
 
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
