@@ -274,6 +274,7 @@ begin
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
+
 procedure TProduto.ModificaDisplayCampos;
 begin
   {$IFDEF APP}
@@ -362,6 +363,7 @@ begin
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_PRAZ')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DESCONTO')).DisplayFormat:= '#,0.00';
     end;
   end;
   {$ENDIF}
