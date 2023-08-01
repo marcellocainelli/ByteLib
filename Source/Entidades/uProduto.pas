@@ -316,6 +316,7 @@ begin
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QTD_EMBALAGEM_COMPRA')).DisplayFormat:= '#,0.000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_UN_PRECO')).DisplayFormat:= '#,0.000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_PRECO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_PRECO_BOLSAFAMILIA')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VOLUME')).DisplayFormat:= '#,0.000000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COMPRIMENTO')).DisplayFormat:= '#,0.000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LARGURA')).DisplayFormat:= '#,0.000';
@@ -352,6 +353,7 @@ begin
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QTD_EMBALAGEM_COMPRA')).DisplayFormat:= '#,0.000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_UN_PRECO')).DisplayFormat:= '#,0.000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_PRECO')).currency:= True;
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('FPOP_PRECO_BOLSAFAMILIA')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VOLUME')).DisplayFormat:= '#,0.000000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('COMPRIMENTO')).DisplayFormat:= '#,0.000';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LARGURA')).DisplayFormat:= '#,0.000';
