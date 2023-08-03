@@ -62,6 +62,7 @@ begin
     vTextoSQL:= vTextoSQL + ' and O.STATUS = ''A'' ';
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSql);
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -77,7 +78,7 @@ end;
 
 procedure TOperadora.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DESCONTO')).DisplayFormat:= '#,0.00';
 end;
 
 function TOperadora.DtSrc: TDataSource;
