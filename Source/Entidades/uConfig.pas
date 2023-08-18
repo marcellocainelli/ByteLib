@@ -6,6 +6,7 @@ uses
   uEntidadeBase,
   Data.DB,
   Model.Entidade.Interfaces,
+  Model.Conexao.Interfaces,
   System.SysUtils;
 
 Type
@@ -13,9 +14,9 @@ Type
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -27,14 +28,11 @@ implementation
 
 { TConfig }
 
-constructor TConfig.Create;
+constructor TConfig.Create(AConn: iConexao = nil);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  {$IFDEF MSWINDOWS}
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TextoSQL('select * from CONFIG');
-  {$ELSE}
-  FEntidadeBase.TextoSQL('select * from CONFIG WHERE CODIGO = 1');
-  {$ENDIF}
+
   InicializaDataSource;
 end;
 
@@ -43,9 +41,9 @@ begin
   inherited;
 end;
 
-class function TConfig.New: iEntidade;
+class function TConfig.New(AConn: iConexao = nil): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TConfig.EntidadeBase: iEntidadeBase<iEntidade>;

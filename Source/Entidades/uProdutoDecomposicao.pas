@@ -3,7 +3,7 @@ unit uProdutoDecomposicao;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, DIALOGS;
 Type
   TProdutoDecomposicao = class(TInterfacedObject, iEntidade)
     private
@@ -33,7 +33,7 @@ begin
     'Select PD.*, P.NOME_PROD, P.UNIDADE ' +
     'From PRODUTOS_DECOMPOSICAO PD ' +
     'Join PRODUTOS P On (P.COD_PROD = PD.COD_COMPONENTE) ' +
-    'Where PD.COD_PRODUTO = :pCOD_PROD');
+    'Where PD.COD_PRODUTO = :pCod_Prod');
 
   InicializaDataSource;
 end;
@@ -61,8 +61,9 @@ begin
 
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
-  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  ModificaDisplayCampos;
+  Value.DataSet.Open;
 end;
 
 function TProdutoDecomposicao.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -71,7 +72,7 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
 
-  FEntidadeBase.AddParametro('pCOD_PROD', -1, ftInteger);
+  FEntidadeBase.AddParametro('pCOD_PROD', -1);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
