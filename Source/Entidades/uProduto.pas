@@ -89,7 +89,7 @@ begin
             'Select P.*, P.PRECO_VEND as PRECO, P.PRECO_PRAZ as PRAZO, B.QUANTIDADE ' + //, B.QUANTIDADE as ESTOQUE ' +
             'From PRODUTOS P ' +
             'Left Join ESTOQUEFILIAL B on (P.COD_PROD = B.COD_PROD and B.COD_FILIAL = :mCodFilial)' +
-            'Where STATUS = ''A'' ' +
+            'Where (1 = 1) ' +
             'and ((P.COD_MARCA = :mCOD_MARCA) or (:mCOD_MARCA = -1)) ' +
             'and ((P.COD_MARCA1 = :mCOD_MARCA1) or (:mCOD_MARCA1 = -1)) ' +
             'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
