@@ -73,8 +73,8 @@ procedure TProdutoKit.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.0000';
   TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUST')).currency:= True;
-  TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
-  TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRC_VENDA_KIT')).currency:= True;
+  TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).DisplayFormat:= '#,0.0000';
+  TCurrencyField(FEntidadeBase.Iquery.Dataset.FieldByName('PRC_VENDA_KIT')).DisplayFormat:= '#,0.0000';
 end;
 function TProdutoKit.DtSrc: TDataSource;
 begin
