@@ -3,7 +3,7 @@ unit uCaixa;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, uLib, System.SysUtils, StrUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
 Type
   TCaixa = class(TInterfacedObject, iEntidade)
     private
