@@ -229,7 +229,7 @@ begin
               .AcceptEncoding('gzip, deflate, br')
               .AcceptCharset('UTF-8')
               .BasicAuthentication(FUsuario, FSenha)
-              .AddBody('xml=' + FXml)
+              .AddField('xml', FXml)
               .Post;
 
     vXMLReader:= TXmlReader.New.LoadFromString(vResp.Content);
