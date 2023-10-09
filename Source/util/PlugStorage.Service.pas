@@ -212,14 +212,15 @@ var
 begin
   Result:= Self;
   try
-    vPosTagInicio:= Pos('<dhRecbto>', FXml) + 10;
-    vDataRecbto:= Copy(FXml, vPosTagInicio, FXml.Length - vPosTagInicio);
-    vPosTagFim:= Pos('</dhRecbto>', vDataRecbto) - 1;
-    vDataRecbto:= Copy(vDataRecbto, 1, vPosTagFim);
-    if vDataRecbto.Contains('+') then begin
-      vDataRecbtoNew:= Copy(vDataRecbto, 1, Pos('+', vDataRecbto) - 1);
-      FXml:= StringReplace(FXml, vDataRecbto, vDataRecbtoNew, [rfReplaceAll, rfIgnoreCase]);
-    end;
+  //EM DESUSO APÓS ATUALIZAÇÃO DO DELPHI E RESTREQUEST4D
+//    vPosTagInicio:= Pos('<dhRecbto>', FXml) + 10;
+//    vDataRecbto:= Copy(FXml, vPosTagInicio, FXml.Length - vPosTagInicio);
+//    vPosTagFim:= Pos('</dhRecbto>', vDataRecbto) - 1;
+//    vDataRecbto:= Copy(vDataRecbto, 1, vPosTagFim);
+//    if vDataRecbto.Contains('+') then begin
+//      vDataRecbtoNew:= Copy(vDataRecbto, 1, Pos('+', vDataRecbto) - 1);
+//      FXml:= StringReplace(FXml, vDataRecbto, vDataRecbtoNew, [rfReplaceAll, rfIgnoreCase]);
+//    end;
 
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
@@ -480,6 +481,7 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
     ATable.Tabela.FieldDefs.Add('EMITENTE_FANTASIA', ftString, 100);
     ATable.Tabela.FieldDefs.Add('EMISSAO', ftDateTime);
     ATable.Tabela.FieldDefs.Add('VALOR', ftFloat);
+    ATable.Tabela.FieldDefs.Add('LANCADA', ftBoolean);
     ATable.CriaDataSet;
   end;
 
@@ -503,6 +505,7 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
       ATable.Tabela.FieldByName('EMISSAO').AsDateTime:= StrtoDate(vjsonObjInvoice.Get('date_emission').JsonValue.Value, vFormatSet);
       vValor:= StringReplace(vjsonObjInvoice.Get('value').JsonValue.Value, '.', ',', [rfReplaceAll, rfIgnoreCase]);
       ATable.Tabela.FieldByName('VALOR').AsString:= vValor;
+      ATable.Tabela.FieldByName('LANCADA').AsBoolean:= False;
       ATable.Tabela.Post;
     end;
   end;
