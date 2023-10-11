@@ -8,7 +8,7 @@ uses
   Dataset.Serialize,
   Byte.Lib;
 const
-  C_URL_API = 'https://api.plugzapi.com.br/instances/%s/token/%s';
+  C_URL_API = 'https://api-windows.plugzapi.com.br/instances/%s/token/%s';
   C_TIMEOUT = 5000;
 type
   iPlugzapi<T> = interface
