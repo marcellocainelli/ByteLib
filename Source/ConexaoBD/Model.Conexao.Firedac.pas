@@ -104,7 +104,11 @@ begin
 end;
 
 procedure TModelConexaoFiredac.ConnWindows;
+var
+  vAcessoRemoto: Boolean;
 begin
+  vAcessoRemoto:= False;
+
   if FDatabase.Equals(EmptyStr) then begin
     {$IFDEF BYTESUPER}
       FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
@@ -112,12 +116,17 @@ begin
       FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
     {$ENDIF}
 
+    vAcessoRemoto:= FArqIni.ReadBool('SISTEMA', 'AcessoRemoto', False);
+
     {$IFDEF APPSERVER}
       FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
       if FDatabase.Equals(EmptyStr) then
         FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
     {$ELSE}
-      FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
+      if vAcessoRemoto then
+        FDatabase:= FArqIni.ReadString('SISTEMA','DatabaseName','')
+      else
+        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
     {$ENDIF}
   end;
 
@@ -125,6 +134,12 @@ begin
   FConexao.Params.Database:= FDatabase;
   FConexao.Params.UserName:= FUsername;
   FConexao.Params.Password:= FPassword;
+
+  if vAcessoRemoto then begin
+    FConexao.Params.Values['Server']:= FArqIni.ReadString('SISTEMA','Server','');
+    FConexao.Params.Values['Port']:= FArqIni.ReadString('SISTEMA','Port','3050');
+    FConexao.Params.Password:= FArqIni.ReadString('SISTEMA','Password', FPassword);
+  end;
 
 //  InsertOnLostConnection(FDConnLostConnection);
 end;

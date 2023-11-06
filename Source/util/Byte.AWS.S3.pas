@@ -135,7 +135,6 @@ constructor TAWSs3.Create;
 begin
   FAmazonConnectionInfo:= TAmazonConnectionInfo.Create(nil);
 end;
-
 destructor TAWSs3.Destroy;
 begin
   FAmazonConnectionInfo.Free;
@@ -153,7 +152,6 @@ begin
   Result:= Self;
   FFilePath:= AValue;
 end;
-
 function TAWSs3.Response: String;
 begin
   Result:= FResponseMsg;
@@ -173,7 +171,6 @@ begin
   FBucketName:= AConfig.BucketName;
   FRegion:= AConfig.Region;
 end;
-
 function TAWSs3.SendObject: iAWSs3;
 var
   vStorageService: TAmazonStorageService;
@@ -204,7 +201,6 @@ begin
     vCloudResponse.Free;
   end;
 end;
-
 function TAWSs3.SendObject(AStream: TStream): iAWSs3;
 var
   vStorageService: TAmazonStorageService;
@@ -235,7 +231,6 @@ begin
     vCloudResponse.Free;
   end;
 end;
-
 function TAWSs3.GetObject: iAWSs3;
 var
   vStorageService: TAmazonStorageService;
@@ -263,7 +258,6 @@ begin
     vStream.Free;
   end;
 end;
-
 function TAWSs3.GetObjectStream: TStream;
 var
   vStorageService: TAmazonStorageService;
@@ -299,7 +293,6 @@ var
   vAmazonGetObjectOptionals: TAmazonGetObjectOptionals;
 begin
   Result:= '';
-
   vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
   vCloudResponse:= TCloudResponseInfo.Create;
   try
@@ -321,19 +314,15 @@ begin
   Result:= Self;
   if not Assigned(FHeader) then
     FHeader:= TStringList.Create;
-
   FHeader.Values[AKey]:= AValue;
 end;
-
 function TAWSs3.AddMetaData(AKey, AValue: String): iAWSs3;
 begin
   Result:= Self;
   if not Assigned(FMetaDados) then
     FMetaDados:= TStringList.Create;
-
   FMetaDados.Values[AKey]:= AValue;
 end;
-
 function TAWSs3.CreateFolder: iAWSs3;
 var
   vStorageService: TAmazonStorageService;
@@ -362,7 +351,6 @@ begin
     vCloudResponse.Free;
   end;
 end;
-
 function TAWSs3.DeleteObject: iAWSs3;
 var
   vStorageService: TAmazonStorageService;
@@ -386,6 +374,4 @@ begin
     vCloudResponse.Free;
   end;
 end;
-
 end.
-
