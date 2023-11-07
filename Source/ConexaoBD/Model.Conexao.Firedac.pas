@@ -105,9 +105,9 @@ end;
 
 procedure TModelConexaoFiredac.ConnWindows;
 var
-  vAcessoRemoto: Boolean;
+  vAcessoOnline: Boolean;
 begin
-  vAcessoRemoto:= False;
+  vAcessoOnline:= False;
 
   if FDatabase.Equals(EmptyStr) then begin
     {$IFDEF BYTESUPER}
@@ -116,14 +116,14 @@ begin
       FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
     {$ENDIF}
 
-    vAcessoRemoto:= FArqIni.ReadBool('SISTEMA', 'AcessoRemoto', False);
+    vAcessoOnline:= FArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
 
     {$IFDEF APPSERVER}
       FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
       if FDatabase.Equals(EmptyStr) then
         FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
     {$ELSE}
-      if vAcessoRemoto then
+      if vAcessoOnline then
         FDatabase:= FArqIni.ReadString('SISTEMA','DatabaseName','')
       else
         FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
@@ -135,7 +135,7 @@ begin
   FConexao.Params.UserName:= FUsername;
   FConexao.Params.Password:= FPassword;
 
-  if vAcessoRemoto then begin
+  if vAcessoOnline then begin
     FConexao.Params.Values['Server']:= FArqIni.ReadString('SISTEMA','Server','');
     FConexao.Params.Values['Port']:= FArqIni.ReadString('SISTEMA','Port','3050');
     FConexao.Params.Password:= FArqIni.ReadString('SISTEMA','Password', FPassword);
