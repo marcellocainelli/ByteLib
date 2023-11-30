@@ -45,6 +45,7 @@ type
     function ResponseCode: integer;
     function s3Config(AConfig: iAWSs3Config): iAWSs3;
     function ContentType(AValue: String): iAWSs3;
+    function AddMetaData(AKey, AValue: String): iAWSs3;
 
     function SendObject(AProgressBar: TProgressBar = nil): iAWSs3;
   end;
@@ -55,6 +56,7 @@ type
       FContentType: String;
       Fs3Config: iAWSs3Config;
     private
+      FMetaDados: TStringList;
     public
       constructor Create;
       destructor Destroy; override;
@@ -65,6 +67,7 @@ type
       function ResponseCode: integer;
       function s3Config(AConfig: iAWSs3Config): iAWSs3;
       function ContentType(AValue: String): iAWSs3;
+      function AddMetaData(AKey, AValue: String): iAWSs3;
 
       function SendObject(AProgressBar: TProgressBar = nil): iAWSs3;
   end;
@@ -123,6 +126,7 @@ class function TAWSs3.New: iAWSs3;
 begin
   Result:= Self.Create;
 end;
+
 function TAWSs3.ContentType(AValue: String): iAWSs3;
 begin
   Result:= Self;
@@ -135,6 +139,8 @@ begin
 end;
 destructor TAWSs3.Destroy;
 begin
+  if Assigned(FMetaDados) then
+    FMetaDados.Free;
   inherited;
 end;
 function TAWSs3.ObjectName(AValue: String): iAWSs3;
@@ -161,6 +167,16 @@ begin
   Fs3Config:= AConfig;
 end;
 
+function TAWSs3.AddMetaData(AKey, AValue: String): iAWSs3;
+begin
+  Result:= Self;
+
+  if not Assigned(FMetaDados) then
+    FMetaDados:= TStringList.Create;
+
+  FMetaDados.Values[AKey]:= AValue;
+end;
+
 function TAWSs3.SendObject(AProgressBar: TProgressBar): iAWSs3;
 var
   vS3Obj: iS3Object;
@@ -170,6 +186,7 @@ var
   vObjResponse: IS3PutObjectResponse;
   vStream: TMemoryStream;
 begin
+  Result:= Self;
   try
     vStream:= TMemoryStream.Create;
     try
@@ -183,6 +200,9 @@ begin
 
       vObjRequest:= TS3PutObjectRequest.Create(Fs3Config.BucketName, FObjectName, vStream);
       vObjRequest.ContentType:= FContentType;
+
+      for var i := 0 to FMetaDados.Count - 1 do
+          vObjRequest.Metadata.Add(FMetaDados.KeyNames[i], FMetaDados.ValueFromIndex[i]);
 
       if AProgressBar <> nil then begin
         {$IFDEF FMX}

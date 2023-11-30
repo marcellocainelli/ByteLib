@@ -36,6 +36,7 @@ Type
     function SetReadOnly(Value: TDataSource = nil; ANomeCampo: string = ''; AReadOnly: boolean = false): iEntidadeBase<T>;
     function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
     function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>;
+    function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
     function &End : T;
     function TextoSQL(pValue: String): String; overload;
     function TextoSQL: String; overload;
@@ -142,6 +143,15 @@ begin
   Result:= Self;
   FQuery.CalcFields(AEvent);
 end;
+
+function TEntidadeBase<T>.ClearDataset(Value: TDataSource): iEntidadeBase<T>;
+begin
+  Result:= Self;
+  if Value = nil then
+    Value:= FDataSource;
+  FQuery.ClearDataset(Value.Dataset);
+end;
+
 function TEntidadeBase<T>.CriaCampo(ADataSource: TDataSource; ANomeCampo: string; ADataType: TFieldType): iEntidadeBase<T>;
 var
   vField: TField;

@@ -34,6 +34,7 @@ type
     function GetFieldNames(Table: string; List: TStrings): iQuery;
     function SetMode(pModo: string): iQuery;
     function CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
+    function ClearDataset(Value: TDataSet): iQuery;
   end;
 
   iTable = interface

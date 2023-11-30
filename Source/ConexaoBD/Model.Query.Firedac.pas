@@ -55,6 +55,7 @@ Type
       function GetFieldNames(Table: string; List: TStrings): iQuery;
       function SetMode(pModo: string): iQuery;
       function CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
+      function ClearDataset(Value: TDataSet): iQuery;
 
       procedure CatchApplyUpdatesErrors;
       function TrataErrosApplyUpdates(AMsgErro: string): string;
@@ -227,6 +228,12 @@ function TModelQueryFiredac.CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
 begin
   Result:= Self;
   FDQuery.OnCalcFields:= AEvent;
+end;
+
+function TModelQueryFiredac.ClearDataset(Value: TDataSet): iQuery;
+begin
+  Result:= Self;
+  TFDQuery(Value).EmptyDataSet;
 end;
 
 procedure TModelQueryFiredac.CatchApplyUpdatesErrors;

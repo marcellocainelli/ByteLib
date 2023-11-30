@@ -20,6 +20,7 @@ type
     function SetReadOnly(Value: TDataSource = nil; ANomeCampo: string = ''; AReadOnly: boolean = false): iEntidadeBase<T>;
     function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
     function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>;
+    function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;
