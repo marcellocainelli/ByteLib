@@ -72,7 +72,10 @@ end;
 
 procedure TNfeItensDI.ModificaDisplayCampos;
 begin
-
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('di_data')).EditMask:= '!99/99/00;1;_';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('desembaraco_data')).EditMask:= '!99/99/00;1;_';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('vlr_afrmm')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('adicao_vlr_desconto_item')).currency:= True;
 end;
 
 function TNfeItensDI.DtSrc: TDataSource;
