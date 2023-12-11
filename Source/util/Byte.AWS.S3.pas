@@ -3,6 +3,11 @@ interface
 uses
   System.Classes,
   System.SysUtils,
+  {$IFDEF FMX}
+    FMX.StdCtrls,
+    FMX.Forms,
+    Component.ProgressStream,
+  {$ENDIF}
   Data.Cloud.CloudAPI,
   Data.Cloud.AmazonAPI;
 type
@@ -38,6 +43,7 @@ type
     function SendObject: iAWSs3; overload;
     function SendObject(AStream: TStream): iAWSs3; overload;
     function GetObject: iAWSs3; overload;
+    function GetObject(AProgressBar: TProgressBar): iAWSs3; overload;
     function GetObjectStream: TStream; overload;
     function GetObjectMetaDataValue(AValue: String): String;
     function DeleteObject: iAWSs3;
@@ -56,7 +62,11 @@ type
       FFilePath, FObjectName, FBucketName, FRegion, FResponseMsg: String;
       FResponseCode: integer;
       FHeader, FMetaDados: TStringList;
+      {$IFDEF FMX}
+        FProgressBar: TProgressBar;
+      {$ENDIF}
     private
+      procedure OnProgress(const ACount: Int64);
     public
       constructor Create;
       destructor Destroy; override;
@@ -64,6 +74,9 @@ type
       function SendObject: iAWSs3; overload;
       function SendObject(AStream: TStream): iAWSs3; overload;
       function GetObject: iAWSs3; overload;
+      {$IFDEF FMX}
+        function GetObject(AProgressBar: TProgressBar): iAWSs3; overload;
+      {$ENDIF}
       function GetObjectStream: TStream; overload;
       function DeleteObject: iAWSs3;
       function GetObjectMetaDataValue(AValue: String): String;
@@ -147,6 +160,13 @@ begin
   Result:= Self;
   FObjectName:= AValue;
 end;
+
+procedure TAWSs3.OnProgress(const ACount: Int64);
+begin
+  FProgressBar.Value:= FProgressBar.Value + ACount;
+  Application.ProcessMessages;
+end;
+
 function TAWSs3.FilePath(AValue: String): iAWSs3;
 begin
   Result:= Self;
@@ -284,7 +304,54 @@ begin
     vCloudResponse.Free;
   end;
 end;
-
+{$IFDEF FMX}
+function TAWSs3.GetObject(AProgressBar: TProgressBar): iAWSs3;
+var
+  vStorageService: TAmazonStorageService;
+  vCloudResponse: TCloudResponseInfo;
+  vStream: TMemoryStream;
+  vProgressStream: TProgressStream;
+  vContentLength: Int64;
+  vProperties, vMetadata: TStrings;
+begin
+  vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
+  vCloudResponse:= TCloudResponseInfo.Create;
+  try
+    if vStorageService.GetObjectProperties(FBucketName, FObjectName, vProperties, vMetadata) then begin
+      try
+        vContentLength:= StrToInt(vProperties.Values['Content-Length']);
+      finally
+        vMetadata.Free;
+        vProperties.Free;
+      end;
+      FProgressBar:= AProgressBar;
+      vStream:= TMemoryStream.Create;
+      vProgressStream:= TProgressStream.Create(vStream);
+      vProgressStream.OnProgress:= OnProgress;
+      AProgressBar.Max:= vContentLength;
+      AProgressBar.Value:= 0;
+      try
+        if vStorageService.GetObject(FBucketName,
+                                        FObjectName,
+                                        TAmazonGetObjectOptionals.Create,
+                                        vProgressStream,
+                                        vCloudResponse,
+                                        FRegion) then
+          FResponseMsg:= 'Enviado com sucesso'
+        else
+          FResponseMsg:= 'Erro: ' + vCloudResponse.StatusMessage;
+        FResponseCode:= vCloudResponse.StatusCode;
+        vStream.SaveToFile(FFilePath);
+      finally
+        vProgressStream.Free;
+      end;
+    end;
+  finally
+    vStorageService.Free;
+    vCloudResponse.Free;
+  end;
+end;
+{$ENDIF}
 function TAWSs3.GetObjectMetaDataValue(AValue: String): String;
 var
   vStorageService: TAmazonStorageService;

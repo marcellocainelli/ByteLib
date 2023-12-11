@@ -10,6 +10,7 @@ uses
 const
   C_URL_API = 'https://api-windows.plugzapi.com.br/instances/%s/token/%s';
   C_TIMEOUT = 5000;
+  C_CLIENTTOKEN = 'Fd8aae0ec65564d76a147631e85815811S';
 type
   iPlugzapi<T> = interface
     ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
@@ -125,6 +126,7 @@ begin
           .Timeout(C_TIMEOUT)
           .Resource(AResource)
           .ContentType('application/json')
+          .AddHeader('Client-Token', C_CLIENTTOKEN)
           .AcceptEncoding('UTF-8')
           .Get;
     if not (vResp.StatusCode = 200) then begin
@@ -149,6 +151,7 @@ begin
           .Timeout(C_TIMEOUT)
           .Resource(AResource)
           .ContentType('application/json')
+          .AddHeader('Client-Token', C_CLIENTTOKEN)
           .AcceptEncoding('UTF-8')
           .AddBody(AJSON)
           .Post;
