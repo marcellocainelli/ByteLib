@@ -43,7 +43,9 @@ type
     function SendObject: iAWSs3; overload;
     function SendObject(AStream: TStream): iAWSs3; overload;
     function GetObject: iAWSs3; overload;
-    function GetObject(AProgressBar: TProgressBar): iAWSs3; overload;
+    {$IFDEF FMX}
+      function GetObject(AProgressBar: TProgressBar): iAWSs3; overload;
+    {$ENDIF}
     function GetObjectStream: TStream; overload;
     function GetObjectMetaDataValue(AValue: String): String;
     function DeleteObject: iAWSs3;
@@ -163,8 +165,10 @@ end;
 
 procedure TAWSs3.OnProgress(const ACount: Int64);
 begin
+{$IFDEF FMX}
   FProgressBar.Value:= FProgressBar.Value + ACount;
   Application.ProcessMessages;
+{$ENDIF}
 end;
 
 function TAWSs3.FilePath(AValue: String): iAWSs3;
@@ -324,8 +328,8 @@ begin
         vMetadata.Free;
         vProperties.Free;
       end;
-      FProgressBar:= AProgressBar;
       vStream:= TMemoryStream.Create;
+      FProgressBar:= AProgressBar;
       vProgressStream:= TProgressStream.Create(vStream);
       vProgressStream.OnProgress:= OnProgress;
       AProgressBar.Max:= vContentLength;
