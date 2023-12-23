@@ -97,6 +97,7 @@ type
       class function Crypt(Texto,Chave :String): String;
       class function Crypto (aText: string): string;
       class function Decrypto (aText: string): string;
+      class function CryptSameTextLength(Texto,Chave :String): String;
   end;
 
 implementation
@@ -725,6 +726,20 @@ end;
 class function TLib.Decrypto(aText: string): string;
 begin
   Result:= Crypt(aText, 'DOUTORBY');
+end;
+
+class function TLib.CryptSameTextLength(Texto, Chave: String): String;
+var
+  x, y: Integer;
+  NovaSenha: String;
+begin
+  for x := 1 to Length(Texto) do begin
+    NovaSenha := '';
+    for y := 1 to Length(Texto) do
+      NovaSenha := NovaSenha + Chr((Ord(Chave[x]) xor Ord(Texto[y])));
+    Texto := NovaSenha;
+  end;
+  Result := Texto;
 end;
 {$ENDREGION}
 

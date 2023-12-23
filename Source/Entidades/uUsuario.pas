@@ -56,6 +56,7 @@ begin
 
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and U.STATUS = ''A'' ';
+  vTextoSQL:= vTextoSQL + ' and coalesce(U.OCULTO, ''N'') = ''N'' ';
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
