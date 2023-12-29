@@ -1,11 +1,11 @@
-unit uProdutoBarras;
+unit uProdutoFornecedor;
 
 interface
 
 uses
   Model.Entidade.Interfaces, Data.DB,  SysUtils, Dialogs;
 Type
-  TProdutoBarras = class(TInterfacedObject, iEntidade)
+  TProdutoFornecedor = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -18,68 +18,64 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
 
-{ TProdutoBarras }
+{ TProdutoFornecedor }
 
-constructor TProdutoBarras.Create;
+constructor TProdutoFornecedor.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
-    'select pb.*, p.nome_prod, p.cod_barra as barra_principal ' +
-    'from PRODUTOS_BARRAS pb ' +
-    'join PRODUTOS p On (p.COD_PROD = pb.COD_PROD) ' +
-    'where pb.COD_PROD = :pCod_Prod');
-
+    'Select pf.cod_prod, pf.cod_fornec, pf.referencia, f.nome ' +
+    'From produtos_fornecedor pf ' +
+    'Join fornec f on (f.codigo = pf.cod_fornec) ' +
+    'Where pf.cod_prod = :pCod_prod');
   InicializaDataSource;
 end;
 
-destructor TProdutoBarras.Destroy;
+destructor TProdutoFornecedor.Destroy;
 begin
   inherited;
 end;
 
-class function TProdutoBarras.New: iEntidade;
+class function TProdutoFornecedor.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
 
-function TProdutoBarras.EntidadeBase: iEntidadeBase<iEntidade>;
+function TProdutoFornecedor.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
 
-function TProdutoBarras.Consulta(Value: TDataSource): iEntidade;
+function TProdutoFornecedor.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  FEntidadeBase.Iquery.IndexFieldNames('COD_BARRA');
+  FEntidadeBase.Iquery.IndexFieldNames('referencia');
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-function TProdutoBarras.InicializaDataSource(Value: TDataSource): iEntidade;
+function TProdutoFornecedor.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
   FEntidadeBase.AddParametro('pCod_Prod', -1);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL + ' and 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
-procedure TProdutoBarras.ModificaDisplayCampos;
+procedure TProdutoFornecedor.ModificaDisplayCampos;
 begin
 
 end;
 
-function TProdutoBarras.DtSrc: TDataSource;
+function TProdutoFornecedor.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
