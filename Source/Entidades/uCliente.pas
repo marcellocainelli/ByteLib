@@ -1,14 +1,12 @@
 unit uCliente;
-
 interface
-
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
-
 Type
   TCliente = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
+      procedure OnNewRecord(DataSet: TDataSet);
     public
       constructor Create;
       destructor Destroy; override;
@@ -19,28 +17,21 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
-
 { TCliente }
-
 constructor TCliente.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From CADCLI Where (1=1) and ');
-
   InicializaDataSource;
+  FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
-
 destructor TCliente.Destroy;
 begin
-
   inherited;
 end;
-
 class function TCliente.New: iEntidade;
 begin
   Result:= Self.Create;
@@ -50,7 +41,6 @@ function TCliente.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-
 function TCliente.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
@@ -126,7 +116,6 @@ begin
   {$ENDIF}
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 function TCliente.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
@@ -137,27 +126,37 @@ begin
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' CODIGO = :Parametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TCliente.ModificaDisplayCampos;
 begin
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('nasc')).EditMask:= '!99/99/00;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('nas_co')).EditMask:= '!99/99/00;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('emp_admissao')).EditMask:= '!99/99/00;1;_';
-
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('cep')).EditMask:= '00000\-999;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('cob_cep')).EditMask:= '00000\-999;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('emp_cep')).EditMask:= '00000\-999;1;_';
-
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('limite')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('honorario')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('emp_renda')).currency:= True;
-
   TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cpf_co')).EditMask:= '###.###.###-##;1;_';
 end;
-
 function TCliente.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-
+procedure TCliente.OnNewRecord(DataSet: TDataSet);
+begin
+{$IFNDEF APP}
+  FEntidadeBase.Iquery.DataSet.FieldByName('COD_PAIS').AsInteger:= 1058;
+  FEntidadeBase.Iquery.DataSet.FieldByName('COD_CONV').AsInteger:= 1;
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLAG_IMPR_REL_GERENCIAL').AsString:= 'S';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLAG_BLOQUEIO').AsString:= 'S';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLAG_EMITIR_NFSE').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLAG_PEDE_KM').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLAG_ENVIAR_SAT_EMAIL').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('TIPO').AsString:= 'F';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLAG_ENVIAR_SATNFE_ZAP').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLAG_PRECOCUSTO').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('OBS').AsString:= 'ATV';
+{$ENDIF}
+end;
 end.

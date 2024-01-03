@@ -21,6 +21,7 @@ type
     function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
     function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>;
     function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
+    function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;

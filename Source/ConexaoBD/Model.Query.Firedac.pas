@@ -1,16 +1,11 @@
 unit Model.Query.Firedac;
-
 interface
-
 uses
-
   System.Classes,
   System.StrUtils,
   System.SysUtils,
   System.Variants,
-
   Data.DB,
-
   FireDAC.Comp.Client,
   FireDAC.Comp.DataSet,
   FireDAC.Comp.Script,
@@ -23,10 +18,8 @@ uses
   FireDAC.Stan.Intf,
   FireDAC.Stan.Option,
   FireDAC.Stan.Param,
-
   Model.Conexao.Firedac,
   Model.Conexao.Interfaces;
-
 Type
   TModelQueryFiredac = class(TInterfacedObject, iQuery)
     private
@@ -56,36 +49,28 @@ Type
       function SetMode(pModo: string): iQuery;
       function CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
       function ClearDataset(Value: TDataSet): iQuery;
-
       procedure CatchApplyUpdatesErrors;
       function TrataErrosApplyUpdates(AMsgErro: string): string;
+      function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
   end;
-
 implementation
-
 { TModelQueryFiredac }
-
 constructor TModelQueryFiredac.Create(Parent: iConexao);
 begin
   FParent:= Parent;
   FDQuery:= TFDQuery.Create(nil);
   FUpdateTransaction:= TFDTransaction.Create(nil);
-
   if not Assigned(FParent) then
     FParent:= TModelConexaoFiredac.New;
-
   FDQuery.Connection:= TFDConnection(FParent.Connection);
   FDQuery.ResourceOptions.ParamCreate := False;
   FDQuery.CachedUpdates:= True;
-
   FUpdateTransaction.Connection:= TFDConnection(FParent.Connection);
 end;
-
 function TModelQueryFiredac.Dataset: TDataSet;
 begin
   Result:= FDQuery;
 end;
-
 destructor TModelQueryFiredac.Destroy;
 begin
   FreeAndNil(FDQuery);
@@ -93,12 +78,10 @@ begin
   FreeAndNil(FScript);
   inherited;
 end;
-
 class function TModelQueryFiredac.New(Parent: iConexao): iQuery;
 begin
   Result:= Self.Create(Parent);
 end;
-
 function TModelQueryFiredac.SQL(Value: String): iQuery;
 begin
   Result:= Self;
@@ -107,7 +90,6 @@ begin
   FDQuery.SQL.Add(Value);
   FDQuery.Active:= true;
 end;
-
 function TModelQueryFiredac.ExecQuery(Value: String): iQuery;
 begin
   Result:= Self;
@@ -116,13 +98,11 @@ begin
   FDQuery.SQL.Add(Value);
   FDQuery.ExecSQL;
  end;
-
 function TModelQueryFiredac.GetFieldNames(Table: string; List: TStrings): iQuery;
 begin
   Result:= Self;
   TFDConnection(FParent.Connection).GetFieldNames('', '', Table, '', List);
 end;
-
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery;
 begin
   Result:= Self;
@@ -133,7 +113,6 @@ begin
     FDQuery.Params.Add.Size:= Length(NomeParametro);
   FDQuery.Params.Add.ParamType:= ptInput;
 end;
-
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: integer): iQuery;
 begin
   Result:= Self;
@@ -148,7 +127,6 @@ begin
   Result:= Self;
   FDQuery.Close;
 end;
-
 //http://docwiki.embarcadero.com/RADStudio/Sydney/en/Caching_Updates_(FireDAC)
 function TModelQueryFiredac.Salva(Commit: Boolean = True): iQuery;
 begin
@@ -168,45 +146,41 @@ begin
     end;
   end;
 end;
-
 function TModelQueryFiredac.SetMode(pModo: string): iQuery;
 begin
   Result:= Self;
   FDQuery.FetchOptions.Mode:= fmAll;
 end;
-
 function TModelQueryFiredac.IndexFieldNames(FieldName: String): iQuery;
 begin
   Result:= Self;
   FDQuery.IndexFieldNames:= FieldName;
+end;
+function TModelQueryFiredac.InsertNewRecordEvent(AEvent: TDataSetNotifyEvent): iQuery;
+begin
+  Result:= Self;
+  FDQuery.OnNewRecord:= AEvent;
 end;
 
 function TModelQueryFiredac.InTransaction: Boolean;
 begin
   Result:= TFDConnection(FParent.Connection).InTransaction;
 end;
-
 function TModelQueryFiredac.StartTransaction: iQuery;
 begin
   Result:= Self;
-
   TFDConnection(FParent.Connection).StartTransaction;
 end;
-
 function TModelQueryFiredac.Commit: iQuery;
 begin
   Result:= Self;
-
   TFDConnection(FParent.Connection).Commit;
 end;
-
 function TModelQueryFiredac.Rollback: iQuery;
 begin
   Result:= Self;
-
   TFDConnection(FParent.Connection).Rollback;
 end;
-
 function TModelQueryFiredac.ApplyUpdates: iQuery;
 begin
   Result:= Self;
@@ -218,24 +192,20 @@ begin
       raise Exception.Create('Ocorreu um erro ao tentar gravar o registro: ' + E.Message);
   end;
 end;
-
 function TModelQueryFiredac.ChangeCount(DataSet: TDataSet): integer;
 begin
   Result:= TFDQuery(DataSet).ChangeCount;
 end;
-
 function TModelQueryFiredac.CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
 begin
   Result:= Self;
   FDQuery.OnCalcFields:= AEvent;
 end;
-
 function TModelQueryFiredac.ClearDataset(Value: TDataSet): iQuery;
 begin
   Result:= Self;
   TFDQuery(Value).EmptyDataSet;
 end;
-
 procedure TModelQueryFiredac.CatchApplyUpdatesErrors;
 var
   oErr: EFDException;
@@ -254,14 +224,10 @@ begin
     FDQuery.FilterChanges:= [rtUnModified, rtModified, rtInserted];
   end;
 end;
-
 function TModelQueryFiredac.TrataErrosApplyUpdates(AMsgErro: string): string;
 begin
   Result:= AMsgErro;
-
   if AMsgErro.Contains('violation of PRIMARY or UNIQUE KEY') then
     Result:= 'Código já cadastrado!';
 end;
-
 end.
-

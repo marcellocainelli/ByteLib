@@ -37,6 +37,7 @@ Type
     function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
     function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>;
     function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
+    function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
     function &End : T;
     function TextoSQL(pValue: String): String; overload;
     function TextoSQL: String; overload;
@@ -121,7 +122,6 @@ begin
   Value.DataSet.Close;
   Value.DataSet.Open;
 end;
-
 function TEntidadeBase<T>.SaveIfChangeCount(DataSource: TDataSource): iEntidadeBase<T>;
 begin
   Result:= Self;
@@ -137,13 +137,11 @@ begin
     Value:= FDataSource;
   Value.DataSet.FieldByName(ANomeCampo).ReadOnly:= AReadOnly;
 end;
-
 function TEntidadeBase<T>.CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
 begin
   Result:= Self;
   FQuery.CalcFields(AEvent);
 end;
-
 function TEntidadeBase<T>.ClearDataset(Value: TDataSource): iEntidadeBase<T>;
 begin
   Result:= Self;
@@ -187,18 +185,23 @@ begin
     DataSource:= FDataSource;
   DataSource.DataSet.AfterEdit:= AEvent;
 end;
-
 function TEntidadeBase<T>.InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
 begin
   if DataSource = nil then
     DataSource:= FDataSource;
   DataSource.DataSet.BeforePost:= AEvent;
 end;
+function TEntidadeBase<T>.InsertNewRecordEvent(AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
+begin
+  FQuery.InsertNewRecordEvent(AEvent);
+end;
+
 function TEntidadeBase<T>.Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
 begin
   if Value = nil then
     Value:= FDataSource;
   Value.DataSet.FieldByName(ANomeCampo).OnValidate:= AEvent;
+
 end;
 function TEntidadeBase<T>.Inativos(pValue: boolean): boolean;
 begin
@@ -236,13 +239,11 @@ function TEntidadeBase<T>.TipoConsulta: String;
 begin
   Result:= FTipoConsulta;
 end;
-
 function TEntidadeBase<T>.TipoConsulta(pValue: String): iEntidadeBase<T>;
 begin
   Result:= Self;
   FTipoConsulta:= pValue;
 end;
-
 function TEntidadeBase<T>.TipoPesquisa: Integer;
 begin
   Result:= FTipoPesquisa;

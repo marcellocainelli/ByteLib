@@ -35,6 +35,7 @@ type
     function SetMode(pModo: string): iQuery;
     function CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
     function ClearDataset(Value: TDataSet): iQuery;
+    function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
   end;
 
   iTable = interface
