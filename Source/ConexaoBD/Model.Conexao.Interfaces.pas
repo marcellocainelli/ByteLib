@@ -13,6 +13,8 @@ type
     ['{253621FF-A06A-48B8-8F63-211FAE6B5C70}']
     function Connection: TCustomConnection;
     function CaminhoBanco: String;
+    function Conectado: Boolean;
+    procedure RefreshBD;
   end;
 
   iQuery = interface

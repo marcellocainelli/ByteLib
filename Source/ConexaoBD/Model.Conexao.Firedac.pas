@@ -56,6 +56,8 @@ Type
       class function New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
+      function Conectado: Boolean;
+      procedure RefreshBD;
   end;
 
 implementation
@@ -88,9 +90,20 @@ begin
   Result:= Self.Create;
 end;
 
+procedure TModelConexaoFiredac.RefreshBD;
+begin
+  FConexao.Connected:= False;
+  FConexao.Connected:= True;
+end;
+
 function TModelConexaoFiredac.CaminhoBanco: String;
 begin
   Result:= FConexao.Params.Database;
+end;
+
+function TModelConexaoFiredac.Conectado: Boolean;
+begin
+  Result:= FConexao.Connected;
 end;
 
 procedure TModelConexaoFiredac.ConnApp;
