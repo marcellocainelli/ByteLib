@@ -68,6 +68,8 @@ begin
   FEntidadeBase.SetReadOnly(Value, 'FLG_GRADE', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_SERIAL', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_MLFULL', False);
+  FEntidadeBase.SetReadOnly(Value, 'FLG_PACOTE_SERVICOS', False);
+  FEntidadeBase.SetReadOnly(Value, 'FLG_LOCACAO_EQUIPAMENTOS', False);
 end;
 
 function TVendaItens.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -95,7 +97,7 @@ end;
 procedure TVendaItens.SelecionaSQLConsulta;
 begin
   FEntidadeBase.TextoSQL(
-    'Select V.*, P.PESO, P.FLG_LOTE, P.FLG_GRADE, P.SERIAL as FLG_SERIAL, P.FLG_MLFULL ' +
+    'Select V.*, P.PESO, P.FLG_LOTE, P.FLG_GRADE, P.SERIAL as FLG_SERIAL, P.FLG_MLFULL, P.FLG_PACOTE_SERVICOS, P.FLG_LOCACAO_EQUIPAMENTOS ' +
     'From VENDA V ' +
     'Inner Join PRODUTOS P On (P.COD_PROD = V.COD_PROD) ');
 end;
