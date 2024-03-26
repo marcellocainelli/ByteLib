@@ -49,6 +49,7 @@ Type
       function SetMode(pModo: string): iQuery;
       function CalcFields(AEvent: TDataSetNotifyEvent): iQuery;
       function ClearDataset(Value: TDataSet): iQuery;
+      function FetchOptions(AMode: String = ''; ARowSetSize: integer = 0): iQuery;
       procedure CatchApplyUpdatesErrors;
       function TrataErrosApplyUpdates(AMsgErro: string): string;
       function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
@@ -98,6 +99,17 @@ begin
   FDQuery.SQL.Add(Value);
   FDQuery.ExecSQL;
  end;
+function TModelQueryFiredac.FetchOptions(AMode: String; ARowSetSize: integer): iQuery;
+begin
+  if AMode = 'Demand' then
+    FDQuery.FetchOptions.Mode:= fmOnDemand
+  else if AMode = 'All' then
+    FDQuery.FetchOptions.Mode:= fmAll;
+
+  if ARowSetSize <> 0 then
+    FDQuery.FetchOptions.RowsetSize:= ARowSetSize;
+end;
+
 function TModelQueryFiredac.GetFieldNames(Table: string; List: TStrings): iQuery;
 begin
   Result:= Self;

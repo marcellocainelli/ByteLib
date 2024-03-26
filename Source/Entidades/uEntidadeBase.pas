@@ -35,9 +35,11 @@ Type
     function Validate(Value: TDataSource = nil; ANomeCampo: string = ''; AEvent: TFieldNotifyEvent = nil): iEntidadeBase<T>;
     function SetReadOnly(Value: TDataSource = nil; ANomeCampo: string = ''; AReadOnly: boolean = false): iEntidadeBase<T>;
     function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
-    function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>;
+    function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>; overload;
+    function CriaCampo(ADataSource: TDataSource; ANomeCampo: array of string; ADataType: array of TFieldType): iEntidadeBase<T>; overload;
     function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
     function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
+    function FetchOptions(AMode: String = ''; ARowSetSize: integer = 0): iEntidadeBase<T>;
     function &End : T;
     function TextoSQL(pValue: String): String; overload;
     function TextoSQL: String; overload;
@@ -106,6 +108,11 @@ begin
     end;
   End;
 end;
+function TEntidadeBase<T>.FetchOptions(AMode: String; ARowSetSize: integer): iEntidadeBase<T>;
+begin
+  FQuery.FetchOptions(AMode, ARowSetSize);
+end;
+
 function TEntidadeBase<T>.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>;
 begin
   FQuery.AddParametro(NomeParametro, ValorParametro, DataType);
@@ -164,11 +171,35 @@ begin
     ADataSource.Dataset.FieldDefs[i].CreateField(nil);
   case ADataType of
     ftBoolean : vField:= TBooleanField.Create(ADataSource.Dataset);
+    ftInteger : vField:= TIntegerField.Create(ADataSource.Dataset);
     ftCurrency: vField:= TCurrencyField.Create(ADataSource.Dataset);
+    ftString  : vField:= TStringField.Create(ADataSource.Dataset);
   end;
   vField.FieldName:= ANomeCampo;
   vField.FieldKind:= fkInternalCalc;
   vField.DataSet:= ADataSource.Dataset;
+end;
+function TEntidadeBase<T>.CriaCampo(ADataSource: TDataSource; ANomeCampo: array of string; ADataType: array of TFieldType): iEntidadeBase<T>;
+var
+  vField: TField;
+  i, j: integer;
+begin
+  ADataSource.DataSet.Close;
+  ADataSource.Dataset.FieldDefs.Updated:= false;
+  ADataSource.Dataset.FieldDefs.Update;
+  for i := 0 to ADataSource.Dataset.FieldDefs.Count - 1 do
+    ADataSource.Dataset.FieldDefs[i].CreateField(nil);
+  For j:= Low(ANomeCampo) to High(ANomeCampo) do begin
+    case ADataType[j] of
+      ftBoolean : vField:= TBooleanField.Create(ADataSource.Dataset);
+      ftInteger : vField:= TIntegerField.Create(ADataSource.Dataset);
+      ftCurrency: vField:= TCurrencyField.Create(ADataSource.Dataset);
+      ftString  : vField:= TStringField.Create(ADataSource.Dataset);
+    end;
+    vField.FieldName:= ANomeCampo[j];
+    vField.FieldKind:= fkInternalCalc;
+    vField.DataSet:= ADataSource.Dataset;
+  end;
 end;
 function TEntidadeBase<T>.&End: T;
 begin

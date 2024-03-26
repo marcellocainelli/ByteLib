@@ -19,9 +19,11 @@ type
     function Validate(Value: TDataSource = nil; ANomeCampo: string = ''; AEvent: TFieldNotifyEvent = nil): iEntidadeBase<T>;
     function SetReadOnly(Value: TDataSource = nil; ANomeCampo: string = ''; AReadOnly: boolean = false): iEntidadeBase<T>;
     function CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
-    function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>;
+    function CriaCampo(ADataSource: TDataSource = nil; ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iEntidadeBase<T>; overload;
+    function CriaCampo(ADataSource: TDataSource; ANomeCampo: array of string; ADataType: array of TFieldType): iEntidadeBase<T>; overload;
     function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
     function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
+    function FetchOptions(AMode: String = ''; ARowSetSize: integer = 0): iEntidadeBase<T>;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;
