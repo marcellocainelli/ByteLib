@@ -4,10 +4,13 @@ interface
 
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+
 Type
   TVendaItens = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
+      procedure MyCalcFields(sender: TDataSet);
+      procedure OnNewRecord(DataSet: TDataSet);
     public
       constructor Create;
       destructor Destroy; override;
@@ -19,7 +22,9 @@ Type
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
+
 implementation
+
 uses
   uEntidadeBase;
 
@@ -29,6 +34,7 @@ constructor TVendaItens.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   InicializaDataSource;
+  FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
 
 destructor TVendaItens.Destroy;
@@ -60,9 +66,10 @@ begin
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-
+  FEntidadeBase.CriaCampo(Value, ['VrVenda', 'VrCusto', 'Id_ItemPedido','Dv_Seq_Venda','Possui_adicionais'], [ftCurrency, ftCurrency, ftInteger, ftInteger, ftBoolean]);
+  ModificaDisplayCampos;
+  Value.DataSet.Open;
   FEntidadeBase.SetReadOnly(Value, 'PESO', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_LOTE', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_GRADE', False);
@@ -70,6 +77,7 @@ begin
   FEntidadeBase.SetReadOnly(Value, 'FLG_MLFULL', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_PACOTE_SERVICOS', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_LOCACAO_EQUIPAMENTOS', False);
+  FEntidadeBase.CalcFields(MyCalcFields);
 end;
 
 function TVendaItens.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -86,7 +94,25 @@ end;
 
 procedure TVendaItens.ModificaDisplayCampos;
 begin
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.000';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VrVenda')).currency:= True;
+end;
 
+procedure TVendaItens.MyCalcFields(sender: TDataSet);
+begin
+  FEntidadeBase.Iquery.DataSet.FieldByName('VrVenda').AsCurrency:= FEntidadeBase.Iquery.DataSet.FieldByName('QUANTIDADE').AsFloat * FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_VEND').AsCurrency;
+  FEntidadeBase.Iquery.DataSet.FieldByName('VrCusto').AsCurrency:= FEntidadeBase.Iquery.DataSet.FieldByName('QUANTIDADE').AsFloat * FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_CUST').AsCurrency;
+  //FEntidadeBase.Iquery.DataSet.FieldByName('Desconto').AsCurrency:= FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_TAB').AsCurrency - FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_VEND').AsCurrency;
+end;
+
+procedure TVendaItens.OnNewRecord(DataSet: TDataSet);
+begin
+{$IFNDEF APP}
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLG_VENDA_MLFULL').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLG_VALETROCA').AsString:= 'S';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLG_PACOTE_SERVICOS').AsString:= 'N';
+{$ENDIF}
 end;
 
 function TVendaItens.DtSrc: TDataSource;

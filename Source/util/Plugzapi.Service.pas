@@ -273,6 +273,7 @@ begin
   try
     vJSONObj.AddPair('phone', '55' + ATelefone);
     vJSONObj.AddPair('message', AMsg);
+    vJSONObj.AddPair('delayMessage', TLib.GetRandomNumber(5000, 30000));
     FPlugzapi.Send('send-text', vJSONObj.ToString);
     SetReqResult(True, 'Enviado com sucesso');
   except
@@ -300,7 +301,7 @@ begin
     vJSONObj.AddPair('phone', '55' + ATelefone);
     vJSONObj.AddPair('document', 'data:file/pdf;base64,' + vBase64);
     vJSONObj.AddPair('fileName', AFileName);
-    vJSONObj.AddPair('delayMessage', 5);
+    vJSONObj.AddPair('delayMessage', TLib.GetRandomNumber(5000, 30000));
     FPlugzapi.Send('send-document/pdf', vJSONObj.ToString);
     EnviaMsg(ATelefone, AMsg);
   except
