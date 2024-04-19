@@ -1,9 +1,12 @@
-unit uCaixa;
+unit uHaver;
+
 interface
+
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+
 Type
-  TCaixa = class(TInterfacedObject, iEntidade)
+  THaver = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
       procedure OnNewRecord(DataSet: TDataSet);
@@ -16,77 +19,79 @@ Type
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
-      procedure SelecionaSQLConsulta;
   end;
+
 implementation
+
 uses
   uEntidadeBase;
-{ TCaixa }
-constructor TCaixa.Create;
+
+{ THaver }
+
+constructor THaver.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase.TextoSQL('select * from HAVER ');
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
-destructor TCaixa.Destroy;
+
+destructor THaver.Destroy;
 begin
   inherited;
 end;
-class function TCaixa.New: iEntidade;
+
+class function THaver.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-function TCaixa.EntidadeBase: iEntidadeBase<iEntidade>;
+
+function THaver.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-function TCaixa.Consulta(Value: TDataSource): iEntidade;
+
+function THaver.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  SelecionaSQLConsulta;
   Case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where NUM_OPER = :pParametro';
+    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where num_oper = :pParametro';
   end;
-  If not FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and SITUACAO = ''A'' ';
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-function TCaixa.InicializaDataSource(Value: TDataSource): iEntidade;
+
+function THaver.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  SelecionaSQLConsulta;
   FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
   FEntidadeBase.AddParametro('pParametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where NUM_OPER = :pParametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where num_oper = :pParametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-procedure TCaixa.ModificaDisplayCampos;
+
+procedure THaver.ModificaDisplayCampos;
 begin
-end;
-procedure TCaixa.OnNewRecord(DataSet: TDataSet);
-begin
-{$IFNDEF APP}
-  FEntidadeBase.Iquery.DataSet.FieldByName('SITUACAO').AsString:= 'A';
-  FEntidadeBase.Iquery.DataSet.FieldByName('TIPO_OPER').AsString:= 'VD';
-{$ENDIF}
+
 end;
 
-function TCaixa.DtSrc: TDataSource;
+function THaver.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-procedure TCaixa.SelecionaSQLConsulta;
+
+procedure THaver.OnNewRecord(DataSet: TDataSet);
 begin
-  FEntidadeBase.TextoSQL('Select * From CAIXA ');
+
 end;
+
 end.

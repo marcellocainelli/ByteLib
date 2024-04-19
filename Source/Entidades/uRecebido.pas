@@ -1,9 +1,12 @@
-unit uCaixa;
+unit uRecebido;
+
 interface
+
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+
 Type
-  TCaixa = class(TInterfacedObject, iEntidade)
+  TRecebido = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
       procedure OnNewRecord(DataSet: TDataSet);
@@ -18,29 +21,37 @@ Type
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
+
 implementation
+
 uses
   uEntidadeBase;
-{ TCaixa }
-constructor TCaixa.Create;
+
+{ TRecebido }
+
+constructor TRecebido.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
-destructor TCaixa.Destroy;
+
+destructor TRecebido.Destroy;
 begin
   inherited;
 end;
-class function TCaixa.New: iEntidade;
+
+class function TRecebido.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-function TCaixa.EntidadeBase: iEntidadeBase<iEntidade>;
+
+function TRecebido.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-function TCaixa.Consulta(Value: TDataSource): iEntidade;
+
+function TRecebido.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
 begin
@@ -49,44 +60,46 @@ begin
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
   Case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where NUM_OPER = :pParametro';
+    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where SEQ_RECEBER = :pParametro';
   end;
-  If not FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and SITUACAO = ''A'' ';
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
+  FEntidadeBase.Iquery.IndexFieldNames('SEQ_RECEBER');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  ModificaDisplayCampos;
+  Value.DataSet.Open;
 end;
-function TCaixa.InicializaDataSource(Value: TDataSource): iEntidade;
+
+function TRecebido.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
-  FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
+  FEntidadeBase.Iquery.IndexFieldNames('SEQ_RECEBER');
   FEntidadeBase.AddParametro('pParametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where NUM_OPER = :pParametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where SEQ_RECEBER = :pParametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-procedure TCaixa.ModificaDisplayCampos;
+
+procedure TRecebido.ModificaDisplayCampos;
 begin
-end;
-procedure TCaixa.OnNewRecord(DataSet: TDataSet);
-begin
-{$IFNDEF APP}
-  FEntidadeBase.Iquery.DataSet.FieldByName('SITUACAO').AsString:= 'A';
-  FEntidadeBase.Iquery.DataSet.FieldByName('TIPO_OPER').AsString:= 'VD';
-{$ENDIF}
+
 end;
 
-function TCaixa.DtSrc: TDataSource;
+procedure TRecebido.OnNewRecord(DataSet: TDataSet);
+begin
+
+end;
+
+function TRecebido.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-procedure TCaixa.SelecionaSQLConsulta;
+
+procedure TRecebido.SelecionaSQLConsulta;
 begin
-  FEntidadeBase.TextoSQL('Select * From CAIXA ');
+  FEntidadeBase.TextoSQL('Select * From RECEBIDO ');
 end;
+
 end.

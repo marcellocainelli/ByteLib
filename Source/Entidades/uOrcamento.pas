@@ -30,7 +30,6 @@ uses
 constructor TOrcamento.Create(AConn: iConexao);
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
-  FEntidadeBase.TextoSQL('Select * from orc_pend ');
   InicializaDataSource;
 end;
 
@@ -59,13 +58,12 @@ begin
   SelecionaSQLConsulta;
   Case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= FEntidadeBase.TextoSQL;
-    1: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where NR_PEDIDO = :pParametro';
+    1: vTextoSQL:= FEntidadeBase.TextoSQL + ' and o.NR_PEDIDO = :pParametro ';
   end;
   If not FEntidadeBase.Inativos then
     vTextoSQL:= vTextoSQL + ' and o.situacao = ''A'' ';
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME_CLI');
-  vTextoSQL:= FEntidadeBase.TextoSQL;
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
@@ -99,6 +97,7 @@ begin
     'from orc_pend o ' +
     'join funci f on (f.codigo = o.cod_fun) ' +
     'where o.baixado = ''X'' and o.tipo  = ''P'' and o.cod_filial = :pCodFilial ');
+  1: FEntidadeBase.TextoSQL('Select o.* from orc_pend o where (1 = 1)' );
   end;
 end;
 

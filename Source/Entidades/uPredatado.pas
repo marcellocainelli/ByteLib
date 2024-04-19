@@ -84,6 +84,7 @@ begin
     //busca por Predatados em aberto mesmo CPF
     2: vTextoSQL:= vTextoSql + ' and BAIXADO <> ''S'' and CPF = :pCpf';
     3: vTextoSQL:= vTextoSQL + ' and BAIXADO = :pBaixado and ' + FEntidadeBase.TextoPesquisa + ' ' + FEntidadeBase.RegraPesquisa + ':' + FEntidadeBase.TextoPesquisa;
+    4: vTextoSQL:= vTextoSQL + ' and NUM_OPER = :pNum_Oper';
   end;
   FEntidadeBase.Iquery.Dataset.FieldDefs.Clear;
   FEntidadeBase.Iquery.Dataset.Fields.Clear;

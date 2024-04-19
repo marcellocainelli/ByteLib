@@ -1,11 +1,15 @@
-unit uCaixa;
+unit uReceber_Boleto;
+
 interface
+
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+
 Type
-  TCaixa = class(TInterfacedObject, iEntidade)
+  TReceber_Boleto = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
+      procedure MyCalcFields(sender: TDataSet);
       procedure OnNewRecord(DataSet: TDataSet);
     public
       constructor Create;
@@ -18,29 +22,37 @@ Type
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
+
 implementation
+
 uses
   uEntidadeBase;
-{ TCaixa }
-constructor TCaixa.Create;
+
+{ TBoleto }
+
+constructor TReceber_Boleto.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
-destructor TCaixa.Destroy;
+
+destructor TReceber_Boleto.Destroy;
 begin
   inherited;
 end;
-class function TCaixa.New: iEntidade;
+
+class function TReceber_Boleto.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-function TCaixa.EntidadeBase: iEntidadeBase<iEntidade>;
+
+function TReceber_Boleto.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-function TCaixa.Consulta(Value: TDataSource): iEntidade;
+
+function TReceber_Boleto.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
 begin
@@ -49,44 +61,53 @@ begin
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
   Case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where NUM_OPER = :pParametro';
+    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' and NUM_OPER = :pParametro';
   end;
-  If not FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and SITUACAO = ''A'' ';
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-function TCaixa.InicializaDataSource(Value: TDataSource): iEntidade;
+
+function TReceber_Boleto.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
-  FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
   FEntidadeBase.AddParametro('pParametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where NUM_OPER = :pParametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' and NUM_OPER = :pParametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-procedure TCaixa.ModificaDisplayCampos;
+
+procedure TReceber_Boleto.ModificaDisplayCampos;
 begin
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR')).currency:= True;
 end;
-procedure TCaixa.OnNewRecord(DataSet: TDataSet);
+
+procedure TReceber_Boleto.MyCalcFields(sender: TDataSet);
+begin
+
+end;
+
+procedure TReceber_Boleto.OnNewRecord(DataSet: TDataSet);
 begin
 {$IFNDEF APP}
-  FEntidadeBase.Iquery.DataSet.FieldByName('SITUACAO').AsString:= 'A';
-  FEntidadeBase.Iquery.DataSet.FieldByName('TIPO_OPER').AsString:= 'VD';
+  FEntidadeBase.Iquery.DataSet.FieldByName('situacao').AsString:= 'A';
+  FEntidadeBase.Iquery.DataSet.FieldByName('cbr_email_enviado').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('banco_conta').AsString:= 'CAIXA';
+  FEntidadeBase.Iquery.DataSet.FieldByName('cbr_whatsapp_enviado').AsString:= 'N';
 {$ENDIF}
 end;
 
-function TCaixa.DtSrc: TDataSource;
+function TReceber_Boleto.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-procedure TCaixa.SelecionaSQLConsulta;
+
+procedure TReceber_Boleto.SelecionaSQLConsulta;
 begin
-  FEntidadeBase.TextoSQL('Select * From CAIXA ');
+  FEntidadeBase.TextoSQL('select * from receber where situacao = ''A'' ');
 end;
+
 end.

@@ -1,9 +1,12 @@
-unit uCaixa;
+unit uCartao;
+
 interface
+
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+
 Type
-  TCaixa = class(TInterfacedObject, iEntidade)
+  TCartao = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
       procedure OnNewRecord(DataSet: TDataSet);
@@ -18,29 +21,37 @@ Type
       procedure ModificaDisplayCampos;
       procedure SelecionaSQLConsulta;
   end;
+
 implementation
+
 uses
   uEntidadeBase;
-{ TCaixa }
-constructor TCaixa.Create;
+
+{ TCartao }
+
+constructor TCartao.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
-destructor TCaixa.Destroy;
+
+destructor TCartao.Destroy;
 begin
   inherited;
 end;
-class function TCaixa.New: iEntidade;
+
+class function TCartao.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-function TCaixa.EntidadeBase: iEntidadeBase<iEntidade>;
+
+function TCartao.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-function TCaixa.Consulta(Value: TDataSource): iEntidade;
+
+function TCartao.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
 begin
@@ -49,44 +60,47 @@ begin
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
   Case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where NUM_OPER = :pParametro';
+    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where c.num_oper = :pParametro';
   end;
-  If not FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and SITUACAO = ''A'' ';
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
+  FEntidadeBase.Iquery.IndexFieldNames('cod_operadora; vencimento');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  FEntidadeBase.SetReadOnly(Value, 'operadora', False);
+  FEntidadeBase.SetReadOnly(Value, 'tipo_operacao', False);
 end;
-function TCaixa.InicializaDataSource(Value: TDataSource): iEntidade;
+
+function TCartao.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
-  FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
+  FEntidadeBase.Iquery.IndexFieldNames('cod_operadora; vencimento');
   FEntidadeBase.AddParametro('pParametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where NUM_OPER = :pParametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where c.num_oper = :pParametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-procedure TCaixa.ModificaDisplayCampos;
+
+procedure TCartao.ModificaDisplayCampos;
 begin
-end;
-procedure TCaixa.OnNewRecord(DataSet: TDataSet);
-begin
-{$IFNDEF APP}
-  FEntidadeBase.Iquery.DataSet.FieldByName('SITUACAO').AsString:= 'A';
-  FEntidadeBase.Iquery.DataSet.FieldByName('TIPO_OPER').AsString:= 'VD';
-{$ENDIF}
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR')).currency:= True;
 end;
 
-function TCaixa.DtSrc: TDataSource;
+procedure TCartao.OnNewRecord(DataSet: TDataSet);
+begin
+//  FEntidadeBase.Iquery.DataSet.FieldByName('SITUACAO').AsString:= 'A';
+end;
+
+function TCartao.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-procedure TCaixa.SelecionaSQLConsulta;
+
+procedure TCartao.SelecionaSQLConsulta;
 begin
-  FEntidadeBase.TextoSQL('Select * From CAIXA ');
+  FEntidadeBase.TextoSQL('select c.*, o.nome as operadora, o.tipo_operacao from cartao c join operadora o on (o.codigo = c.cod_operadora)');
 end;
+
 end.
