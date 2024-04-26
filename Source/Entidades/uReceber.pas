@@ -63,6 +63,7 @@ begin
   Case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= FEntidadeBase.TextoSQL + ' and NUM_OPER = :pParametro';
     1: vTextoSQL:= FEntidadeBase.TextoSQL + ' and COD_CLI = :pParametro and BAIXADO = ''X'' and COD_FILIAL = :pCodFilial';
+    2: vTextoSQL:= FEntidadeBase.TextoSQL + ' and COD_CLI = :pParametro and BAIXADO = ''X'' and COD_FILIAL = :pCodFilial and vencimento between :pDt_ini and :pDt_Fim ';
   end;
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.SQL(vTextoSQL);
