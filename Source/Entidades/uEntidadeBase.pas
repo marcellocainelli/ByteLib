@@ -90,7 +90,7 @@ begin
   Except
     on E: Exception do begin
       Value.DataSet.Edit;
-      raise Exception.Create('Não foi possível salvar. Erro:' + E.Message);
+      raise Exception.Create('Nï¿½o foi possï¿½vel salvar. Erro:' + E.Message);
     end;
   End;
 end;
@@ -104,7 +104,7 @@ begin
     FQuery.Salva;
   Except
     on E: Exception do begin
-      raise Exception.Create('Não foi possível excluir. Erro:' + E.Message);
+      raise Exception.Create('Nï¿½o foi possï¿½vel excluir. Erro:' + E.Message);
     end;
   End;
 end;
@@ -174,6 +174,7 @@ begin
     ftInteger : vField:= TIntegerField.Create(ADataSource.Dataset);
     ftCurrency: vField:= TCurrencyField.Create(ADataSource.Dataset);
     ftString  : vField:= TStringField.Create(ADataSource.Dataset);
+    ftFloat   : vField:= TFloatField.Create(ADataSource.Dataset);
   end;
   vField.FieldName:= ANomeCampo;
   vField.FieldKind:= fkInternalCalc;
@@ -195,6 +196,7 @@ begin
       ftInteger : vField:= TIntegerField.Create(ADataSource.Dataset);
       ftCurrency: vField:= TCurrencyField.Create(ADataSource.Dataset);
       ftString  : vField:= TStringField.Create(ADataSource.Dataset);
+      ftFloat   : vField:= TFloatField.Create(ADataSource.Dataset);
     end;
     vField.FieldName:= ANomeCampo[j];
     vField.FieldKind:= fkInternalCalc;

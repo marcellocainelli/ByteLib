@@ -70,7 +70,7 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames('NR_PEDIDO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-  FEntidadeBase.CriaCampo(Value, ['VrVista', 'VrPrazo', 'VrCusto'], [ftCurrency, ftCurrency, ftCurrency]);
+  FEntidadeBase.CriaCampo(Value, ['VrVista', 'VrPrazo', 'VrCusto', 'Entregou'], [ftCurrency, ftCurrency, ftCurrency, ftFloat]);
   ModificaDisplayCampos;
   Value.DataSet.Open;
   FEntidadeBase.SetReadOnly(Value, 'PRECO_CUST', False);
@@ -93,6 +93,8 @@ end;
 
 procedure TOrcamentoItens.ModificaDisplayCampos;
 begin
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VrVista')).currency:= True;
 end;
 

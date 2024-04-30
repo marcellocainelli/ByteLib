@@ -93,7 +93,9 @@ begin
             'and ((P.COD_MARCA = :mCOD_MARCA) or (:mCOD_MARCA = -1)) ' +
             'and ((P.COD_MARCA1 = :mCOD_MARCA1) or (:mCOD_MARCA1 = -1)) ' +
             'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
-            'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1))');
+            'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
+            'and ((P.COD_PROD in (Select e.cod_prod from estoque e join estoquemestre em on (em.seq = e.seq_mestre) ' +
+                                 'where em.documento = :pDocumento)) or (:pDocumento = ''-1        ''))');
   2: FEntidadeBase.TextoSQL(
             'Select P.*, EF.QUANTIDADE ' +
             'From PRODUTOS P ' +
