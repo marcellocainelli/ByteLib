@@ -22,7 +22,7 @@ type
     function CriaGrupo(out AId: String): iPlugStorage;
     function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): iPlugStorage;
     function ValidaCertificado(ACnpj: String): iPlugStorage;
-    function ConfigDestinadas(AFilePath: String): iPlugStorage;
+    function ConfigDestinadas: iPlugStorage;
     function ContadorVinculado(ACnpj: String): Boolean;
 
     //Parametros
@@ -36,6 +36,8 @@ type
     function Json(AJson: String): iPlugStorage;
     function ChaveXml(AChaveXml: String): iPlugStorage;
     function Table(ATable: iTable): iPlugStorage;
+    function Certificado_Path(AValue: String): iPlugStorage;
+    function Certificado_Password(AValue: String): iPlugStorage;
 
     function GetResult: Boolean;
     function GetMensagem: String;
@@ -49,7 +51,7 @@ type
     private
       FJson: TJSONValue;
       FTable: iTable;
-      FUsuario, FSenha, FXml, FChaveXml, FToken, FUrl: string;
+      FUsuario, FSenha, FXml, FChaveXml, FToken, FUrl, FCertificado_Path, FCertificado_Password: string;
       FSucesso: Boolean;
       FMensagem: String;
       FTimeout: integer;
@@ -73,7 +75,7 @@ type
       function CriaGrupo(out AId: String): iPlugStorage;
       function GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String = 'NFE'): iPlugStorage;
       function ValidaCertificado(ACnpj: String): iPlugStorage;
-      function ConfigDestinadas(AFilePath: String): iPlugStorage;
+      function ConfigDestinadas: iPlugStorage;
       function ContadorVinculado(ACnpj: String): Boolean;
       function Usuario(AUsuario: String): iPlugStorage;
       function Senha(ASenha: String): iPlugStorage;
@@ -85,6 +87,8 @@ type
       function Token(AValue: String): iPlugStorage;
       function Timeout(AValue: integer): iPlugStorage;
       function Table(ATable: iTable): iPlugStorage;
+      function Certificado_Path(AValue: String): iPlugStorage;
+      function Certificado_Password(AValue: String): iPlugStorage;
 
       property Sucesso: Boolean read GetResult;
       property Mensagem: String read GetMensagem;
@@ -571,50 +575,48 @@ begin
   end;
 end;
 
-function TPlugStorage.ConfigDestinadas(AFilePath: String): iPlugStorage;
+function TPlugStorage.ConfigDestinadas: iPlugStorage;
 var
   vResp: IResponse;
-  vStream: TMemoryStream;
   vResource: String;
   vSucesso: boolean;
   vJsonContent: iJsonVal;
-  vJson: String;
 begin
   Result:= Self;
 
   vResource:= 'destinadas/configdestined?token=' + FToken;
 
-  vStream:= TMemoryStream.Create;
-  vStream.LoadFromFile(AFilePath);
-  vJson:= MontaBodyReq(FJson);
   try
+    if FCertificado_Password = '' then
+      raise Exception.Create('É obrigatório informar a senha.');
 
-    try
-      vResp:= TRequest.New.BaseURL(FUrl)
-                .Timeout(FTimeout)
-                .Resource(vResource)
-                .ContentType('multipart/form-data')
-                .BasicAuthentication(FUsuario, FSenha)
-                .AddFile('cert_pfx', vStream)
-                .AddBody(vJson)
-                .Post;
+    vResp:= TRequest.New.BaseURL(FUrl)
+              .Timeout(FTimeout)
+              .Resource(vResource)
+              .BasicAuthentication(FUsuario, FSenha)
+              .AddFile('cert_pfx', FCertificado_Path)
+              .AddField('cert_password', FCertificado_Password)
+              .AddField('dfe_cert_concentrating', '0')
+              .AddField('uf', 'SP')
+              .AddField('dfe_period', '2')
+              .AddField('dfe_tipo', 'NFE')
+              .AddField('dfe_notifica', '0')
+              .AddField('dfe_cienciaAutomatica', '1')
+              .Post;
 
-      if not vResp.Content.IsEmpty then begin
-        vJsonContent:= TJsonVal.New(vResp.Content);
-        vJsonContent.GetValue('error', vSucesso);
-        vSucesso:= not vSucesso;
+    if not vResp.Content.IsEmpty then begin
+      vJsonContent:= TJsonVal.New(vResp.Content);
+      vJsonContent.GetValue('error', vSucesso);
+      vSucesso:= not vSucesso;
 
-        if not vSucesso then
-          raise Exception.Create(vJsonContent.GetValueAsString('message'));
+      if not vSucesso then
+        raise Exception.Create(vJsonContent.GetValueAsString('message'));
 
-        SetReqResult(vSucesso, vJsonContent.GetValueAsString('message'));
-      end;
-    except
-      on E:Exception do
-        SetReqResult(False, E.Message);
+      SetReqResult(vSucesso, vJsonContent.GetValueAsString('message'));
     end;
-  finally
-    vStream.Free;
+  except
+    on E:Exception do
+      SetReqResult(False, E.Message);
   end;
 end;
 
@@ -710,6 +712,18 @@ function TPlugStorage.Json(AJson: String): iPlugStorage;
 begin
   Result:= Self;
   FJson:= TJSONObject.ParseJSONValue(AJson);
+end;
+
+function TPlugStorage.Certificado_Password(AValue: String): iPlugStorage;
+begin
+  Result:= Self;
+  FCertificado_Password:= AValue;
+end;
+
+function TPlugStorage.Certificado_Path(AValue: String): iPlugStorage;
+begin
+  Result:= Self;
+  FCertificado_Path:= AValue;
 end;
 
 function TPlugStorage.ChaveXml(AChaveXml: String): iPlugStorage;
