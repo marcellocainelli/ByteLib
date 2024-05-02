@@ -4,7 +4,6 @@ interface
 
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
-
 Type
   TEntradaEstoqueItens = class(TInterfacedObject, iEntidade)
   private
@@ -19,9 +18,7 @@ Type
     function DtSrc: TDataSource;
     procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
 
@@ -30,7 +27,7 @@ uses
 constructor TEntradaEstoqueItens.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select E.*, P.NOME_PROD From ESTOQUE E Join PRODUTOS P On (P.COD_PROD = E.COD_PROD) ');
+  FEntidadeBase.TextoSQL('Select E.*, P.NOME_PROD, P.COD_BARRA From ESTOQUE E Join PRODUTOS P On (P.COD_PROD = E.COD_PROD) ');
   InicializaDataSource;
 end;
 
@@ -65,6 +62,7 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
   FEntidadeBase.CriaCampo(Value, 'Marcado', ftBoolean);
   FEntidadeBase.SetReadOnly(Value, 'NOME_PROD', False);
+  FEntidadeBase.SetReadOnly(Value, 'COD_BARRA', False);
   ModificaDisplayCampos;
   Value.DataSet.Open;
 end;
@@ -82,7 +80,8 @@ end;
 
 procedure TEntradaEstoqueItens.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANT_ENT')).DisplayFormat:= '#,0.00';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QTDD_CONFERENCIA')).DisplayFormat:= '#,0.00';
 end;
 
 function TEntradaEstoqueItens.DtSrc: TDataSource;
