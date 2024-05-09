@@ -3,7 +3,7 @@ unit uReceber;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils, Dialogs;
 
 Type
   TReceber = class(TInterfacedObject, iEntidade)
@@ -20,7 +20,6 @@ Type
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
-      procedure SelecionaSQLConsulta;
   end;
 
 implementation
@@ -33,6 +32,7 @@ uses
 constructor TReceber.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase.TextoSQL('select r.*, case when r.valor < 0 then ''DV'' else ''VD'' end as Tipo from receber r where r.situacao = ''A'' ');
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
@@ -59,21 +59,18 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  SelecionaSQLConsulta;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
   Case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' and NUM_OPER = :pParametro';
-    1: vTextoSQL:= FEntidadeBase.TextoSQL + ' and COD_CLI = :pParametro and BAIXADO = ''X'' and COD_FILIAL = :pCodFilial';
-    2: vTextoSQL:= FEntidadeBase.TextoSQL + ' and COD_CLI = :pParametro and BAIXADO = ''X'' and COD_FILIAL = :pCodFilial and vencimento between :pDt_ini and :pDt_Fim ';
+    0: vTextoSQL:= vTextoSQL + ' and r.NUM_OPER = :pParametro';
+    1: vTextoSQL:= vTextoSQL + ' and r.COD_CLI  = :pParametro and r.BAIXADO = ''X'' and r.COD_FILIAL = :pCodFilial';
+    2: vTextoSQL:= vTextoSQL + ' and r.COD_CLI  = :pParametro and r.BAIXADO = ''X'' and r.COD_FILIAL = :pCodFilial and r.vencimento between :pDt_ini and :pDt_Fim ';
   end;
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-  FEntidadeBase.CriaCampo(Value, ['Tipo', 'Marcado'], [ftString, ftBoolean]);
-
-  FEntidadeBase.CalcFields(MyCalcFields);
-  FEntidadeBase.Iquery.IndexFieldNames('TIPO; VENCIMENTO; DT_VENDA');
-
+  FEntidadeBase.CriaCampo(Value, ['Marcado'], [ftBoolean]);
   ModificaDisplayCampos;
+  FEntidadeBase.Iquery.IndexFieldNames('TIPO; VENCIMENTO; DT_VENDA');
   Value.DataSet.Open;
 end;
 
@@ -82,9 +79,8 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  SelecionaSQLConsulta;
   FEntidadeBase.AddParametro('pParametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' and NUM_OPER = :pParametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' and r.NUM_OPER = :pParametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 
@@ -95,10 +91,10 @@ end;
 
 procedure TReceber.MyCalcFields(sender: TDataSet);
 begin
-  If (sender.FieldByName('VALOR').AsCurrency < 0) then
-    sender.FieldByName('Tipo').AsString:= 'DV'
-  else
-    sender.FieldByName('Tipo').AsString:= 'VD';
+//  If (sender.FieldByName('VALOR').AsCurrency < 0) then
+//    sender.FieldByName('Tipo').AsString:= 'DV'
+//  else
+//    sender.FieldByName('Tipo').AsString:= 'VD';
 end;
 
 procedure TReceber.OnNewRecord(DataSet: TDataSet);
@@ -114,11 +110,6 @@ end;
 function TReceber.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
-end;
-
-procedure TReceber.SelecionaSQLConsulta;
-begin
-  FEntidadeBase.TextoSQL('select * from receber where situacao = ''A'' ');
 end;
 
 end.

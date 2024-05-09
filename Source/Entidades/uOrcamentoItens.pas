@@ -9,6 +9,7 @@ Type
   TOrcamentoItens = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
+      procedure GetText(Sender: TField; var Text: String; DisplayText: Boolean);
       procedure MyCalcFields(sender: TDataSet);
     public
       constructor Create(AConn: iConexao = nil);
@@ -54,6 +55,11 @@ begin
   Result:= FEntidadeBase;
 end;
 
+procedure TOrcamentoItens.GetText(Sender: TField; var Text: String; DisplayText: Boolean);
+begin
+  Text:= EmptyStr;
+end;
+
 function TOrcamentoItens.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
@@ -96,6 +102,7 @@ begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VrVista')).currency:= True;
+  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('FLG_ENTREGA')).OnGetText:= GetText;
 end;
 
 procedure TOrcamentoItens.MyCalcFields(sender: TDataSet);
