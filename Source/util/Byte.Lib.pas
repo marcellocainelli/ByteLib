@@ -96,7 +96,8 @@ type
       {Encriptação}
       class function Crypt(Texto,Chave :String): String;
       class function Crypto (aText: string): string;
-      class function Decrypto (aText: string): string;
+      class function Decrypto (aText: string): string; overload;
+      class function Decrypto (aText, aChave: string): string; overload;
       class function CryptSameTextLength(Texto,Chave :String): String;
   end;
 
@@ -726,6 +727,11 @@ end;
 class function TLib.Decrypto(aText: string): string;
 begin
   Result:= Crypt(aText, 'DOUTORBY');
+end;
+
+class function TLib.Decrypto(aText, aChave: string): string;
+begin
+  Result:= Crypt(aText, aChave);
 end;
 
 class function TLib.CryptSameTextLength(Texto, Chave: String): String;

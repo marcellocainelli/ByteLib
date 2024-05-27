@@ -8,7 +8,7 @@ uses
 type
   iEntidadeBase<T> = interface
     ['{92115277-3ADA-479B-898C-D2D496577CA9}']
-    function Salva(Value: TDataSource = nil): iEntidadeBase<T>;
+    function Salva(Value: TDataSource = nil; aSalva: Boolean = True): iEntidadeBase<T>;
     function Exclui(Value: TDataSource = nil): iEntidadeBase<T>;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iEntidadeBase<T>; overload;

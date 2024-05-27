@@ -28,8 +28,7 @@ uses
 constructor TClienteCarro.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from CARRO where COD_CLI = :pCod_Cli');
-
+  FEntidadeBase.TextoSQL('select * from CARRO where COD_CLI = :pCod_Cli ');
   InicializaDataSource;
 end;
 
@@ -49,13 +48,19 @@ begin
 end;
 
 function TClienteCarro.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  Case FEntidadeBase.TipoPesquisa of
+    1: vTextoSQL:= vTextoSQL + ' and PLACA = :pParametro';
+  end;
+  FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME_CARRO');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql);
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
@@ -75,6 +80,7 @@ end;
 procedure TClienteCarro.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LIMITE')).DisplayFormat:= '#,0.00';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('DATA_TROCAOLEO')).EditMask:= '!99/99/00;1;_';
 end;
 
 function TClienteCarro.DtSrc: TDataSource;

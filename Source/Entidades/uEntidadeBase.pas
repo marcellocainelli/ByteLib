@@ -1,4 +1,4 @@
-unit uEntidadeBase;
+﻿unit uEntidadeBase;
 interface
 uses
   System.SysUtils,
@@ -24,7 +24,7 @@ Type
     constructor Create(Parent: T; AConn: iConexao = nil);
     destructor Destroy; override;
     class function New(Parent: T; AConn: iConexao = nil): iEntidadeBase<T>;
-    function Salva(Value: TDataSource = nil): iEntidadeBase<T>;
+    function Salva(Value: TDataSource = nil; aSalva: Boolean = True): iEntidadeBase<T>;
     function Exclui(Value: TDataSource = nil): iEntidadeBase<T>;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iEntidadeBase<T>; overload;
@@ -80,13 +80,13 @@ class function TEntidadeBase<T>.New(Parent: T; AConn: iConexao): iEntidadeBase<T
 begin
   Result:= Self.Create(Parent, AConn);
 end;
-function TEntidadeBase<T>.Salva(Value: TDataSource): iEntidadeBase<T>;
+function TEntidadeBase<T>.Salva(Value: TDataSource = nil; aSalva: Boolean = True): iEntidadeBase<T>;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FDataSource;
   Try
-    FQuery.Salva;
+    FQuery.Salva(aSalva);
   Except
     on E: Exception do begin
       Value.DataSet.Edit;

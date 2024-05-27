@@ -427,7 +427,8 @@ begin
 
         Result:= vJsonResults.GetValue<String>('qr_link');
 
-        GetImageByUrl(Result, AImage.Picture);
+        if Assigned(AImage) then
+          GetImageByUrl(Result, AImage.Picture);
         SetReqResult(True, 'QrCode gerado com sucesso!');
       finally
         vJsonObj.Free;
