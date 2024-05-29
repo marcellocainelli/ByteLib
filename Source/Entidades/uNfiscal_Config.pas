@@ -1,14 +1,12 @@
 unit uNfiscal_Config;
-
 interface
-
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils;
-
 Type
   TNfiscal_Config = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
+      procedure OnNewRecord(DataSet: TDataSet);
     public
       constructor Create;
       destructor Destroy; override;
@@ -19,37 +17,29 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
-
 { TNfiscal_Config }
-
 constructor TNfiscal_Config.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('select * from NFISCAL_CONFIG where COD_FILIAL = :pCod_Filial');
-
   InicializaDataSource;
+  FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
-
 destructor TNfiscal_Config.Destroy;
 begin
   inherited;
 end;
-
 class function TNfiscal_Config.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-
 function TNfiscal_Config.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-
 function TNfiscal_Config.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
@@ -59,7 +49,6 @@ begin
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 function TNfiscal_Config.InicializaDataSource(Value: TDataSource): iEntidade;
 var
   vTextoSql: String;
@@ -67,20 +56,21 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
   vTextoSql:= 'Select * From NFISCAL_CONFIG Where 1 <> 1';
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TNfiscal_Config.ModificaDisplayCampos;
 begin
-
 end;
-
+procedure TNfiscal_Config.OnNewRecord(DataSet: TDataSet);
+begin
+  FEntidadeBase.Iquery.DataSet.FieldByName('GERAR_TAG_MED').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('GERAR_TAG_DIFAL').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('FLG_TRUNCA_VRITEM').AsString:= 'N';
+end;
 function TNfiscal_Config.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-
 end.
