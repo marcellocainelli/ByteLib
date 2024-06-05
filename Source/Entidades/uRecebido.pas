@@ -84,7 +84,7 @@ end;
 
 procedure TRecebido.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VR_PAGO')).currency:= True;
 end;
 
 procedure TRecebido.OnNewRecord(DataSet: TDataSet);
