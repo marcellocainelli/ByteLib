@@ -1,13 +1,9 @@
 unit PlugStorage.Service;
-
 interface
-
 uses
   System.Classes, System.SysUtils, System.JSON, RESTRequest4D, Xml.Reader, Byte.Json,
   Controller.Factory.Table, Model.Conexao.Interfaces, Data.DB;
-
 type
-
   iPlugStorage = interface
     ['{15ABE1B5-ABDB-4D23-A71A-E891F2DC817D}']
     //Rotas
@@ -24,7 +20,6 @@ type
     function ValidaCertificado(ACnpj: String): iPlugStorage;
     function ConfigDestinadas: iPlugStorage;
     function ContadorVinculado(ACnpj: String): Boolean;
-
     //Parametros
     function URL(AValue: String): iPlugStorage;
     function Token(AValue: String): iPlugStorage;
@@ -38,14 +33,11 @@ type
     function Table(ATable: iTable): iPlugStorage;
     function Certificado_Path(AValue: String): iPlugStorage;
     function Certificado_Password(AValue: String): iPlugStorage;
-
     function GetResult: Boolean;
     function GetMensagem: String;
-
     property Sucesso: Boolean read GetResult;
     property Mensagem: String read GetMensagem;
   end;
-
   TPlugStorage = class(TInterfacedObject, iPlugStorage)
     protected
     private
@@ -58,7 +50,6 @@ type
       procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
       function GetResult: Boolean;
       function GetMensagem: String;
-
       function MontaBodyReq(AJSONValue: TJSONValue): String;
     public
       constructor Create;
@@ -89,33 +80,26 @@ type
       function Table(ATable: iTable): iPlugStorage;
       function Certificado_Path(AValue: String): iPlugStorage;
       function Certificado_Password(AValue: String): iPlugStorage;
-
       property Sucesso: Boolean read GetResult;
       property Mensagem: String read GetMensagem;
   end;
-
 implementation
-
 { TPlugStorage }
-
 class function TPlugStorage.New: iPlugStorage;
 begin
   Result:= Self.Create;
 end;
-
 constructor TPlugStorage.Create;
 begin
   FSucesso:= False;
   FMensagem:= EmptyStr;
 end;
-
 destructor TPlugStorage.Destroy;
 begin
   if Assigned(FJson) then
     FJson.Free;
   inherited;
 end;
-
 {$REGION 'ROTAS'}
 function TPlugStorage.PostUsuario: iPlugStorage;
 var
@@ -130,14 +114,12 @@ begin
               .ContentType('application/x-www-form-urlencoded')
               .AddBody(MontaBodyReq(FJson))
               .Post;
-
     SetReqResult((vResp.StatusCode = 200) or (vResp.StatusCode = 201), vResp.Content);
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.PutUsuario: iPlugStorage;
 var
   vResp: IResponse;
@@ -150,7 +132,6 @@ begin
     else if FJson.TryGetValue<string>('cpf', vCpfCnpjKeyValue) then
       vCpfCnpjKeyName:= 'cpf';
 
-
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
               .Resource('users/?softwarehouse=' + FToken + '&' + vCpfCnpjKeyName + '=' + vCpfCnpjKeyValue)
@@ -158,14 +139,12 @@ begin
               .ContentType('application/x-www-form-urlencoded')
               .AddBody(MontaBodyReq(FJson))
               .Put;
-
     SetReqResult((vResp.StatusCode = 200) or (vResp.StatusCode = 201), vResp.Content);
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.GetXML: iPlugStorage;
 var
   vResp: IResponse;
@@ -176,7 +155,6 @@ begin
   try
     if (FUsuario.IsEmpty) or (FSenha.IsEmpty) then
       raise Exception.Create('Usuario e senha não podem estar vazios');
-
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
               .Resource('invoices/export?token='+ FToken + '&invoice_key=' + FChaveXml + '&mode=XML&downloaded=true&xml=XML&resume=false')
@@ -184,29 +162,24 @@ begin
               .ContentType('application/x-www-form-urlencoded')
               .BasicAuthentication(FUsuario, FSenha)
               .Get;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
         vJsonResp.TryGetValue<Boolean>('error', vSucesso);
         vSucesso:= not vSucesso;
-
         if vSucesso then
           FXml:= vJsonResp.GetValue<string>('data.xml');
-
         SetReqResult(vSucesso, vJsonResp.GetValue<string>('message'));
       finally
         vJsonResp.Free;
       end;
     end else
       raise Exception.Create('Erro ao receber o XML da API');
-
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.PostXML: iPlugStorage;
 var
   vResp: IResponse;
@@ -225,7 +198,6 @@ begin
 //      vDataRecbtoNew:= Copy(vDataRecbto, 1, Pos('+', vDataRecbto) - 1);
 //      FXml:= StringReplace(FXml, vDataRecbto, vDataRecbtoNew, [rfReplaceAll, rfIgnoreCase]);
 //    end;
-
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
               .Resource('invoices?token=' + FToken)
@@ -236,16 +208,13 @@ begin
               .BasicAuthentication(FUsuario, FSenha)
               .AddField('xml', FXml)
               .Post;
-
     vXMLReader:= TXmlReader.New.LoadFromString(vResp.Content);
-
     SetReqResult((vResp.StatusCode = 200) or (vResp.StatusCode = 201), vXMLReader.Node.GetElement('message').AsString);
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.UpdateEmailCliente: iPlugStorage;
 var
   vResp: IResponse;
@@ -257,7 +226,6 @@ begin
   try
     vCurrentEmail:= FJson.GetValue<string>('current_email');
     vNewEmail:= FJson.GetValue<string>('new_email');
-
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
               .Resource('clients/updateemail')
@@ -267,7 +235,6 @@ begin
               .AddParam('current_email', vCurrentEmail)
               .AddParam('new_email', vNewEmail)
               .Post;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
@@ -279,13 +246,11 @@ begin
         vJsonResp.Free;
       end;
     end;
-
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.ValidaCertificado(ACnpj: String): iPlugStorage;
 var
   vResp: IResponse;
@@ -301,7 +266,6 @@ begin
               .ContentType('application/x-www-form-urlencoded')
               .BasicAuthentication(FToken, FSenha)
               .Post;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
@@ -312,13 +276,11 @@ begin
         vJsonResp.Free;
       end;
     end;
-
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.VinculaContadorCliente: iPlugStorage;
 var
   vResp: IResponse;
@@ -334,7 +296,6 @@ begin
               .BasicAuthentication(FUsuario, FSenha)
               .AddBody(MontaBodyReq(FJson))
               .Post;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
@@ -346,13 +307,11 @@ begin
         vJsonResp.Free;
       end;
     end;
-
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.DesvinculaContador: iPlugStorage;
 var
   vResp: IResponse;
@@ -368,7 +327,6 @@ begin
               .BasicAuthentication(FToken, FSenha)
               .AddBody(MontaBodyReq(FJson))
               .Post;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
@@ -379,13 +337,11 @@ begin
         vJsonResp.Free;
       end;
     end;
-
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.VinculaGrupo(AId: String): iPlugStorage;
 var
   vResp: IResponse;
@@ -393,7 +349,6 @@ var
   vSucesso: boolean;
 begin
   Result:= Self;
-
   try
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
@@ -401,7 +356,6 @@ begin
               .ContentType('application/x-www-form-urlencoded')
               .AddBody(MontaBodyReq(FJson))
               .Post;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
@@ -413,13 +367,11 @@ begin
         vJsonResp.Free;
       end;
     end;
-
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.CriaGrupo(out AId: String): iPlugStorage;
 var
   vResp: IResponse;
@@ -427,7 +379,6 @@ var
   vSucesso: boolean;
 begin
   Result:= Self;
-
   try
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
@@ -435,7 +386,6 @@ begin
               .ContentType('application/x-www-form-urlencoded')
               .AddBody(MontaBodyReq(FJson))
               .Post;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
@@ -447,13 +397,11 @@ begin
         vJsonResp.Free;
       end;
     end;
-
   except
     on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: String): iPlugStorage;
   function Requisicao(ADtInicio, ADtFim: TDateTime; AModDoc: String; ALastID: String = ''): String;
   var
@@ -479,6 +427,7 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
   
   procedure GeraTableDestinadas(ATable: iTable);
   begin
+    ATable.Tabela.FieldDefs.Add('XML_NUM', ftString, 100);
     ATable.Tabela.FieldDefs.Add('XML_CHAVE', ftString, 100);
     ATable.Tabela.FieldDefs.Add('EMITENTE_CNPJ', ftString, 20);
     ATable.Tabela.FieldDefs.Add('EMITENTE_RAZAOSOCIAL', ftString, 100);
@@ -488,7 +437,6 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
     ATable.Tabela.FieldDefs.Add('LANCADA', ftBoolean);
     ATable.CriaDataSet;
   end;
-
   procedure PopulaTableDestinadas(ATable: iTable; AArray: TJSONArray);
   var
     vJsonObjInvoice: TJSONObject;
@@ -498,10 +446,10 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
   begin
     vFormatSet.ShortDateFormat:= 'yyyy-mm-dd';
     vFormatSet.DateSeparator:= '-';
-
     for vArrayCount := 0 to AArray.Size - 1 do begin
       vjsonObjInvoice:= AArray.Get(vArrayCount) as TJSONObject;
       ATable.Tabela.Append;
+      ATable.Tabela.FieldByName('XML_NUM').AsString:= vjsonObjInvoice.Get('number').JsonValue.Value;
       ATable.Tabela.FieldByName('XML_CHAVE').AsString:= vjsonObjInvoice.Get('key').JsonValue.Value;
       ATable.Tabela.FieldByName('EMITENTE_CNPJ').AsString:= vjsonObjInvoice.Get('cnpj_emitter').JsonValue.Value;
       ATable.Tabela.FieldByName('EMITENTE_RAZAOSOCIAL').AsString:= vjsonObjInvoice.Get('razao_social').JsonValue.Value;
@@ -513,7 +461,6 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
       ATable.Tabela.Post;
     end;
   end;
-
   function GetNotas(ADados: String; ATable: iTable; out ALastID: String): Integer;
   var
     vJsonObj, vJsonObjData: TJSONObject;
@@ -534,16 +481,12 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
         
       vCount:= vJsonObjData.GetValue<integer>('count');
       vTotal:= vJsonObjData.GetValue<integer>('total');
-
       if vCount = 0 then
         Exit;
-
       vJsonArrayInvoices:= vJsonObjData.Get('invoices').JsonValue as TJSONArray;
       PopulaTableDestinadas(ATable, vJsonArrayInvoices);
-
       Result:= (vTotal div vCount) - 1;
       vJsonObjData.TryGetValue<String>('last_id', ALastID);  
-
       SetReqResult(vSucesso, vMsg);  
     finally
       FreeAndNil(vJsonObj);
@@ -557,7 +500,6 @@ begin
   vReqCount:= 0;
   try
     GeraTableDestinadas(FTable);
-
     vJsonDados:= Requisicao(ADtInicio, ADtFim, AModDoc);
     if not vJsonDados.IsEmpty then begin
       vQtddReq:= GetNotas(vJsonDados, FTable, vLastID);
@@ -574,7 +516,6 @@ begin
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.ConfigDestinadas: iPlugStorage;
 var
   vResp: IResponse;
@@ -583,13 +524,10 @@ var
   vJsonContent: iJsonVal;
 begin
   Result:= Self;
-
   vResource:= 'destinadas/configdestined?token=' + FToken;
-
   try
     if FCertificado_Password = '' then
       raise Exception.Create('É obrigatório informar a senha.');
-
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
               .Resource(vResource)
@@ -603,15 +541,12 @@ begin
               .AddField('dfe_notifica', '0')
               .AddField('dfe_cienciaAutomatica', '1')
               .Post;
-
     if not vResp.Content.IsEmpty then begin
       vJsonContent:= TJsonVal.New(vResp.Content);
       vJsonContent.GetValue('error', vSucesso);
       vSucesso:= not vSucesso;
-
       if not vSucesso then
         raise Exception.Create(vJsonContent.GetValueAsString('message'));
-
       SetReqResult(vSucesso, vJsonContent.GetValueAsString('message'));
     end;
   except
@@ -619,7 +554,6 @@ begin
       SetReqResult(False, E.Message);
   end;
 end;
-
 function TPlugStorage.ContadorVinculado(ACnpj: String): Boolean;
 var
   vResp: IResponse;
@@ -628,7 +562,6 @@ var
   vVinculado: String;
 begin
   Result:= False;
-
   try
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
@@ -636,7 +569,6 @@ begin
               .ContentType('application/x-www-form-urlencoded')
               .BasicAuthentication(FToken, FSenha)
               .Get;
-
     if not vResp.Content.IsEmpty then begin
       vJsonResp:= TJSONObject.ParseJSONValue(vResp.Content);
       try
@@ -656,64 +588,53 @@ begin
       SetReqResult(False, E.Message);
   end;
 end;
-
 {$ENDREGION}
-
 {$REGION 'PARAMETROS'}
 function TPlugStorage.URL(AValue: String): iPlugStorage;
 begin
   Result:= Self;
   FUrl:= AValue;
 end;
-
 function TPlugStorage.Table(ATable: iTable): iPlugStorage;
 begin
   Result:= Self;
   if Assigned(ATable) then
     FTable:= ATable;
 end;
-
 function TPlugStorage.Timeout(AValue: integer): iPlugStorage;
 begin
   Result:= Self;
   FTimeout:= AValue;
 end;
-
 function TPlugStorage.Token(AValue: String): iPlugStorage;
 begin
   Result:= Self;
   FToken:= AValue;
 end;
-
 function TPlugStorage.Senha(ASenha: String): iPlugStorage;
 begin
   Result:= Self;
   FSenha:= ASenha;
 end;
-
 function TPlugStorage.Usuario(AUsuario: String): iPlugStorage;
 begin
   Result:= Self;
   FUsuario:= AUsuario;
 end;
-
 function TPlugStorage.XML: String;
 begin
   Result:= FXml;
 end;
-
 function TPlugStorage.XML(AXml: String): iPlugStorage;
 begin
   Result:= Self;
   FXml:= AXml;
 end;
-
 function TPlugStorage.Json(AJson: String): iPlugStorage;
 begin
   Result:= Self;
   FJson:= TJSONObject.ParseJSONValue(AJson);
 end;
-
 function TPlugStorage.Certificado_Password(AValue: String): iPlugStorage;
 begin
   Result:= Self;
@@ -732,24 +653,20 @@ begin
   FChaveXml:= AChaveXml;
 end;
 {$ENDREGION}
-
 {$REGION 'AUXILIARES'}
 procedure TPlugStorage.SetReqResult(ASucesso: Boolean; AMensagem: String);
 begin
   FSucesso:= ASucesso;
   FMensagem:= AMensagem;
 end;
-
 function TPlugStorage.GetMensagem: String;
 begin
   Result:= FMensagem;
 end;
-
 function TPlugStorage.GetResult: Boolean;
 begin
   Result:= FSucesso;
 end;
-
 function TPlugStorage.MontaBodyReq(AJSONValue: TJSONValue): String;
 var
   vStringReturn: String;
@@ -762,7 +679,5 @@ begin
   vStringReturn:= StringReplace(vStringReturn, ',', '&', [rfReplaceAll, rfIgnoreCase]);
   Result:= vStringReturn;
 end;
-
 {$ENDREGION}
-
 end.
