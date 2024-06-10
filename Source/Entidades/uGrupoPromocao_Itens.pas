@@ -27,7 +27,7 @@ constructor TGrupoPromocaoItem.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
-    'SELECT gpi.*, gp.dt_inicio, gp.dt_fim, gp.preco_promo as grupo_preco, gp.flag_regra_grupo, gp.quantidade_min as grupo_qtdd, p.nome_prod ' +
+    'SELECT gpi.*, gp.dt_inicio, gp.dt_fim, gp.preco_promo as grupo_preco, gp.flag_regra_grupo, gp.quantidade_min as grupo_qtdd, p.nome_prod, gp.descricao as promo_nome ' +
     'from GRUPO_PROMOCAO_ITEM gpi ' +
     'join produtos p on (p.cod_prod = gpi.cod_prod) ' +
     'join grupo_promocao gp on (gp.id = gpi.id_grupo_promo)'
@@ -58,6 +58,8 @@ begin
     1: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo';
     2: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo and gpi.cod_prod = :pCodProd';
     3: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd';
+    4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and gpi.id_grupo_promo <> :pIdGrupoPromo ' +
+                               ' and ((:pDtInicio between gp.dt_inicio and gp.dt_fim) or (:pDtFim between gp.dt_inicio and gp.dt_fim))';
   end;
 //  FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   If not FEntidadeBase.Inativos then
