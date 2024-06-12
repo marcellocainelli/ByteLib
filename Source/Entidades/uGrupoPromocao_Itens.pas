@@ -59,7 +59,9 @@ begin
     2: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo and gpi.cod_prod = :pCodProd';
     3: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd';
     4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and gpi.id_grupo_promo <> :pIdGrupoPromo ' +
-                               ' and ((:pDtInicio between gp.dt_inicio and gp.dt_fim) or (:pDtFim between gp.dt_inicio and gp.dt_fim))';
+                               ' and gp.dt_fim >= :pDtInicio';
+//    4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and gpi.id_grupo_promo <> :pIdGrupoPromo ' +
+//                               ' and ((:pDtInicio between gp.dt_inicio and gp.dt_fim) or (:pDtFim between gp.dt_inicio and gp.dt_fim))';
   end;
 //  FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   If not FEntidadeBase.Inativos then

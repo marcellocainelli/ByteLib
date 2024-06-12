@@ -90,7 +90,7 @@ begin
   Except
     on E: Exception do begin
       Value.DataSet.Edit;
-      raise Exception.Create('N�o foi poss�vel salvar. Erro:' + E.Message);
+      raise Exception.Create('Nao foi possivel salvar. Erro:' + E.Message);
     end;
   End;
 end;
@@ -104,7 +104,7 @@ begin
     FQuery.Salva;
   Except
     on E: Exception do begin
-      raise Exception.Create('N�o foi poss�vel excluir. Erro:' + E.Message);
+      raise Exception.Create('Nao foi possivel excluir. Erro:' + E.Message);
     end;
   End;
 end;
