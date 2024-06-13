@@ -62,7 +62,7 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-  FEntidadeBase.CriaCampo(Value, ['VrVenda', 'VrCusto', 'VrDesconto', 'Id_ItemPedido','Dv_Seq_Venda','Possui_adicionais'], [ftCurrency, ftCurrency, ftCurrency, ftInteger, ftInteger, ftBoolean]);
+  FEntidadeBase.CriaCampo(Value, ['VrVenda', 'VrCusto', 'VrDesconto', 'Id_ItemPedido','Dv_Seq_Venda','Possui_adicionais','Marcado'], [ftCurrency, ftCurrency, ftCurrency, ftInteger, ftInteger, ftBoolean, ftBoolean]);
   ModificaDisplayCampos;
   Value.DataSet.Open;
   FEntidadeBase.SetReadOnly(Value, 'PESO', False);
