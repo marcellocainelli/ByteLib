@@ -76,7 +76,7 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames('NR_PEDIDO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-  FEntidadeBase.CriaCampo(Value, ['VrVista', 'VrPrazo', 'VrCusto', 'Entregou'], [ftCurrency, ftCurrency, ftCurrency, ftFloat]);
+  FEntidadeBase.CriaCampo(Value, ['VrVista', 'VrPrazo', 'VrCusto', 'Entregou','Marcado'], [ftCurrency, ftCurrency, ftCurrency, ftFloat, ftBoolean]);
   ModificaDisplayCampos;
   Value.DataSet.Open;
   FEntidadeBase.SetReadOnly(Value, 'PRECO_CUST', False);
