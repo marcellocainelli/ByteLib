@@ -87,14 +87,12 @@ end;
 procedure TReceber.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VR_ATUAL')).currency:= True;
 end;
 
 procedure TReceber.MyCalcFields(sender: TDataSet);
 begin
-//  If (sender.FieldByName('VALOR').AsCurrency < 0) then
-//    sender.FieldByName('Tipo').AsString:= 'DV'
-//  else
-//    sender.FieldByName('Tipo').AsString:= 'VD';
+
 end;
 
 procedure TReceber.OnNewRecord(DataSet: TDataSet);

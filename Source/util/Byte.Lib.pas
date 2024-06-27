@@ -69,6 +69,7 @@ type
       class function MyBoolToStr(S: Boolean): string;
       class function MyStrToBool(S: string): boolean;
       class function Extenso(pValor: extended): String;
+      class function UltimosXDigitos(const S: string; NumDigitos: Integer): string;
       class procedure RegistraInicializarWindows(const AProgTitle: string; const AExePath: string; ARunOnce: Boolean);
       {$IFDEF MSWINDOWS}
       class procedure VclRoundCornerOf(Control: TWinControl);
@@ -340,6 +341,16 @@ begin // início Extenso
   finally
     result := lResultado;
   end;
+end;
+
+class function TLib.UltimosXDigitos(const S: string; NumDigitos: Integer): string;
+var
+  StartPos: Integer;
+begin
+  StartPos := Length(S) - NumDigitos + 1;
+  if StartPos < 1 then
+    StartPos := 1;
+  Result := Copy(S, StartPos, NumDigitos);
 end;
 
 class procedure TLib.RegistraInicializarWindows(const AProgTitle, AExePath: string; ARunOnce: Boolean);
