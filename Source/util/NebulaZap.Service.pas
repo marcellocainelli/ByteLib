@@ -1,5 +1,4 @@
 unit NebulaZap.Service;
-
 interface
 uses
   System.SysUtils,
@@ -24,7 +23,6 @@ type
     function Get(const AResource: String; out AJSONResult: String): iNebulazapBase<T>;
     function Send(const AResource: String; AJSON: String): iNebulazapBase<T>;
     function Auth: iNebulazapBase<T>;
-
     function IntegratorID(AValue: String): iNebulazapBase<T>;
     function MerchantId(AValue: String): iNebulazapBase<T>;
     function MerchantPwd(AValue: String): iNebulazapBase<T>;
@@ -51,7 +49,6 @@ type
     function MerchantPwd(AValue: String): iNebulazapBase<T>;
     function AccessToken: String;
   end;
-
   iNebulaZap = interface
     ['{1EDD7045-3348-48AE-AB6A-AA936890B42C}']
     function NebulaZapBase: iNebulazapBase<iNebulaZap>;
@@ -62,6 +59,7 @@ type
     function Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iNebulaZap;
     function Instancia_Parear(AImage: TImage): String;
     function Instancia_Desconectar: iNebulaZap;
+    function Status: iNebulaZap;
   end;
   TNebulaZap = class(TInterfacedObject, iNebulaZap)
     private
@@ -82,46 +80,38 @@ type
       function Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iNebulaZap;
       function Instancia_Parear(AImage: TImage): String;
       function Instancia_Desconectar: iNebulaZap;
+      function Status: iNebulaZap;
   end;
-
 implementation
-
 { TPlugzapi<T> }
-
 class function TNebulazapBase<T>.New(Parent: T): iNebulazapBase<T>;
 begin
   Result:= Self.Create(Parent);
 end;
-
 constructor TNebulazapBase<T>.Create(Parent: T);
 begin
   FParent:= Parent;
   FSucesso:= False;
   FMensagem:= '';
 end;
-
 destructor TNebulazapBase<T>.Destroy;
 begin
   inherited;
 end;
-
 function TNebulazapBase<T>.&End: T;
 begin
   Result:= FParent;
 end;
-
 function TNebulazapBase<T>.MerchantId(AValue: String): iNebulazapBase<T>;
 begin
   Result:= Self;
   FMerchantId:= AValue;
 end;
-
 function TNebulazapBase<T>.MerchantPwd(AValue: String): iNebulazapBase<T>;
 begin
   Result:= Self;
   FMerchantPwd:= AValue;
 end;
-
 function TNebulazapBase<T>.Get(const AResource: string; out AJSONResult: string): iNebulazapBase<T>;
 var
   vResp: IResponse;
@@ -135,17 +125,14 @@ begin
           .ContentType('application/json')
           .AcceptEncoding('UTF-8')
           .Get;
-
     if not (vResp.StatusCode = 200) then
       raise Exception.Create(vResp.Content);
-
     AJSONResult:= vResp.Content;
   except
     on E:Exception do
       raise Exception.Create(E.Message);
   end;
 end;
-
 function TNebulazapBase<T>.Send(const AResource: string; AJSON: string): iNebulazapBase<T>;
 var
   vResp: IResponse;
@@ -170,12 +157,10 @@ begin
       raise Exception.Create(E.Message);
   end;
 end;
-
 function TNebulazapBase<T>.AccessToken: String;
 begin
   Result:= FAccessToken;
 end;
-
 function TNebulazapBase<T>.Auth: iNebulazapBase<T>;
 var
   vResp: IResponse;
@@ -185,12 +170,10 @@ begin
   try
     if FMerchantId.Equals('') or FMerchantPwd.Equals('') then
       raise Exception.Create('Códigos de autenticação inválidos.');
-
     vJson:= TJSONObject.Create;
     try
       vJson.AddPair('merchantId', FMerchantId);
       vJson.AddPair('merchantPwd', FMerchantPwd);
-
       vResp:= TRequest.New.BaseURL(C_URL_API)
             .Timeout(C_TIMEOUT)
             .Resource('api/v4/auth')
@@ -211,7 +194,6 @@ begin
       raise Exception.Create(E.Message);
   end;
 end;
-
 procedure TNebulazapBase<T>.GetAccessToken(AContent: String);
 var
   vJsonObj, vObjData: TJSONObject;
@@ -229,13 +211,11 @@ begin
     vJsonObj.Free;
   end;
 end;
-
 function TNebulazapBase<T>.IntegratorID(AValue: String): iNebulazapBase<T>;
 begin
   Result:= Self;
   FIntegratorID:= AValue;
 end;
-
 { TNebulaZap }
 class function TNebulaZap.New: iNebulaZap;
 begin
@@ -246,17 +226,14 @@ constructor TNebulaZap.Create;
 begin
   FNebulazapBase:= TNebulazapBase<iNebulazap>.New(Self);
 end;
-
 destructor TNebulaZap.Destroy;
 begin
   inherited;
 end;
-
 function TNebulaZap.NebulaZapBase: iNebulazapBase<iNebulaZap>;
 begin
   Result:= FNebulazapBase;
 end;
-
 procedure TNebulaZap.SetReqResult(ASucesso: Boolean; AMensagem: String);
 begin
   FSucesso:= ASucesso;
@@ -270,7 +247,6 @@ function TNebulaZap.Mensagem: String;
 begin
   Result:= FMensagem;
 end;
-
 function TNebulaZap.EnviaMsg(ATelefone, AMsg: String): iNebulaZap;
 var
   vResp: IResponse;
@@ -284,7 +260,6 @@ begin
     vJSONObj.AddPair('phone', ATelefone);
     vJSONObj.AddPair('message', AMsg);
     FNebulazapBase.Auth;
-
     vResp:= TRequest.New.BaseURL(C_URL_API)
           .Timeout(C_TIMEOUT)
           .Resource('api/v4/WhatsappMessage/send/message')
@@ -296,14 +271,12 @@ begin
     if not (vResp.StatusCode = 200) then begin
       raise Exception.Create('Não autorizado');
     end;
-
     SetReqResult(True, 'Enviado com sucesso');
   except
     on E:Exception do
       SetReqResult(False, 'Erro ao enviar a mensagem:' + #13#10 + E.Message);
   end;
 end;
-
 function TNebulaZap.EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iNebulaZap;
 var
   vBase64, vPath: string;
@@ -324,7 +297,6 @@ begin
         vBase64:= StringReplace(vBase64, 'Erro', '', [rfReplaceAll, rfIgnoreCase]);
         raise Exception.Create(vBase64);
       end;
-
       vResp:= TRequest.New.BaseURL(C_URL_API)
                 .Timeout(C_TIMEOUT)
                 .Resource('api/v4/WhatsappMessage/send/doc')
@@ -333,7 +305,6 @@ begin
                 .AddField('message', AMsg)
                 .TokenBearer(FNebulazapBase.AccessToken)
                 .Post;
-
       if not (vResp.StatusCode = 200) then begin
         raise Exception.Create('Não autorizado');
       end;
@@ -346,7 +317,6 @@ begin
       SetReqResult(False, 'Erro ao enviar:' + #13#10 + E.Message);
   end;
 end;
-
 function TNebulaZap.Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iNebulaZap;
 var
   vPath, vFileName: String;
@@ -359,16 +329,13 @@ begin
   try
     try
       FNebulazapBase.Auth;
-
       vPath:= ExtractFileDir(Application.ExeName) + '\TempFiles\';
       if not DirectoryExists(vPath) then
         ForceDirectories(vPath);
       vFileName:= vPath + AFileName;
-
       TLib.Base64_Decode(AFile, vStream);
       if FileExists(vFileName) then
         DeleteFile(vFileName);
-
       vStream.SaveToFile(vFileName);
       vResp:= TRequest.New.BaseURL(C_URL_API)
                 .Timeout(C_TIMEOUT)
@@ -378,7 +345,6 @@ begin
                 .AddField('message', AMsg)
                 .TokenBearer(FNebulazapBase.AccessToken)
                 .Post;
-
       if not (vResp.StatusCode = 200) then begin
         raise Exception.Create('Não autorizado');
       end;
@@ -392,7 +358,6 @@ begin
     DeleteFile(vFileName);
   end;
 end;
-
 function TNebulaZap.Instancia_Parear(AImage: TImage): String;
 var
   vResp: IResponse;
@@ -402,31 +367,25 @@ begin
   Result:= '';
   try
     FNebulazapBase.Auth;
-
     vResp:= TRequest.New.BaseURL(C_URL_API)
               .Timeout(C_TIMEOUT)
               .Resource('api/v4/WhatsappMessage/pairDevice')
               .TokenBearer(FNebulazapBase.AccessToken)
               .Get;
-
     if vResp.StatusCode = 200 then begin
       vJsonObj:= TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
       try
         vJsonSucesso:= vJsonObj.GetValue<boolean>('success');
         if not vJsonSucesso then
           raise Exception.Create('Indisponivel');
-
         try
           vJsonData:= vJsonObj.GetValue<TJSONObject>('data');
         except
           on E:Exception do
             raise Exception.Create('O dispositivo já está conectado.');
         end;
-
         vJsonResults:= vJsonData.GetValue<TJSONObject>('results');
-
         Result:= vJsonResults.GetValue<String>('qr_link');
-
         if Assigned(AImage) then
           GetImageByUrl(Result, AImage.Picture);
         SetReqResult(True, 'QrCode gerado com sucesso!');
@@ -440,7 +399,6 @@ begin
       SetReqResult(False, 'Erro ao solicitar QrCode:' + #13#10 + E.Message);
   end;
 end;
-
 procedure TNebulaZap.GetImageByUrl(URL: string; APicture: TPicture);
 var
   Jpeg: TPNGImage;
@@ -449,7 +407,6 @@ var
 begin
   if not DirectoryExists(ExtractFileDir(Application.ExeName) + '\qrcode') then
     ForceDirectories(ExtractFileDir(Application.ExeName) + '\qrcode');
-
   Screen.Cursor := crHourGlass;
   Jpeg := TPNGImage.Create;
   Strm := TMemoryStream.Create;
@@ -470,7 +427,6 @@ begin
       DeleteFile(ExtractFileDir(Application.ExeName) + '\qrcode\qrcode.png');
   end;
 end;
-
 function TNebulaZap.Instancia_Desconectar: iNebulaZap;
 var
   vResp: IResponse;
@@ -480,13 +436,11 @@ begin
   Result:= Self;
   try
     FNebulazapBase.Auth;
-
     vResp:= TRequest.New.BaseURL(C_URL_API)
               .Timeout(C_TIMEOUT)
               .Resource('api/v4/WhatsappMessage/disconnectDevice')
               .TokenBearer(FNebulazapBase.AccessToken)
               .Get;
-
     if vResp.StatusCode = 200 then begin
       vJsonObj:= TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
       try
@@ -504,5 +458,42 @@ begin
       SetReqResult(False, 'Erro ao desconectar:' + #13#10 + E.Message);
   end;
 end;
+function TNebulaZap.Status: iNebulaZap;
+var
+  vResp: IResponse;
+  vJsonObj, vJsonRes: TJSONObject;
+  vStatusLocal: boolean;
+begin
+  Result:= Self;
+  vStatusLocal:= False;
+  try
+    FNebulazapBase.Auth;
 
+    vResp:= TRequest.New.BaseURL(C_URL_API)
+              .Timeout(C_TIMEOUT)
+              .Resource('api/v4/WhatsappMessage/pairDevice')
+              .TokenBearer(FNebulazapBase.AccessToken)
+              .Get;
+
+    if vResp.StatusCode = 200 then begin
+      vJsonObj:= TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+      try
+        try
+          vJsonRes:= vJsonObj.GetValue<TJSONObject>('data');
+        except
+
+          vStatusLocal:= True;
+          raise Exception.Create('Conectado');
+        end;
+      finally
+        vJsonObj.Free;
+      end;
+      raise Exception.Create('Desconectado');
+    end else
+      raise Exception.Create(vResp.Content);
+  except
+    on E:Exception do
+      SetReqResult(vStatusLocal, E.Message);
+  end;
+end;
 end.
