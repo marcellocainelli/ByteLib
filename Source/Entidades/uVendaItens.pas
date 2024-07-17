@@ -1,7 +1,8 @@
 unit uVendaItens;
 interface
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils, Byte.Lib;
+
 Type
   TVendaItens = class(TInterfacedObject, iEntidade)
     private
@@ -94,12 +95,14 @@ begin
   TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('FLG_ENTREGA')).OnGetText:= GetText;
   TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('FLG_VALETROCA')).OnGetText:= GetText;
 end;
+
 procedure TVendaItens.MyCalcFields(sender: TDataSet);
 begin
-  FEntidadeBase.Iquery.DataSet.FieldByName('VrVenda').AsCurrency:= FEntidadeBase.Iquery.DataSet.FieldByName('QUANTIDADE').AsFloat * FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_VEND').AsCurrency;
+  FEntidadeBase.Iquery.DataSet.FieldByName('VrVenda').AsCurrency:= TLib.RoundABNT(FEntidadeBase.Iquery.DataSet.FieldByName('QUANTIDADE').AsFloat * FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_VEND').AsCurrency,2);
   FEntidadeBase.Iquery.DataSet.FieldByName('VrCusto').AsCurrency:= FEntidadeBase.Iquery.DataSet.FieldByName('QUANTIDADE').AsFloat * FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_CUST').AsCurrency;
   FEntidadeBase.Iquery.DataSet.FieldByName('VrDesconto').AsCurrency:= FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_TAB').AsCurrency - FEntidadeBase.Iquery.DataSet.FieldByName('PRECO_VEND').AsCurrency;
 end;
+
 procedure TVendaItens.OnNewRecord(DataSet: TDataSet);
 begin
 {$IFNDEF APP}

@@ -52,6 +52,7 @@ type
 
   TLib = class
     private
+      class function SimpleRoundToEX(const AValue: Extended; const ADigit: TRoundToRange = -2): Extended;
     public
       {Funcões uteis}
       class procedure CustomThread(
@@ -69,6 +70,7 @@ type
       class function MyBoolToStr(S: Boolean): string;
       class function MyStrToBool(S: string): boolean;
       class function Extenso(pValor: extended): String;
+      class function RoundABNT(const AValue: Double; const Digits: TRoundToRange; const Delta: Double = 0.00001 ): Double;
       class function UltimosXDigitos(const S: string; NumDigitos: Integer): string;
       class procedure RegistraInicializarWindows(const AProgTitle: string; const AExePath: string; ARunOnce: Boolean);
       {$IFDEF MSWINDOWS}
@@ -408,12 +410,64 @@ Begin
   Result := AString;
 end;
 
+class function TLib.RoundABNT(const AValue: Double; const Digits: TRoundToRange; const Delta: Double): Double;
+var
+   Pow, FracValue, PowValue : Extended;
+   RestPart: Double;
+   IntCalc, FracCalc, LastNumber, IntValue : Int64;
+   Negativo: Boolean;
+Begin
+   Negativo  := (AValue < 0);
+
+   Pow       := intpower(10, abs(Digits) );
+   PowValue  := abs(AValue) / 10 ;
+   IntValue  := trunc(PowValue);
+   FracValue := frac(PowValue);
+
+   PowValue := SimpleRoundToEX( FracValue * 10 * Pow, -9) ; // SimpleRoundTo elimina dizimas ;
+   IntCalc  := trunc( PowValue );
+   FracCalc := trunc( frac( PowValue ) * 100 );
+
+   if (FracCalc > 50) then
+     Inc( IntCalc )
+
+   else if (FracCalc = 50) then
+   begin
+     LastNumber := round( frac( IntCalc / 10) * 10);
+
+     if odd(LastNumber) then
+       Inc( IntCalc )
+     else
+     begin
+       RestPart := frac( PowValue * 10 ) ;
+
+       if RestPart > Delta then
+         Inc( IntCalc );
+     end ;
+   end ;
+
+   Result := ((IntValue*10) + (IntCalc / Pow));
+   if Negativo then
+     Result := -Result;
+end;
+
 class function TLib.RoundTo2(const AValue: Double; const ADigit: TRoundToRange): Double;
 var
   LFactor: Double;
 begin
   LFactor := IntPower(10, ADigit);
   Result := Round((AValue / LFactor) + 0.05) * LFactor;
+end;
+
+class function TLib.SimpleRoundToEX(const AValue: Extended; const ADigit: TRoundToRange): Extended;
+var
+  LFactor: Extended;
+begin
+  LFactor := IntPower(10.0, ADigit);
+  if AValue < 0 then
+    Result := Int((AValue / LFactor) - 0.5) * LFactor
+  else
+    Result := Int((AValue / LFactor) + 0.5) * LFactor;
 end;
 
 class function TLib.SomenteLetras(const AValue: String): string;

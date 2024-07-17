@@ -211,6 +211,10 @@ begin
     end else if vAcessoOnline then begin
       FPassword:= vArqIni.ReadString('SISTEMA','Password', 'masterkey');
       vAcessoOnline:= False;
+    end else begin
+      {$IFDEF BYTESUPER}
+      FPassword:= vArqIni.ReadString('SERVIDOR','Password', 'masterkey');
+      {$ENDIF}
     end;
 
     FConexao.DriverName:= 'FB';
