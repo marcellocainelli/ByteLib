@@ -69,6 +69,7 @@ begin
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
   FEntidadeBase.SetReadOnly(Value, 'operadora', False);
   FEntidadeBase.SetReadOnly(Value, 'tipo_operacao', False);
+  FEntidadeBase.SetReadOnly(Value, 'flg_gera_transferencia_banco', False);
 end;
 
 function TCartao.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -100,7 +101,9 @@ end;
 
 procedure TCartao.SelecionaSQLConsulta;
 begin
-  FEntidadeBase.TextoSQL('select c.*, o.nome as operadora, o.tipo_operacao from cartao c join operadora o on (o.codigo = c.cod_operadora)');
+  FEntidadeBase.TextoSQL(
+    'select c.*, o.nome as operadora, o.tipo_operacao, o.flg_gera_transferencia_banco ' +
+    ' from cartao c join operadora o on (o.codigo = c.cod_operadora)');
 end;
 
 end.
