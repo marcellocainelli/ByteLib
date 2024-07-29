@@ -20,7 +20,7 @@ uses
   pngimage;
 const
   C_URL_API = 'https://integra-api.sistemasnebula.com.br';
-  C_TIMEOUT = 10000;
+  C_TIMEOUT = 30000;
 type
   iNebulazapBase<T> = interface
     ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
