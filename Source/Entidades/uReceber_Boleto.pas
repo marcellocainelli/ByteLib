@@ -82,6 +82,7 @@ end;
 
 procedure TReceber_Boleto.ModificaDisplayCampos;
 begin
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('vencimento')).EditMask:= '!99/99/00;1;_';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR')).currency:= True;
 end;
 
