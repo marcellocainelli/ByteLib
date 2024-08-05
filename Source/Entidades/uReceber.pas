@@ -86,6 +86,7 @@ end;
 
 procedure TReceber.ModificaDisplayCampos;
 begin
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('vencimento')).EditMask:= '!99/99/00;1;_';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VR_ATUAL')).currency:= True;
 end;
