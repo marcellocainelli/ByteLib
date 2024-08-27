@@ -52,6 +52,8 @@ type
 
   TLib = class
     private
+      class function FormatarCnpj(const Valor: string): string;
+      class function FormatarCpf(const Valor: string): string;
       class function SimpleRoundToEX(const AValue: Extended; const ADigit: TRoundToRange = -2): Extended;
     public
       {Funcões uteis}
@@ -70,14 +72,13 @@ type
       class function MyBoolToStr(S: Boolean): string;
       class function MyStrToBool(S: string): boolean;
       class function Extenso(pValor: extended): String;
-      class function RoundABNT(const AValue: Double; const Digits: TRoundToRange; const Delta: Double = 0.00001 ): Double;
       class function UltimosXDigitos(const S: string; NumDigitos: Integer): string;
       class procedure RegistraInicializarWindows(const AProgTitle: string; const AExePath: string; ARunOnce: Boolean);
       {$IFDEF MSWINDOWS}
       class procedure VclRoundCornerOf(Control: TWinControl);
       {$ENDIF}
-
       {Funções de formatação}
+      class function FormatarDocumento(pTexto: string): string;
       class function SomenteNumero(const AValue: string): string;
       class function SomenteLetras(const AValue: String): string;
       class function PoeZeros(Valor: String; Tamanho,Decimais:Integer): String;
@@ -85,6 +86,9 @@ type
       class function PadC(sTexto: string; iTamanho: Integer): string;
       class function padL(const AString: String; const nLen : Integer; const Caracter : AnsiChar = ' ') : String;
       class function Padr(s:string;n:integer):string;
+
+      {Funções matematicas}
+      class function RoundABNT(const AValue: Double; const Digits: TRoundToRange; const Delta: Double = 0.00001 ): Double;
       class function RoundTo2(const AValue: Double; const ADigit: TRoundToRange): Double;
 
       {Funções de validação}
@@ -342,6 +346,41 @@ begin // início Extenso
   end;
   finally
     result := lResultado;
+  end;
+end;
+
+class function TLib.FormatarCnpj(const Valor: string): string;
+begin
+  Result := Valor;
+  if Length(Result) > 12 then
+    Insert('-', Result, 13);
+  if Length(Result) > 8 then
+    Insert('/', Result, 9);
+  if Length(Result) > 5 then
+    Insert('.', Result, 6);
+  if Length(Result) > 2 then
+    Insert('.', Result, 3);
+end;
+
+class function TLib.FormatarCpf(const Valor: string): string;
+begin
+  Result := Valor;
+  if Length(Result) > 9 then
+    Insert('-', Result, 10);
+  if Length(Result) > 6 then
+    Insert('.', Result, 7);
+  if Length(Result) > 3 then
+    Insert('.', Result, 4);
+end;
+
+class function TLib.FormatarDocumento(pTexto: string): string;
+begin
+  pTexto:= SomenteNumero(pTexto);
+  if Length(pTexto) <= 14 then begin
+    if Length(pTexto) <= 11 then
+      Result := FormatarCpf(pTexto)
+    else
+      Result := FormatarCnpj(pTexto);
   end;
 end;
 

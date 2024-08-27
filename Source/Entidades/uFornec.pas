@@ -107,7 +107,7 @@ end;
 
 procedure TFornec.ModificaDisplayCampos;
 begin
-  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cgc')).EditMask:= '##.###.###/####-##;1;_';
+  //TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cgc')).EditMask:= '##.###.###/####-##;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtcadastro')).EditMask:= '!99/99/00;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('cep')).EditMask:= '00000\-999;1;_';
 end;
