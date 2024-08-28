@@ -31,6 +31,7 @@ Type
     function RefreshDataSource(Value: TDataSource = nil): iEntidadeBase<T>;
     function SaveIfChangeCount(DataSource: TDataSource = nil): iEntidadeBase<T>;
     function InsertBeforePost(DataSource: TDataSource = nil; AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
+    function InsertAfterPost(DataSource: TDataSource = nil; AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
     function InsertAfterEditEvent(DataSource: TDataSource = nil; AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
     function Validate(Value: TDataSource = nil; ANomeCampo: string = ''; AEvent: TFieldNotifyEvent = nil): iEntidadeBase<T>;
     function SetReadOnly(Value: TDataSource = nil; ANomeCampo: string = ''; AReadOnly: boolean = false): iEntidadeBase<T>;
@@ -112,7 +113,6 @@ function TEntidadeBase<T>.FetchOptions(AMode: String; ARowSetSize: integer): iEn
 begin
   FQuery.FetchOptions(AMode, ARowSetSize);
 end;
-
 function TEntidadeBase<T>.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>;
 begin
   FQuery.AddParametro(NomeParametro, ValorParametro, DataType);
@@ -156,7 +156,6 @@ begin
     Value:= FDataSource;
   FQuery.ClearDataset(Value.Dataset);
 end;
-
 function TEntidadeBase<T>.CriaCampo(ADataSource: TDataSource; ANomeCampo: string; ADataType: TFieldType): iEntidadeBase<T>;
 var
   vField: TField;
@@ -218,23 +217,32 @@ begin
     DataSource:= FDataSource;
   DataSource.DataSet.AfterEdit:= AEvent;
 end;
+function TEntidadeBase<T>.InsertAfterPost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
+begin
+  Result:= Self;
+  if DataSource = nil then
+    DataSource:= FDataSource;
+  DataSource.DataSet.AfterPost:= AEvent;
+end;
+
 function TEntidadeBase<T>.InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
 begin
+  Result:= Self;
   if DataSource = nil then
     DataSource:= FDataSource;
   DataSource.DataSet.BeforePost:= AEvent;
 end;
 function TEntidadeBase<T>.InsertNewRecordEvent(AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
 begin
+  Result:= Self;
   FQuery.InsertNewRecordEvent(AEvent);
 end;
-
 function TEntidadeBase<T>.Validate(Value: TDataSource; ANomeCampo: string; AEvent: TFieldNotifyEvent): iEntidadeBase<T>;
 begin
+  Result:= Self;
   if Value = nil then
     Value:= FDataSource;
   Value.DataSet.FieldByName(ANomeCampo).OnValidate:= AEvent;
-
 end;
 function TEntidadeBase<T>.Inativos(pValue: boolean): boolean;
 begin
