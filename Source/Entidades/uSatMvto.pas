@@ -3,16 +3,16 @@ unit uSatMvto;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
 
 Type
   TSatMvto = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -27,9 +27,9 @@ uses
 
 { TSatMvto }
 
-constructor TSatMvto.Create;
+constructor TSatMvto.Create(AConn: iConexao = nil);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL('Select * from SAT_MOVIMENTO Where (1 = 1) ');
   InicializaDataSource;
@@ -40,9 +40,9 @@ begin
   inherited;
 end;
 
-class function TSatMvto.New: iEntidade;
+class function TSatMvto.New(AConn: iConexao = nil): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TSatMvto.EntidadeBase: iEntidadeBase<iEntidade>;

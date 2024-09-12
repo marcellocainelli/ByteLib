@@ -3,7 +3,7 @@ unit uSatItens;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
 
 Type
   TSatItens = class(TInterfacedObject, iEntidade)
@@ -11,9 +11,9 @@ Type
       FEntidadeBase: iEntidadeBase<iEntidade>;
       procedure MyCalcFields(sender: TDataSet);
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -28,9 +28,9 @@ uses
 
 { TSatItens }
 
-constructor TSatItens.Create;
+constructor TSatItens.Create(AConn: iConexao = nil);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL(
     'Select SI.*, P.CLASFISCAL, P.ICMS as CODICMS, ' +
@@ -47,9 +47,9 @@ begin
   inherited;
 end;
 
-class function TSatItens.New: iEntidade;
+class function TSatItens.New(AConn: iConexao = nil): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TSatItens.EntidadeBase: iEntidadeBase<iEntidade>;
