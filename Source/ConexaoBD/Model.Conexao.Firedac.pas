@@ -102,85 +102,7 @@ function TModelConexaoFiredac.Connection: TCustomConnection;
 begin
   Result:= FConexao;
 end;
-//procedure TModelConexaoFiredac.ConnWindows;
-//var
-//  vAcessoOnline: Boolean;
-//begin
-//  vAcessoOnline:= False;
-//  if FDatabase.Equals(EmptyStr) then begin
-//    {$IFDEF BYTESUPER}
-//      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
-//    {$ELSE}
-//      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
-//    {$ENDIF}
-//    vAcessoOnline:= FArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
-//    {$IFDEF APPSERVER}
-//      FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
-//      if FDatabase.Equals(EmptyStr) then
-//        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
-//    {$ELSE}
-//      if vAcessoOnline then
-//        FDatabase:= FArqIni.ReadString('SISTEMA','DatabaseName','')
-//      else
-//        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
-//    {$ENDIF}
-//  end;
-//  FConexao.DriverName:= 'FB';
-//  FConexao.Params.Database:= FDatabase;
-//  FConexao.Params.UserName:= FUsername;
-//  FConexao.Params.Password:= FPassword;
-//  if vAcessoOnline then begin
-//    FConexao.Params.Values['Server']:= FArqIni.ReadString('SISTEMA','Server','');
-//    FConexao.Params.Values['Port']:= FArqIni.ReadString('SISTEMA','Port','3050');
-//    FConexao.Params.Password:= FArqIni.ReadString('SISTEMA','Password', FPassword);
-//  end;
-////  InsertOnLostConnection(FDConnLostConnection);
-//end;
 
-//procedure TModelConexaoFiredac.ConnWindows; //ACESSO ONLINE
-//var
-//  vAcessoOnline: Boolean;
-//begin
-//  vAcessoOnline:= False;
-//  if FDatabase.Equals(EmptyStr) then begin
-//    {$IFDEF BYTESUPER}
-//      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
-//    {$ELSE}
-//      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
-//    {$ENDIF}
-//    vAcessoOnline:= FArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
-//    {$IFDEF APPSERVER}
-//      FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
-//      if FDatabase.Equals(EmptyStr) then
-//        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
-//    {$ELSE}
-//      if vAcessoOnline then
-//        FDatabase:= FArqIni.ReadString('SISTEMA','DatabaseName','')
-//      else
-//        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
-//    {$ENDIF}
-//  end else begin
-//    FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
-//    vAcessoOnline:= FArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
-//    if vAcessoOnline then begin
-////      FDatabase:= Copy(FDatabase, Pos(':', FDatabase) + 1, FDatabase.Length);
-////      FConexao.Params.Values['Server']:= FArqIni.ReadString('SISTEMA','Server','');
-////      FConexao.Params.Values['Port']:= FArqIni.ReadString('SISTEMA','Port','3050');
-//      FPassword:= FArqIni.ReadString('SISTEMA','Password', 'masterkey');
-//      vAcessoOnline:= False;
-//    end;
-//  end;
-//  FConexao.DriverName:= 'FB';
-//  FConexao.Params.Database:= FDatabase;
-//  FConexao.Params.UserName:= FUsername;
-//  FConexao.Params.Password:= FPassword;
-//  if vAcessoOnline then begin
-//    FConexao.Params.Values['Server']:= FArqIni.ReadString('SISTEMA','Server','');
-//    FConexao.Params.Values['Port']:= FArqIni.ReadString('SISTEMA','Port','3050');
-//    FConexao.Params.Password:= FArqIni.ReadString('SISTEMA','Password', FPassword);
-//  end;
-////  InsertOnLostConnection(FDConnLostConnection);
-//end;
 procedure TModelConexaoFiredac.ConnWindows;
 var
   vAcessoOnline: Boolean;
@@ -221,9 +143,10 @@ begin
     FConexao.Params.Database:= FDatabase;
     FConexao.Params.UserName:= FUsername;
     FConexao.Params.Password:= FPassword;
+    FConexao.Params.Values['Port']:= vArqIni.ReadString('SISTEMA','Port','3050');
     if vAcessoOnline then begin
       FConexao.Params.Values['Server']:= vArqIni.ReadString('SISTEMA','Server','');
-      FConexao.Params.Values['Port']:= vArqIni.ReadString('SISTEMA','Port','3050');
+//      FConexao.Params.Values['Port']:= vArqIni.ReadString('SISTEMA','Port','3050');
       FConexao.Params.Password:= vArqIni.ReadString('SISTEMA','Password', FPassword);
     end;
   finally

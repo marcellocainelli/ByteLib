@@ -31,7 +31,7 @@ Type
       constructor Create(Parent: iConexao);
       destructor Destroy; override;
       class function New(Parent: iConexao): iQuery;
-      function SQL(Value: String): iQuery;
+      function SQL(Value: String = ''): iQuery;
       function Dataset: TDataSet;
       function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery; overload;
       function AddParametro(NomeParametro: String; ValorParametro: integer): iQuery; overload;
@@ -53,6 +53,7 @@ Type
       procedure CatchApplyUpdatesErrors;
       function TrataErrosApplyUpdates(AMsgErro: string): string;
       function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
+      function SQL_Add(ASQL: string; AClearBeforeAdd: Boolean = false): iQuery;
   end;
 implementation
 { TModelQueryFiredac }
@@ -68,10 +69,12 @@ begin
   FDQuery.CachedUpdates:= True;
   FUpdateTransaction.Connection:= TFDConnection(FParent.Connection);
 end;
+
 function TModelQueryFiredac.Dataset: TDataSet;
 begin
   Result:= FDQuery;
 end;
+
 destructor TModelQueryFiredac.Destroy;
 begin
   FreeAndNil(FDQuery);
@@ -79,18 +82,31 @@ begin
   FreeAndNil(FScript);
   inherited;
 end;
+
 class function TModelQueryFiredac.New(Parent: iConexao): iQuery;
 begin
   Result:= Self.Create(Parent);
 end;
+
 function TModelQueryFiredac.SQL(Value: String): iQuery;
 begin
   Result:= Self;
   FDQuery.Close;
-  FDQuery.SQL.Clear;
-  FDQuery.SQL.Add(Value);
+  if not Value.IsEmpty then begin
+    FDQuery.SQL.Clear;
+    FDQuery.SQL.Add(Value);
+  end;
   FDQuery.Active:= true;
 end;
+
+function TModelQueryFiredac.SQL_Add(ASQL: string; AClearBeforeAdd: Boolean): iQuery;
+begin
+  Result:= Self;
+  if AClearBeforeAdd then
+    FDQuery.SQL.Clear;
+  FDQuery.SQL.Add(ASQL);
+end;
+
 function TModelQueryFiredac.ExecQuery(Value: String): iQuery;
 begin
   Result:= Self;
@@ -99,6 +115,7 @@ begin
   FDQuery.SQL.Add(Value);
   FDQuery.ExecSQL;
  end;
+
 function TModelQueryFiredac.FetchOptions(AMode: String; ARowSetSize: integer): iQuery;
 begin
   if AMode = 'Demand' then

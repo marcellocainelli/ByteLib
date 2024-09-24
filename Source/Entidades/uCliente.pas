@@ -110,6 +110,7 @@ begin
     vTextoSQL:= vTextoSQL + ' and OBS <> ' + QuotedStr('INT') + ' Order By 2';
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
+//  FEntidadeBase.Paginacao;
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   {$IFNDEF APP}
   ModificaDisplayCampos;

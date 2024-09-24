@@ -25,6 +25,8 @@ type
     function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
     function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
     function FetchOptions(AMode: String = ''; ARowSetSize: integer = 0): iEntidadeBase<T>;
+    function Paginacao(APagina, ARows: integer): iEntidadeBase<T>; overload;
+    function Paginacao: iEntidadeBase<T>; overload;
     function &End : T;
 
     function TextoSQL(pValue: String): String; overload;
@@ -41,6 +43,10 @@ type
     function Inativos: boolean; overload;
     function Iquery: iQuery; overload;
     function DataSource: TDataSource; overload;
+    procedure Pagina(AValue: integer); overload;
+    function Pagina: integer; overload;
+    procedure Pag_Rows(AValue: integer); overload;
+    function Pag_Rows: integer; overload;
   end;
 
   iEntidade = interface

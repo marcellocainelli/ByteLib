@@ -24,7 +24,7 @@ type
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iQuery; overload;
     function Close: iQuery;
-    function ExecQuery(Value: String): iQuery;
+    function ExecQuery(Value: String = ''): iQuery;
     function Salva(Commit: Boolean = True): iQuery;
     function ApplyUpdates: iQuery;
     function IndexFieldNames(FieldName: String): iQuery;
@@ -39,6 +39,7 @@ type
     function ClearDataset(Value: TDataSet): iQuery;
     function FetchOptions(AMode: String = ''; ARowSetSize: integer = 0): iQuery;
     function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
+    function SQL_Add(ASQL: string; AClearBeforeAdd: Boolean = false): iQuery;
   end;
 
   iTable = interface

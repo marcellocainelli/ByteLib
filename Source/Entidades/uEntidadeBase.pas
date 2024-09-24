@@ -20,6 +20,7 @@ Type
     FTipoConsulta: string;
     FInativos: boolean;
     FDataSource: TDataSource;
+    FPag_Rows, FPagina: integer;
   public
     constructor Create(Parent: T; AConn: iConexao = nil);
     destructor Destroy; override;
@@ -41,6 +42,8 @@ Type
     function ClearDataset(Value: TDataSource): iEntidadeBase<T>;
     function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
     function FetchOptions(AMode: String = ''; ARowSetSize: integer = 0): iEntidadeBase<T>;
+    function Paginacao(APagina, ARows: integer): iEntidadeBase<T>; overload;
+    function Paginacao: iEntidadeBase<T>; overload;
     function &End : T;
     function TextoSQL(pValue: String): String; overload;
     function TextoSQL: String; overload;
@@ -56,6 +59,10 @@ Type
     function Inativos: boolean; overload;
     function Iquery: iQuery; overload;
     function DataSource: TDataSource; overload;
+    procedure Pagina(AValue: integer); overload;
+    function Pagina: integer; overload;
+    procedure Pag_Rows(AValue: integer); overload;
+    function Pag_Rows: integer; overload;
   end;
 implementation
 { TEntidadeBase<T> }
@@ -81,6 +88,7 @@ class function TEntidadeBase<T>.New(Parent: T; AConn: iConexao): iEntidadeBase<T
 begin
   Result:= Self.Create(Parent, AConn);
 end;
+
 function TEntidadeBase<T>.Salva(Value: TDataSource = nil; aSalva: Boolean = True): iEntidadeBase<T>;
 begin
   Result:= Self;
@@ -302,4 +310,48 @@ function TEntidadeBase<T>.DataSource: TDataSource;
 begin
   Result:= FDataSource;
 end;
+
+function TEntidadeBase<T>.Paginacao: iEntidadeBase<T>;
+begin
+  Result:= Self;
+
+  if (FPagina > 0) and (FPag_Rows > 0) then
+    FQuery.SQL_Add(Format(' ROWS %d TO %d', [FPagina, FPag_Rows]));
+end;
+
+function TEntidadeBase<T>.Paginacao(APagina, ARows: integer): iEntidadeBase<T>;
+begin
+  Result:= Self;
+
+  if APagina > 0 then begin
+    if APagina = 1 then begin
+      FPagina:= APagina;
+      FPag_Rows:= ARows;
+    end else begin
+      FPagina:= ((ARows * (APagina - 1)) + 1);
+      FPag_Rows:= ((FPagina + ARows) - 1);
+    end;
+  end;
+end;
+
+procedure TEntidadeBase<T>.Pagina(AValue: integer);
+begin
+  FPagina:= AValue;
+end;
+
+function TEntidadeBase<T>.Pagina: integer;
+begin
+  Result:= FPagina;
+end;
+
+procedure TEntidadeBase<T>.Pag_Rows(AValue: integer);
+begin
+  FPag_Rows:= AValue;
+end;
+
+function TEntidadeBase<T>.Pag_Rows: integer;
+begin
+  Result:= FPag_Rows;
+end;
+
 end.

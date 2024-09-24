@@ -34,7 +34,7 @@ constructor TOrcamentoItens.Create(AConn: iConexao);
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TextoSQL(
-    'select oi.*, p.preco_cust, p.peso, p.flg_grade, p.flg_lote, p.preco_vend as preco_tabela ' +
+    'select oi.*, p.preco_cust, p.peso, p.flg_grade, p.flg_lote, p.preco_vend as preco_tabela, p.tipo_item ' +
     'from pedido oi ' +
     'join produtos p on (p.cod_prod = oi.cod_prod) ');
   InicializaDataSource;
@@ -84,6 +84,7 @@ begin
   FEntidadeBase.SetReadOnly(Value, 'FLG_LOTE', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_GRADE', False);
   FEntidadeBase.SetReadOnly(Value, 'PRECO_TABELA', False);
+  FEntidadeBase.SetReadOnly(Value, 'TIPO_ITEM', False);
   FEntidadeBase.CalcFields(MyCalcFields);
 end;
 

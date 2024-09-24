@@ -256,6 +256,7 @@ begin
   {$ENDIF}
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
+//  FEntidadeBase.Paginacao;
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   if FEntidadeBase.TipoPesquisa <> -1 then
     ModificaDisplayCampos;
