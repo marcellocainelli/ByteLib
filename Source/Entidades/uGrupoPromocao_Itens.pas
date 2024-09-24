@@ -33,6 +33,7 @@ begin
     'join grupo_promocao gp on (gp.id = gpi.id_grupo_promo)'
   );
   InicializaDataSource;
+  FEntidadeBase.Iquery.FetchOptions('All');
 end;
 destructor TGrupoPromocaoItem.Destroy;
 begin
@@ -58,7 +59,7 @@ begin
     1: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo';
     2: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo and gpi.cod_prod = :pCodProd';
     3: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd';
-    4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and gpi.id_grupo_promo <> :pIdGrupoPromo ' +
+    4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and ((gpi.id_grupo_promo <> :pIdGrupoPromo) or (gpi.id_grupo_promo = :pIdGrupoPromo)) ' +
                                ' and gp.dt_fim >= :pDtInicio';
 //    4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and gpi.id_grupo_promo <> :pIdGrupoPromo ' +
 //                               ' and ((:pDtInicio between gp.dt_inicio and gp.dt_fim) or (:pDtFim between gp.dt_inicio and gp.dt_fim))';
