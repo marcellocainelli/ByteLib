@@ -49,8 +49,9 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  vTextoSQL:= FEntidadeBase.TextoSql;
+  FEntidadeBase.Iquery.SQL_Add(FEntidadeBase.TextoSql, True);
   {$IFDEF APP}
+  vTextoSQL:= FEntidadeBase.TextoSql;
   FEntidadeBase.TextoSQL(
     'Select CODIGO, NOME, ENDERECO, END_COMPLEMENTO, NUMERO, BAIRRO, CEP, CIDADE, UF, TIPO, CGC, IE, DDD, FONE, FONE1, OBS, DETALHE, EMAIL, LIMITE, ' +
     'COD_CONV, DT_SINCRONISMO, DTATUALIZACAO, COD_MUNICIPIO, COD_PAIS From CADCLI Where (1=1) and '
@@ -89,28 +90,32 @@ begin
   else If FEntidadeBase.RegraPesquisa = 'Início do texto' then
     FEntidadeBase.RegraPesquisa('Starting With');
   case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSql + 'CODIGO = :Parametro';
-    1: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(NOME) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    2: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(ENDERECO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    3: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(END_COMPLEMENTO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    4: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(BAIRRO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    5: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(CIDADE) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    6: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(FONE) Containing Upper(:Parametro)';
-    7: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
+    0: FEntidadeBase.Iquery.SQL_Add('CODIGO = :Parametro');
+    1: FEntidadeBase.Iquery.SQL_Add('Upper(NOME) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)');
+    2: FEntidadeBase.Iquery.SQL_Add('Upper(ENDERECO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)');
+    3: FEntidadeBase.Iquery.SQL_Add('Upper(END_COMPLEMENTO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)');
+    4: FEntidadeBase.Iquery.SQL_Add('Upper(BAIRRO) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)');
+    5: FEntidadeBase.Iquery.SQL_Add('Upper(CIDADE) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)');
+    6: FEntidadeBase.Iquery.SQL_Add('Upper(FONE) Containing Upper(:Parametro)');
+    7: FEntidadeBase.Iquery.SQL_Add('Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)');
     8: begin
-        vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) Containing :Parametro';
+        FEntidadeBase.Iquery.SQL_Add('(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) Containing :Parametro');
         FEntidadeBase.TextoPesquisa(TLib.SomenteNumero(FEntidadeBase.TextoPesquisa));
     end;
-    9: vTextoSQL:= FEntidadeBase.TextoSql + 'DETALHE containing :Parametro';
-    10: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)';
-    11: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (' + FEntidadeBase.TextoPesquisa + ')';
+    9: FEntidadeBase.Iquery.SQL_Add('DETALHE containing :Parametro');
+    10: FEntidadeBase.Iquery.SQL_Add('Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)', True);
+    11: FEntidadeBase.Iquery.SQL_Add('Select c.* From CADCLI c Where c.codigo in (' + FEntidadeBase.TextoPesquisa + ')', True);
   end;
   {$ENDIF}
   if FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and OBS <> ' + QuotedStr('INT') + ' Order By 2';
+    FEntidadeBase.Iquery.SQL_Add(' and OBS <> ' + QuotedStr('INT') + ' Order By 2');
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME');
-  FEntidadeBase.Iquery.SQL(vTextoSQL);
+  FEntidadeBase.Paginacao;
+  if vTextoSQL.IsEmpty then
+    FEntidadeBase.Iquery.SQL
+  else
+    FEntidadeBase.Iquery.SQL(vTextoSQL);
   {$IFNDEF APP}
   ModificaDisplayCampos;
   {$ENDIF}

@@ -19,7 +19,7 @@ type
 
   iQuery = interface
     ['{444A687A-2732-4746-BA8C-399C98622CB2}']
-    function SQL(Value: String): iQuery;
+    function SQL(Value: String = ''): iQuery;
     function Dataset: TDataSet;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iQuery; overload;

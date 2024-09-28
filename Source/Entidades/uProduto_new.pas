@@ -128,8 +128,9 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   SelecionaSQLConsulta;
-  vTextoSQL:= FEntidadeBase.TextoSql;
+  FEntidadeBase.Iquery.SQL_Add(FEntidadeBase.TextoSql, True);
   {$IFDEF APP}
+  vTextoSQL:= FEntidadeBase.TextoSql;
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
   else if FEntidadeBase.RegraPesquisa = 'Início do texto' then
@@ -184,7 +185,7 @@ begin
   end;
   {$ELSE}
   If ValidaDepto then
-    vTextoSQL:= vTextoSQL + ' and M.COD_DEPTO = ' + IntToStr(CodDeptoUsuario);
+    FEntidadeBase.Iquery.SQL_Add(' and M.COD_DEPTO = ' + IntToStr(CodDeptoUsuario));
   if FEntidadeBase.TextoPesquisa <> '' then begin
     //Teclas de atalho
     //Tecla + usada como atalho para busca por código
@@ -210,53 +211,57 @@ begin
     FEntidadeBase.RegraPesquisa('Starting With');
   case FEntidadeBase.TipoPesquisa of
     //busca por código
-    0: vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro ';
+    0: FEntidadeBase.Iquery.SQL_Add(' and P.COD_PROD = :mParametro ');
     //busca por descrição
     1: begin
       If pos('@', FEntidadeBase.TextoPesquisa) > 0 then begin
-        vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) like upper(:mParametro) ';
+        FEntidadeBase.Iquery.SQL_Add(' and upper(P.NOME_PROD) like upper(:mParametro) ');
         FEntidadeBase.TextoPesquisa('%' + StringReplace(FEntidadeBase.TextoPesquisa,'@','%',[rfReplaceAll, rfIgnoreCase]) + '%');
       end else
-        vTextoSQL:= vTextoSQL + ' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro) ';
+        FEntidadeBase.Iquery.SQL_Add(' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro) ');
     end;
     2: begin
-      vTextoSQL:= vTextoSQL + ' and P.COD_BARRA = :mParametro ';
+      FEntidadeBase.Iquery.SQL_Add(' and P.COD_BARRA = :mParametro ');
       //Se trabalha com multiplos cod barras
       If DmFuncoes.MultiplosCodBarras then
         FEntidadeBase.TextoPesquisa(DmFuncoes.MultBarrasGetCodBarPrincipal(FEntidadeBase.TextoPesquisa));
     end;
     3: begin
       If FEntidadeBase.RegraPesquisa = 'Containing' then
-        vTextoSQL:= vTextoSQL + ' and Upper(P.REFERENCIA) containing Upper(:mParametro) '
+        FEntidadeBase.Iquery.SQL_Add(' and Upper(P.REFERENCIA) containing Upper(:mParametro) ')
       else If FEntidadeBase.RegraPesquisa = 'Starting With' then
-        vTextoSQL:= vTextoSQL + ' and Upper(P.REFERENCIA) Like Upper(:mParametro) || ' + QuotedStr('%');
+        FEntidadeBase.Iquery.SQL_Add(' and Upper(P.REFERENCIA) Like Upper(:mParametro) || ' + QuotedStr('%'));
     end;
     //procura por Inf. Adicionais
-    4: vTextoSQL:= vTextoSQL + ' and P.DETALHE Containing :mParametro ';
+    4: FEntidadeBase.Iquery.SQL_Add(' and P.DETALHE Containing :mParametro ');
     //procura por Marca
-    5: vTextoSQL:= vTextoSQL + ' and M1.DESCRICAO Containing :mParametro ';
+    5: FEntidadeBase.Iquery.SQL_Add(' and M1.DESCRICAO Containing :mParametro ');
     //procura por Localizacao
-    6: vTextoSQL:= vTextoSQL + ' and P.LOCAL Containing :mParametro ';
+    6: FEntidadeBase.Iquery.SQL_Add(' and P.LOCAL Containing :mParametro ');
     //procura por preco
     7: begin
-      vTextoSQL:= vTextoSQL + ' and P.PRECO_VEND = :mParametro ';
+      FEntidadeBase.Iquery.SQL_Add(' and P.PRECO_VEND = :mParametro ');
       FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
     end;
     8: begin
-      vTextoSQL:= vTextoSQL + ' and P.COD_BARRA =  :mParametro ';
+      FEntidadeBase.Iquery.SQL_Add(' and P.COD_BARRA =  :mParametro ');
       FEntidadeBase.TextoPesquisa(FormatFloat('0000000000000', StrToInt(FEntidadeBase.TextoPesquisa)));
     end;
-    9:  vTextoSQL:= vTextoSQL + ' and P.COD_FORNEC = :mParametro and P.NOME_PROD Containing :mNome_Prod';
-    10: vTextoSQL:= vTextoSQL + ' and P.COD_MARCA = :mParametro and P.NOME_PROD Containing :mNome_Prod';
-    11: vTextoSQL:= vTextoSQL + ' and P.COD_MARCA1 = :mParametro and P.NOME_PROD Containing :mNome_Prod';
-    12: vTextoSQL:= vTextoSQL + ' and P.COD_SUBGRUPO = :mParametro and P.NOME_PROD Containing :mNome_Prod';
+    9:  FEntidadeBase.Iquery.SQL_Add(' and P.COD_FORNEC = :mParametro and P.NOME_PROD Containing :mNome_Prod');
+    10: FEntidadeBase.Iquery.SQL_Add(' and P.COD_MARCA = :mParametro and P.NOME_PROD Containing :mNome_Prod');
+    11: FEntidadeBase.Iquery.SQL_Add(' and P.COD_MARCA1 = :mParametro and P.NOME_PROD Containing :mNome_Prod');
+    12: FEntidadeBase.Iquery.SQL_Add(' and P.COD_SUBGRUPO = :mParametro and P.NOME_PROD Containing :mNome_Prod');
   end;
   If not FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and P.STATUS = ' + QuotedStr('A');
+    FEntidadeBase.Iquery.SQL_Add(' and P.STATUS = ' + QuotedStr('A'));
   {$ENDIF}
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
-  FEntidadeBase.Iquery.SQL(vTextoSQL);
+  FEntidadeBase.Paginacao;
+  if vTextoSQL.IsEmpty then
+    FEntidadeBase.Iquery.SQL
+  else
+    FEntidadeBase.Iquery.SQL(vTextoSQL);
   if FEntidadeBase.TipoPesquisa <> -1 then
     ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;

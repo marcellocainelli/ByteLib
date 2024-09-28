@@ -64,7 +64,8 @@ begin
       'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
       'and p.nome_prod Containing :pNome_prod ');
   2: FEntidadeBase.TextoSQL(
-      'Select p.descricao as nome_prod, pd.preco_cust, pi.preco, pi.preco as preco_vend, ' +
+      'Select pi.codigo, pi.cod_precos, p.descricao as nome_prod, p.multiplicador as multiplicador_base, p.flg_usa_preco_custo, ' +
+      'pd.preco_cust, pi.preco, pi.preco as preco_vend, ' +
       'iif(pd.preco_cust > 0, (((pi.preco / pd.preco_cust) - 1) *100),0) as multiplicador ' +
       'from preco_itens pi ' +
       'join precos p on (p.codigo = pi.cod_precos) ' +
