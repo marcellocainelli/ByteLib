@@ -58,6 +58,7 @@ begin
     Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  ModificaDisplayCampos;
 end;
 
 function TConfigCaixa.InicializaDataSource(Value: TDataSource): iEntidade;
