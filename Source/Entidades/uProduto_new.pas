@@ -102,20 +102,24 @@ begin
             'Left Join ESTOQUEFILIAL EF on (EF.COD_PROD = P.COD_PROD and EF.COD_FILIAL = :mCodFilial) ' +
             'where (1=1) ');
   3: FEntidadeBase.TextoSQL(
-            'Select P.COD_PROD, P.COD_PROD as CODIGO, P.NOME_PROD, P.UNIDADE as UN, P.PRECO_VEND as PRECO, ' +
+            'Select P.COD_PROD, P.NOME_PROD, P.UNIDADE as UN, P.PRECO_VEND as PRECO, ' +
             'P.PRECO_PRAZ as PRAZO, E.QUANTIDADE, P.PESO, P.COD_BARRA, P.REFERENCIA, P.LOCAL, P.DETALHE, ' +
-            'M.DESCRICAO as GRUPO, M1.DESCRICAO as MARCA, SUBG.DESCRICAO as SUBGRUPO, PP.PRECO as PROMOCAO, PP.QTDD_MINIMA, P.COMPLEMENTO, P.COD_MARCA, P.ICMS, ' +
-            'P.C_MEDIO,P.MARGEM,P.SITTRIBUTARIA, ' +
-            'P.COD_FORNEC,P.PRECOCOMPRA,P.BALANCA,P.IMAGEM, ' +
-            'P.CLASFISCAL,P.DESCONTO,P.COD_TAMANHO, ' +
-            'P.VALIDADE,P.FLG_GRADE,P.CEST ' +
+            'P.COMPLEMENTO, P.COD_MARCA, P.ICMS, P.C_MEDIO, P.MARGEM, P.SITTRIBUTARIA, ' +
+            'P.COD_FORNEC, P.PRECOCOMPRA, P.BALANCA,P.IMAGEM, P.CLASFISCAL,P.DESCONTO, ' +
+            'P.VALIDADE, P.FLG_GRADE, P.CEST, pf.codigo as ID_FOTO, ' +
+            'M.DESCRICAO as GRUPO, M1.DESCRICAO as MARCA, S.DESCRICAO as SUBGRUPO, F.NOME as FORNECEDOR ' +
             'From PRODUTOS P ' +
             'Join MARCAS M on (M.CODIGO = P.COD_MARCA) ' +
             'Left Join ESTOQUEFILIAL E on (E.COD_PROD = P.COD_PROD and E.COD_FILIAL = :mCodFilial) ' +
             'Left Join MARCAS1 M1 on (M1.CODIGO = P.COD_MARCA1) ' +
-            'Left Join SUBGRUPOS SUBG on (SUBG.CODIGO = P.COD_SUBGRUPO) ' +
-            'Left Join PRODUTOS_PROMOCAO PP on ((PP.COD_PROD = P.COD_PROD) and (current_date >= PP.dtinicio and current_date <= PP.dtfim)) ' +
-            'where (1=1) and P.STATUS = ''A''');
+            'Left Join SUBGRUPOS S on (S.CODIGO = P.COD_SUBGRUPO) ' +
+            'Left Join FORNEC F on (F.CODIGO = P.COD_FORNEC) ' +
+            'Left join produtos_foto pf on (pf.CODIGO = P.COD_PROD) ' +
+            'where P.STATUS = ''A'' ' +
+            'and ((P.COD_MARCA = :mCOD_MARCA) or (:mCOD_MARCA = -1)) ' +
+            'and ((P.COD_MARCA1 = :mCOD_MARCA1) or (:mCOD_MARCA1 = -1)) ' +
+            'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
+            'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1))');
   end;
   {$ENDIF}
 end;
@@ -211,7 +215,27 @@ begin
     FEntidadeBase.RegraPesquisa('Starting With');
   case FEntidadeBase.TipoPesquisa of
     //busca por código
-    0: FEntidadeBase.Iquery.SQL_Add(' and P.COD_PROD = :mParametro ');
+//    0: vTextoSQL:= vTextoSQL + ' and P.COD_PROD = :mParametro '; //alterado para o PDV
+    0: begin
+      if FTipoConsulta.Equals('PDV') then begin
+        if (TryStrToInt64(FEntidadeBase.TextoPesquisa, vNumeroAux)) then begin
+          if Length(FEntidadeBase.TextoPesquisa) < 12 then
+  //          busca por código
+            FEntidadeBase.Iquery.SQL_Add(' and P.COD_PROD = :mParametro and P.STATUS = ''A''')
+          else
+            //busca por cód barras
+            FEntidadeBase.Iquery.SQL_Add(' and P.COD_BARRA = :mParametro and P.STATUS = ''A''');
+        end else begin
+          //busca por descrição
+          If pos('@', FEntidadeBase.TextoPesquisa) > 0 then begin
+            FEntidadeBase.Iquery.SQL_Add(' and upper(P.NOME_PROD) like upper(:mParametro) ');
+            FEntidadeBase.TextoPesquisa('%' + StringReplace(FEntidadeBase.TextoPesquisa,'@','%',[rfReplaceAll, rfIgnoreCase]) + '%');
+          end else
+            FEntidadeBase.Iquery.SQL_Add(' and upper(P.NOME_PROD) ' + FEntidadeBase.RegraPesquisa + ' upper(:mParametro) ');
+        end;
+      end else
+        FEntidadeBase.Iquery.SQL_Add(' and P.COD_PROD = :mParametro ');
+    end;
     //busca por descrição
     1: begin
       If pos('@', FEntidadeBase.TextoPesquisa) > 0 then begin
@@ -281,7 +305,6 @@ begin
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TProduto.ModificaDisplayCampos;
 begin
   {$IFDEF APP}
