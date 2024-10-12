@@ -54,6 +54,7 @@ begin
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.Dataset.FieldDefs.Clear;
   FEntidadeBase.Iquery.Dataset.Fields.Clear;
+  FEntidadeBase.Iquery.IndexFieldNames('DATA:D');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
