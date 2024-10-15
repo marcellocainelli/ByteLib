@@ -84,10 +84,19 @@ end;
 
 procedure TEstoqueMestre.ModificaDisplayCampos;
 begin
-//  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('CUSTO_ENT')).currency:= True;
-//  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VENDA_ENT')).currency:= True;
-//  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANT_ENT')).DisplayFormat:= '#,0.000';
-//  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VrCusto')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('BASECALCICMS')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORICMS')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('BASECALCICMSST')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORICMSST')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORTOTALPRODUTOS')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORFRETE')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORSEGURO')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DESCONTO')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOROUTRASDESPESAS')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORIPI')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORPIS')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORCOFINS')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALORTOTALNOTA')).currency:= True;
 end;
 
 procedure TEstoqueMestre.MyCalcFields(sender: TDataSet);

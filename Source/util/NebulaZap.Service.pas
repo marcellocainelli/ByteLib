@@ -417,30 +417,37 @@ end;
 
 procedure TNebulaZap.GetImageByUrl(URL: string; APicture: TPicture);
 var
-  Jpeg: TPNGImage;
-  Strm: TMemoryStream;
-  vIdHTTP : TIdHTTP;
+  IdHTTP: TIdHTTP;
+  Stream: TMemoryStream;
+  JpegImage: TPNGImage;
 begin
-  if not DirectoryExists(ExtractFileDir(Application.ExeName) + '\qrcode') then
-    ForceDirectories(ExtractFileDir(Application.ExeName) + '\qrcode');
-  Screen.Cursor := crHourGlass;
-  Jpeg := TPNGImage.Create;
-  Strm := TMemoryStream.Create;
-  vIdHTTP := TIdHTTP.Create(nil);
+  IdHTTP := TIdHTTP.Create(nil);
+  Stream := TMemoryStream.Create;
+  JpegImage := TPNGImage.Create;
   try
-    vIdHTTP.Get(URL, Strm);
-    if (Strm.Size > 0) then
-    begin
-      Strm.SaveToFile(ExtractFileDir(Application.ExeName) + '\qrcode\qrcode.png');
-      APicture.LoadFromFile(ExtractFileDir(Application.ExeName) + '\qrcode\qrcode.png');
+    try
+      // Definir o User-Agent para simular um navegador
+      IdHTTP.Request.UserAgent := 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3';
+
+      // Baixa a imagem do URL
+      IdHTTP.Get(URL, Stream);
+
+      // Reposiciona o stream para o início
+      Stream.Position := 0;
+
+      // Carrega a imagem do stream para o TJPEGImage
+      JpegImage.LoadFromStream(Stream);
+
+      // Atribui a imagem ao TImage
+      APicture.Assign(JpegImage);
+    except
+      on E: Exception do
+        raise Exception.Create('Erro ao carregar imagem: ' + E.Message);
     end;
   finally
-    Strm.Free;
-    Jpeg.Free;
-    vIdHTTP.Free;
-    Screen.Cursor := crDefault;
-    if FileExists(ExtractFileDir(Application.ExeName) + '\qrcode\qrcode.png') then
-      System.SysUtils.DeleteFile(ExtractFileDir(Application.ExeName) + '\qrcode\qrcode.png');
+    IdHTTP.Free;
+    Stream.Free;
+    JpegImage.Free;
   end;
 end;
 
@@ -549,7 +556,6 @@ begin
         try
           vJsonRes:= vJsonObj.GetValue<TJSONObject>('data');
         except
-
           vStatusLocal:= True;
           raise Exception.Create('Conectado');
         end;
