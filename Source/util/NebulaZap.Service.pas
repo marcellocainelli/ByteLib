@@ -229,7 +229,6 @@ class function TNebulaZap.New: iNebulaZap;
 begin
   Result:= Self.Create;
 end;
-
 constructor TNebulaZap.Create;
 begin
   FNebulazapBase:= TNebulazapBase<iNebulazap>.New(Self);
@@ -327,7 +326,6 @@ begin
       SetReqResult(False, 'Erro ao enviar:' + #13#10 + E.Message);
   end;
 end;
-
 function TNebulaZap.Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iNebulaZap;
 var
   vPath, vFileName: String;
@@ -414,7 +412,6 @@ begin
       SetReqResult(False, 'Erro ao solicitar QrCode:' + #13#10 + E.Message);
   end;
 end;
-
 procedure TNebulaZap.GetImageByUrl(URL: string; APicture: TPicture);
 var
   IdHTTP: TIdHTTP;
@@ -450,7 +447,6 @@ begin
     JpegImage.Free;
   end;
 end;
-
 function TNebulaZap.Instancia_Parear(AImage: TImage; ALabel: TLabel): String;
 var
   vResp: IResponse;
@@ -497,7 +493,6 @@ begin
       SetReqResult(False, 'Erro ao solicitar QrCode:' + #13#10 + E.Message);
   end;
 end;
-
 function TNebulaZap.Instancia_Desconectar: iNebulaZap;
 var
   vResp: IResponse;
@@ -531,7 +526,6 @@ begin
   end;
 end;
 
-
 function TNebulaZap.Status: iNebulaZap;
 var
   vResp: IResponse;
@@ -543,13 +537,11 @@ begin
   vStatusLocal:= False;
   try
     vAuth:= FNebulazapBase.Auth;
-
     vResp:= TRequest.New.BaseURL(C_URL_API)
               .Timeout(C_TIMEOUT)
               .Resource('api/v4/WhatsappMessage/pairDevice')
               .TokenBearer(vAuth)
               .Get;
-
     if vResp.StatusCode = 400 then begin
       vJsonObj:= TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
       try

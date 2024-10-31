@@ -157,20 +157,46 @@ begin
   FDQuery.Close;
 end;
 //http://docwiki.embarcadero.com/RADStudio/Sydney/en/Caching_Updates_(FireDAC)
-function TModelQueryFiredac.Salva(Commit: Boolean = True): iQuery;
+//function TModelQueryFiredac.Salva(Commit: Boolean = True): iQuery;
+//begin
+//  Result:= Self;
+//  if not InTransaction then
+//    TFDConnection(FParent.Connection).StartTransaction;
+//  Try
+//    If FDQuery.ApplyUpdates(0) > 0 then
+//      CatchApplyUpdatesErrors;
+//    FDQuery.CommitUpdates;
+//    if Commit then
+//      TFDConnection(FParent.Connection).Commit;
+//  except
+//    on E:Exception do begin
+//      TFDConnection(FParent.Connection).Rollback;
+//      raise Exception.Create(E.Message);
+//    end;
+//  end;
+//end;
+function TModelQueryFiredac.Salva(Commit: Boolean = True): iQuery; //alterada em 31/10/2024
+var
+  CrieiTransaction: Boolean;
 begin
   Result:= Self;
-  if not InTransaction then
+
+  CrieiTransaction:= False;
+  if not InTransaction then begin
+    CrieiTransaction:= True;
     TFDConnection(FParent.Connection).StartTransaction;
+  end;
+
   Try
-    If FDQuery.ApplyUpdates(0) > 0 then
+    if FDQuery.ApplyUpdates(0) > 0 then
       CatchApplyUpdatesErrors;
     FDQuery.CommitUpdates;
     if Commit then
       TFDConnection(FParent.Connection).Commit;
   except
     on E:Exception do begin
-      TFDConnection(FParent.Connection).Rollback;
+      if CrieiTransaction then
+        TFDConnection(FParent.Connection).Rollback;
       raise Exception.Create(E.Message);
     end;
   end;
