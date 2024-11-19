@@ -1,17 +1,11 @@
 unit Model.Table.Firedac;
-
 interface
-
 uses
   System.SysUtils,
-
   Data.DB,
-
   FireDAC.Comp.Client,
   FireDAC.Comp.DataSet,
-
   Model.Conexao.Interfaces;
-
 Type
   TModelTableFiredac = class(TInterfacedObject, iTable)
     private
@@ -27,18 +21,15 @@ Type
       function IndexFieldNames(FieldName: String): iTable;
       function CriaCampo(ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iTable;
       function CalcFields(AEvent: TDataSetNotifyEvent): iTable;
+      function FindField(AFieldName: String): Boolean;
   end;
-
 implementation
-
 { TModelTableFiredac }
-
 constructor TModelTableFiredac.Create;
 begin
   FDMemTable:= TFDMemTable.Create(nil);
   FDMemTable.Close;
 end;
-
 destructor TModelTableFiredac.Destroy;
 begin
   FreeAndNil(FDMemTable);
@@ -49,7 +40,6 @@ class function TModelTableFiredac.New: iTable;
 begin
   Result:= Self.Create;
 end;
-
 function TModelTableFiredac.Tabela: TDataSet;
 begin
   Result:= FDMemTable;
@@ -60,7 +50,6 @@ begin
   Result:= Self;
   FDMemTable.CreateDataSet;
 end;
-
 function TModelTableFiredac.CopiaDataSet(DataSet: TDataSet): iTable;
 begin
   Result:= Self;
@@ -72,19 +61,16 @@ begin
    Result:= Self;
    FDMemTable.CloneCursor(TFDDataSet(DataSet), False, False);
 end;
-
 function TModelTableFiredac.IndexFieldNames(FieldName: String): iTable;
 begin
   Result:= Self;
   FDMemTable.IndexFieldNames:= FieldName;
 end;
-
 function TModelTableFiredac.CalcFields(AEvent: TDataSetNotifyEvent): iTable;
 begin
   Result:= Self;
   FDMemTable.OnCalcFields:= AEvent;
 end;
-
 function TModelTableFiredac.CriaCampo(ANomeCampo: string; ADataType: TFieldType): iTable;
 var
   vField: TField;
@@ -103,6 +89,15 @@ begin
   vField.FieldName:= ANomeCampo;
   vField.FieldKind:= fkInternalCalc;
   vField.DataSet:= Tabela;
+end;
+
+function TModelTableFiredac.FindField(AFieldName: String): Boolean;
+var
+  vField: TField;
+begin
+  Result:= False;
+  vField:= FDMemTable.FindField(AFieldName);
+  Result:= Assigned(vField);
 end;
 
 end.

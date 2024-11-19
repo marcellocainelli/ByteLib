@@ -51,6 +51,7 @@ type
     function IndexFieldNames(FieldName: String): iTable;
     function CriaCampo(ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iTable;
     function CalcFields(AEvent: TDataSetNotifyEvent): iTable;
+    function FindField(AFieldName: String): Boolean;
   end;
 
   iScript = interface
