@@ -30,8 +30,11 @@ uses
 constructor TPagar.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From PAGAR Where BAIXADO = :pBaixado and COD_FILIAL = :pCodFilial');
-
+  FEntidadeBase.TextoSQL(
+    'Select p.*, c.descricao as ccusto ' +
+    'From PAGAR p ' +
+    'left join centrocusto c on (c.codigo = p.cod_centrocusto) ' +
+    'Where p.baixado = :pBaixado and p.cod_filial = :pCodFilial');
   InicializaDataSource;
 end;
 
@@ -90,6 +93,7 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames(vIndice);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  FEntidadeBase.SetReadOnly(Value, 'ccusto', False);
 end;
 
 function TPagar.InicializaDataSource(Value: TDataSource): iEntidade;
