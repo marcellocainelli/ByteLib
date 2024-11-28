@@ -1,10 +1,7 @@
 unit uPagar;
-
 interface
-
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils;
-
 Type
   TPagar = class(TInterfacedObject, iEntidade)
     private
@@ -19,35 +16,28 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase, uDmFuncoes;
-
 { TPagar }
-
 constructor TPagar.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
-    'Select p.*, c.descricao as ccusto ' +
+    'Select p.*, c.descricao ' +
     'From PAGAR p ' +
     'left join centrocusto c on (c.codigo = p.cod_centrocusto) ' +
     'Where p.baixado = :pBaixado and p.cod_filial = :pCodFilial');
   InicializaDataSource;
 end;
-
 destructor TPagar.Destroy;
 begin
   inherited;
 end;
-
 class function TPagar.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-
 function TPagar.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
@@ -93,9 +83,8 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames(vIndice);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-  FEntidadeBase.SetReadOnly(Value, 'ccusto', False);
+  FEntidadeBase.SetReadOnly(Value, 'DESCRICAO', False);
 end;
-
 function TPagar.InicializaDataSource(Value: TDataSource): iEntidade;
 var
   vTextoSql: String;
@@ -103,22 +92,18 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
   vTextoSql:= 'Select * From PAGAR Where 1 <> 1';
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TPagar.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('valor')).currency:= True;
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('emissao')).EditMask:= '!99/99/00;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('vencimento')).EditMask:= '!99/99/00;1;_';
 end;
-
 function TPagar.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-
 end.
