@@ -30,7 +30,12 @@ uses
 constructor TEstoqueLocal.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select EL.* from ESTOQUE_LOCAIS EL where COD_FILIAL = :pCod_Filial and COD_PROD = :pCod_prod');
+  FEntidadeBase.TextoSQL(
+    'select el.*, pl.descricao ' +
+    'from estoque_locais el ' +
+    'join produtos_locais pl on (pl.codigo = el.cod_local) ' +
+    'where el.cod_filial = :pcod_filial ' +
+    'and el.cod_prod = :pcod_prod');
   InicializaDataSource;
 end;
 
