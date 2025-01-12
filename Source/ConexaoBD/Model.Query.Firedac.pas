@@ -35,6 +35,7 @@ Type
       function Dataset: TDataSet;
       function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery; overload;
       function AddParametro(NomeParametro: String; ValorParametro: integer): iQuery; overload;
+      function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iQuery; overload;
       function Close: iQuery;
       function ExecQuery(Value: String): iQuery;
       function Salva(Commit: Boolean = True): iQuery;
@@ -142,6 +143,23 @@ begin
     FDQuery.Params.Add.Size:= Length(NomeParametro);
   FDQuery.Params.Add.ParamType:= ptInput;
 end;
+
+function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iQuery;
+var
+  BlobField: TFDParam;
+begin
+  Result := Self;
+
+  if (FilePath <> '') and (DataType = ftBlob) then begin
+    BlobField := FDQuery.Params.Add;
+    BlobField.Name := NomeParametro;
+    BlobField.DataType := DataType;
+    BlobField.ParamType := ptInput;
+    BlobField.LoadFromFile(FilePath, ftBlob);
+  end;
+end;
+
+
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: integer): iQuery;
 begin
   Result:= Self;
