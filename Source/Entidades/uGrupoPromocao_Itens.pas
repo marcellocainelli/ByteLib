@@ -27,7 +27,8 @@ constructor TGrupoPromocaoItem.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
-    'SELECT gpi.*, gp.dt_inicio, gp.dt_fim, gp.preco_promo as grupo_preco, gp.flag_regra_grupo, gp.quantidade_min as grupo_qtdd, p.nome_prod, gp.descricao as promo_nome ' +
+    'SELECT gpi.*, gp.dt_inicio, gp.dt_fim, gp.preco_promo as grupo_preco, gp.flag_regra_grupo, gp.quantidade_min as grupo_qtdd, p.nome_prod, gp.descricao as promo_nome, ' +
+    'gp.flag_clube ' +
     'from GRUPO_PROMOCAO_ITEM gpi ' +
     'join produtos p on (p.cod_prod = gpi.cod_prod) ' +
     'join grupo_promocao gp on (gp.id = gpi.id_grupo_promo)'
