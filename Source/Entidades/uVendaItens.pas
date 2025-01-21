@@ -74,6 +74,7 @@ begin
   FEntidadeBase.SetReadOnly(Value, 'FLG_PACOTE_SERVICOS', False);
   FEntidadeBase.SetReadOnly(Value, 'FLG_LOCACAO_EQUIPAMENTOS', False);
   FEntidadeBase.SetReadOnly(Value, 'COD_VASILHAME', False);
+  FEntidadeBase.SetReadOnly(Value, 'PISO_M2_CAIXA', False);
   FEntidadeBase.CalcFields(MyCalcFields);
 end;
 function TVendaItens.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -118,7 +119,8 @@ end;
 procedure TVendaItens.SelecionaSQLConsulta;
 begin
   FEntidadeBase.TextoSQL(
-    'Select V.*, P.PESO, P.FLG_LOTE, P.FLG_GRADE, P.SERIAL as FLG_SERIAL, P.FLG_MLFULL, P.FLG_PACOTE_SERVICOS, P.FLG_LOCACAO_EQUIPAMENTOS, P.COD_VASILHAME ' +
+    'Select V.*, P.PESO, P.FLG_LOTE, P.FLG_GRADE, P.SERIAL as FLG_SERIAL, P.FLG_MLFULL, ' +
+    'P.FLG_PACOTE_SERVICOS, P.FLG_LOCACAO_EQUIPAMENTOS, P.COD_VASILHAME, P.PISO_M2_CAIXA ' +
     'From VENDA V ' +
     'Inner Join PRODUTOS P On (P.COD_PROD = V.COD_PROD) ');
 end;

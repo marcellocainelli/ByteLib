@@ -392,6 +392,7 @@ begin
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_PRAZ')).currency:= True;
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
       TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DESCONTO')).DisplayFormat:= '#,0.00';
+      TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PISO_M2_CAIXA')).DisplayFormat:= '#,0.00';
       TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('DTCADASTRO')).EditMask:= '!99/99/00;1;_';
     end;
   end;
