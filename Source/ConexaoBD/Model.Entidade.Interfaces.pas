@@ -12,6 +12,7 @@ type
     function Exclui(Value: TDataSource = nil): iEntidadeBase<T>;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iEntidadeBase<T>; overload;
+    function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iEntidadeBase<T>; overload;
     function RefreshDataSource(Value: TDataSource = nil): iEntidadeBase<T>;
     function SaveIfChangeCount(DataSource: TDataSource = nil): iEntidadeBase<T>;
     function InsertBeforePost(DataSource: TDataSource = nil; AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;

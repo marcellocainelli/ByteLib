@@ -29,6 +29,7 @@ Type
     function Exclui(Value: TDataSource = nil): iEntidadeBase<T>;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iEntidadeBase<T>; overload;
+    function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iEntidadeBase<T>; overload;
     function RefreshDataSource(Value: TDataSource = nil): iEntidadeBase<T>;
     function SaveIfChangeCount(DataSource: TDataSource = nil): iEntidadeBase<T>;
     function InsertBeforePost(DataSource: TDataSource = nil; AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
@@ -88,7 +89,6 @@ class function TEntidadeBase<T>.New(Parent: T; AConn: iConexao): iEntidadeBase<T
 begin
   Result:= Self.Create(Parent, AConn);
 end;
-
 function TEntidadeBase<T>.Salva(Value: TDataSource = nil; aSalva: Boolean = True): iEntidadeBase<T>;
 begin
   Result:= Self;
@@ -119,14 +119,17 @@ begin
 end;
 function TEntidadeBase<T>.FetchOptions(AMode: String; ARowSetSize: integer): iEntidadeBase<T>;
 begin
+  Result:= Self;
   FQuery.FetchOptions(AMode, ARowSetSize);
 end;
 function TEntidadeBase<T>.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>;
 begin
+  Result:= Self;
   FQuery.AddParametro(NomeParametro, ValorParametro, DataType);
 end;
 function TEntidadeBase<T>.AddParametro(NomeParametro: String; ValorParametro: integer): iEntidadeBase<T>;
 begin
+  Result:= Self;
   FQuery.AddParametro(NomeParametro, ValorParametro);
 end;
 function TEntidadeBase<T>.RefreshDataSource(Value: TDataSource): iEntidadeBase<T>;
@@ -152,6 +155,11 @@ begin
     Value:= FDataSource;
   Value.DataSet.FieldByName(ANomeCampo).ReadOnly:= AReadOnly;
 end;
+function TEntidadeBase<T>.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iEntidadeBase<T>;
+begin
+  FQuery.AddParametro(NomeParametro, ValorParametro, DataType, FilePath);
+end;
+
 function TEntidadeBase<T>.CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
 begin
   Result:= Self;
@@ -232,7 +240,6 @@ begin
     DataSource:= FDataSource;
   DataSource.DataSet.AfterPost:= AEvent;
 end;
-
 function TEntidadeBase<T>.InsertBeforePost(DataSource: TDataSource; AEvent: TDataSetNotifyEvent): iEntidadeBase<T>;
 begin
   Result:= Self;
@@ -310,19 +317,15 @@ function TEntidadeBase<T>.DataSource: TDataSource;
 begin
   Result:= FDataSource;
 end;
-
 function TEntidadeBase<T>.Paginacao: iEntidadeBase<T>;
 begin
   Result:= Self;
-
   if (FPagina > 0) and (FPag_Rows > 0) then
     FQuery.SQL_Add(Format(' ROWS %d TO %d', [FPagina, FPag_Rows]));
 end;
-
 function TEntidadeBase<T>.Paginacao(APagina, ARows: integer): iEntidadeBase<T>;
 begin
   Result:= Self;
-
   if APagina > 0 then begin
     if APagina = 1 then begin
       FPagina:= APagina;
@@ -333,25 +336,20 @@ begin
     end;
   end;
 end;
-
 procedure TEntidadeBase<T>.Pagina(AValue: integer);
 begin
   FPagina:= AValue;
 end;
-
 function TEntidadeBase<T>.Pagina: integer;
 begin
   Result:= FPagina;
 end;
-
 procedure TEntidadeBase<T>.Pag_Rows(AValue: integer);
 begin
   FPag_Rows:= AValue;
 end;
-
 function TEntidadeBase<T>.Pag_Rows: integer;
 begin
   Result:= FPag_Rows;
 end;
-
 end.
