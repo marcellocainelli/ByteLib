@@ -261,6 +261,7 @@ var
   vCloudResponse: TCloudResponseInfo;
   vStream: TMemoryStream;
 begin
+  Result:= Self;
   vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
   vCloudResponse:= TCloudResponseInfo.Create;
   vStream:= TMemoryStream.Create;
