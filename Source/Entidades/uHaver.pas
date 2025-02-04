@@ -1,10 +1,7 @@
 unit uHaver;
-
 interface
-
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
-
 Type
   THaver = class(TInterfacedObject, iEntidade)
     private
@@ -20,37 +17,32 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
-
 { THaver }
-
 constructor THaver.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from HAVER ');
+  FEntidadeBase.TextoSQL(
+    'select h.* from haver h ' +
+    'join caixa cx on (h.num_oper = cx.num_oper) ' +
+    'where h.baixado = ''X'' and cx.cod_filial = :pCodFilial ');
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
-
 destructor THaver.Destroy;
 begin
   inherited;
 end;
-
 class function THaver.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-
 function THaver.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-
 function THaver.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
@@ -59,7 +51,8 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   Case FEntidadeBase.TipoPesquisa of
-    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' Where num_oper = :pParametro';
+    0: vTextoSQL:= FEntidadeBase.TextoSQL + ' and h.num_oper = :pParametro';
+    1: vTextoSQL:= FEntidadeBase.TextoSQL + ' and h.cod_Cli = :pParametro';
   end;
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
@@ -67,21 +60,20 @@ begin
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 function THaver.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
+  FEntidadeBase.AddParametro('pCodFilial', '-1', ftString);
   FEntidadeBase.AddParametro('pParametro', '-1', ftString);
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' Where num_oper = :pParametro');
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + ' and h.num_oper = :pParametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure THaver.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR')).currency:= True;
 end;
 
 function THaver.DtSrc: TDataSource;
@@ -89,9 +81,8 @@ begin
   Result:= FEntidadeBase.DataSource;
 end;
 
+
 procedure THaver.OnNewRecord(DataSet: TDataSet);
 begin
-
 end;
-
 end.
