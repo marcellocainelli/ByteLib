@@ -95,7 +95,8 @@ begin
             'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
             'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
             'and ((P.COD_PROD in (Select e.cod_prod from estoque e join estoquemestre em on (em.seq = e.seq_mestre) ' +
-                                 'where em.documento = :pDocumento)) or (:pDocumento = ''-1        ''))');
+                                 'where em.documento = :pDocumento)) or (CAST(:pDocumento AS VARCHAR(10)) = ''-1''))' +
+            'and ((P.DETALHE containing :pDetalhe) or (CAST(:pDetalhe AS VARCHAR(100)) = ''-1''))');
   2: FEntidadeBase.TextoSQL(
             'Select P.*, EF.QUANTIDADE ' +
             'From PRODUTOS P ' +
