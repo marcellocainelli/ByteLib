@@ -9,7 +9,8 @@ uses
 Type
   TControllerFactoryConn = class(TInterfacedObject, iFactoryConn)
     private
-      FDatabase, FUsername, FPassword: string;
+      FDatabase, FUsername, FPassword, FPort: string;
+      FForceBDConfig: Boolean;
     public
       constructor Create;
       destructor Destroy; override;
@@ -18,6 +19,8 @@ Type
       function Database(ADatabase: string): iFactoryConn;
       function Username(AUsername: string): iFactoryConn;
       function Password(APassword: string): iFactoryConn;
+      function Port(APort: string): iFactoryConn;
+      function ForceBDConfig(AForceBDConfig: Boolean): iFactoryConn;
   end;
 
 implementation
@@ -54,10 +57,23 @@ begin
   FPassword:= APassword;
 end;
 
+function TControllerFactoryConn.Port(APort: string): iFactoryConn;
+begin
+  Result:= Self;
+  FPort:= APort;
+end;
+
 function TControllerFactoryConn.Username(AUsername: string): iFactoryConn;
 begin
   Result:= Self;
   FUsername:= AUsername;
 end;
+
+function TControllerFactoryConn.ForceBDConfig(AForceBDConfig: Boolean): iFactoryConn;
+begin
+  Result:= Self;
+  FForceBDConfig:= AForceBDConfig;
+end;
+
 end.
 

@@ -67,6 +67,8 @@ type
     function InTransaction: Boolean;
     function Commit: iScript;
     function Rollback: iScript;
+    function AddScriptsFromList(AList: TStringList): iScript;
+    function Execute: Boolean;
   end;
 
 implementation

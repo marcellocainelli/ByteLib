@@ -45,6 +45,8 @@ Type
       function InTransaction: Boolean;
       function Commit: iScript;
       function Rollback: iScript;
+      function Execute: Boolean;
+      function AddScriptsFromList(AList: TStringList): iScript;
   end;
 
 implementation
@@ -79,11 +81,13 @@ end;
 
 function TModelScriptFiredac.Add: iScript;
 begin
+  Result:= Self;
   FScript.SQLScripts.Add;
 end;
 
 function TModelScriptFiredac.Clear: iScript;
 begin
+  Result:= Self;
   FScript.SQLScripts.Clear;
 end;
 
@@ -94,11 +98,13 @@ end;
 
 function TModelScriptFiredac.SQLAdd(AValue: String): iScript;
 begin
+  Result:= Self;
   FScript.SQLScripts[0].SQL.Add(AValue);
 end;
 
 function TModelScriptFiredac.SQLSaveToFile(AValue: String): iScript;
 begin
+  Result:= Self;
   FScript.SQLScripts[0].SQL.SaveToFile(AValue);
 end;
 
@@ -131,6 +137,30 @@ begin
   Result:= Self;
 
   TFDConnection(FParent.Connection).Rollback;
+end;
+
+function TModelScriptFiredac.Execute: Boolean;
+begin
+  Result:= False;
+  try
+    if FScript.ValidateAll then
+      Result:= FScript.ExecuteAll;
+  except
+    on E:Exception do
+      raise Exception.Create(E.Message);
+  end;
+end;
+
+function TModelScriptFiredac.AddScriptsFromList(AList: TStringList): iScript;
+begin
+  Result:= Self;
+  try
+    FScript.SQLScripts.Clear;
+    FScript.SQLScripts.Add.SQL:= AList;
+  except
+    on E:Exception do
+      raise Exception.Create(E.Message);
+  end;
 end;
 
 end.

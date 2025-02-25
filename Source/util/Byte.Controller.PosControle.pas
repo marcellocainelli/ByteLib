@@ -5,6 +5,9 @@ interface
 uses
   System.Classes, System.SysUtils, System.JSon, RESTRequest4D, Byte.Json;
 
+const
+  C_MaxConsultas = 30;
+
 type
   tpCobStatus= (cobAberta, cobCancelada, cobPaga);
 
@@ -26,6 +29,10 @@ type
     function SmartTef: iPosControle; //nova venda
     function SmartTef_Del: string; //exclui venda
     function GetStatus: iPosControle;
+    function QtdConsultas: integer; overload;
+    function QtdMaxConsultas: integer;
+
+    procedure QtdConsultas(Value: integer); overload;
   end;
 
   TPosControle = class(TInterfacedObject, iPosControle)
@@ -33,6 +40,7 @@ type
     FBaseURL, FSubscriptionKey, FUsername, FPassword: string;
     FNumSerialPos, FIDCobranca, FIDPagamento, FQtParcelas, FCpf, FNome, FAmount: String;
     FCobStatus: tpCobStatus;
+    FQtdConsultas: Integer;
     constructor Create;
     destructor Destroy; override;
     procedure VerificaPagamento(AValue: string);
@@ -54,6 +62,10 @@ type
     function SmartTef: iPosControle;
     function SmartTef_Del: string;
     function GetStatus: iPosControle;
+    function QtdConsultas: integer; overload;
+    function QtdMaxConsultas: integer;
+
+    procedure QtdConsultas(Value: integer); overload;
   end;
 
 implementation
@@ -75,6 +87,7 @@ begin
   FCpf:= '';
   FNome:= '';
   FAmount:= '0.00';
+  FQtdConsultas:= 0;
 end;
 
 destructor TPosControle.Destroy;
@@ -348,6 +361,21 @@ begin
   finally
     JsonObject.Free;
   end;
+end;
+
+function TPosControle.QtdConsultas: integer;
+begin
+  Result:= FQtdConsultas;
+end;
+
+procedure TPosControle.QtdConsultas(Value: integer);
+begin
+  FQtdConsultas:= Value;
+end;
+
+function TPosControle.QtdMaxConsultas: integer;
+begin
+  Result:= C_MaxConsultas;
 end;
 
 end.

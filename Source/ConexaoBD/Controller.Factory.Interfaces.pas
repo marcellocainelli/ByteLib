@@ -23,6 +23,8 @@ type
     function Database(ADatabase: string): iFactoryConn;
     function Username(AUsername: string): iFactoryConn;
     function Password(APassword: string): iFactoryConn;
+    function Port(APort: string): iFactoryConn;
+    function ForceBDConfig(AForceBDConfig: Boolean): iFactoryConn;
   end;
 
 implementation
