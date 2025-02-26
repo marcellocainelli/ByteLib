@@ -116,7 +116,6 @@ var
   vAcessoOnline, vBancoOffline: Boolean;
   vArqIniPath, vIniFileName: String;
   vArqIni: TIniFile;
-  vTFDIBService: TFDFBOnlineValidate;
 begin
   vAcessoOnline:= False;
   vArqIniPath:= ExtractFilePath(ParamStr(0));

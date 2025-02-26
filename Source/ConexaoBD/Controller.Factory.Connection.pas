@@ -30,6 +30,7 @@ begin
   FDatabase:= '';
   FUsername:= 'SYSDBA';
   FPassword:= 'masterkey';
+  FPort:= '';
 end;
 destructor TControllerFactoryConn.Destroy;
 begin
@@ -43,7 +44,7 @@ end;
 function TControllerFactoryConn.Conn(ATipoConn: TipoConn): iConexao;
 begin
   case ATipoConn of
-    FDConn: Result:= TModelConexaoFiredac.New(FDatabase, FUsername, FPassword);
+    FDConn: Result:= TModelConexaoFiredac.New(FDatabase, FUsername, FPassword, FPort, FForceBDConfig);
   end;
 end;
 function TControllerFactoryConn.Database(ADatabase: string): iFactoryConn;
