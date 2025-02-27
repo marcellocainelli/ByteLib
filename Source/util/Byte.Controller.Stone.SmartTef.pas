@@ -33,12 +33,13 @@ type
 
     function AtivarPos(out AErro: string): boolean;
     function EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido: string; out ADados :TRepostas; out AErro: string): boolean;
+    function EnviarCancelamento(AValor: string; out ADados :TRepostas; out AErro: string): boolean;
   end;
 
   TControllerStoneSmartTef = class(TInterfacedObject, IControllerStoneSmartTef)
   private
     FIdSw, FPorta: Integer;
-    FEmpresaCNPJ, FIp, FSerial: string;
+    FEmpresaCNPJ, FIp, FSerial, FAtk: string;
     const FPassword: string = '2123022025'; // Senha de verificação
     function Encrypt(const S: string): string;
     function Decrypt(const S: string): string;
@@ -58,6 +59,7 @@ type
 
     function AtivarPos(out AErro: string): boolean;
     function EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido: string; out ADados :TRepostas; out AErro: string): boolean;
+    function EnviarCancelamento(AValor: string; out ADados :TRepostas; out AErro: string): boolean;
   end;
 
 implementation
@@ -239,6 +241,7 @@ begin
           try
             if Assigned(vObjR.GetValue('NSU')) then
              ADados.NSU :=  vObjR.GetValue('NSU').Value;
+             FAtk:= ADados.NSU;
 
             if Assigned(vObjR.GetValue('TipoTransacao')) then
              ADados.TipoTransacao := vObjR.GetValue('TipoTransacao').Value;
@@ -290,6 +293,111 @@ begin
 
       if vResp.StatusCode = 0 then
        AErro := 'Não foi possível obter resposta do servidor!'+ e.Message;
+    end;
+  end;
+end;
+
+function TControllerStoneSmartTef.EnviarCancelamento(AValor: string; out ADados: TRepostas; out AErro: string): boolean;
+var
+  Resp: IResponse;
+  Obj, ObjR : TJSONObject;
+  MessageValue : TJSONValue;
+begin
+  Result := false;
+  try
+    Resp := TRequest.New.BaseURL('http:\\' + FIp + ':' + FPorta.ToString)
+                        .Resource('cancelamento')
+                        .AddHeader('chave', FSerial,[poDoNotEncode])
+                        .AddHeader('valor', AValor,[poDoNotEncode])
+                        .AddHeader('atk', FAtk,[poDoNotEncode])
+                        .Accept('application/json')
+                        .Timeout(120000)
+                        .Post;
+
+    case Resp.StatusCode of
+      200:
+        begin
+         obj := TJSONObject.ParseJSONValue(Resp.Content) as TJSONObject;
+
+
+          if Assigned(obj.GetValue('status')) then
+              ADados.status := obj.GetValue('status').Value
+          else
+            ADados.status := 'status não encontrado no JSON';
+
+           messageValue := obj.GetValue('message');
+
+          if Assigned(messageValue) then
+          begin
+            objR := TJSONObject.ParseJSONValue(messageValue.ToString) as TJSONObject;
+
+            if Assigned(objR) then
+            try
+
+              if Assigned(objR.GetValue('NSU')) then begin    //caso não volte o NSU deu erro ou foi cancelado
+                ADados.NSU := objR.GetValue('NSU').Value;
+
+
+                if objR.GetValue('NSU').Value <> '' then begin
+                  ADados.erro := '';
+                  Result := true;
+                end
+                else
+                begin
+                  AErro := 'Falha no cancelamento';
+                  Result := false;
+                end;
+              end
+              else
+              begin
+                AErro := 'Falha no cancelamento';
+                Result := false;
+              end;
+
+
+            finally
+              objR.Free;
+            end
+            else
+            begin
+              ADados.erro :=   'mensagem JSON inválida';
+            end;
+          end;
+
+        end;
+
+      400:
+        begin
+          objR := TJSONObject.ParseJSONValue(Resp.Content) as TJSONObject;
+          try
+            if Assigned(objR.GetValue('status')) then
+              AErro :=  objR.GetValue('status').Value;
+            Result := False;
+          finally
+            objR.Free;
+          end
+
+        end;
+
+        500:
+        begin
+            AErro :=  'Erro não catalogado servidor';
+            Result := False;
+        end;
+
+    else
+      begin
+        Result := False;
+      end;
+    end;
+  except
+    on e: exception do begin
+      Result := false;
+
+      AErro := 'Erro: ' + e.Message;
+
+      if Resp.StatusCode = 0 then
+       AErro := 'Não foi possível obter resposta do servidor!' + e.Message;
     end;
   end;
 end;
