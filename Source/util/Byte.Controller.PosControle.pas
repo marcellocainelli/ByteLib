@@ -9,7 +9,7 @@ const
   C_MaxConsultas = 30;
 
 type
-  tpCobStatus= (cobAberta, cobCancelada, cobPaga);
+  tpCobStatus= (cobAberta, cobCancelada, cobPaga, cobNaoExiste);
 
   iPosControle = interface
     ['{AC24B481-EE86-4B3E-A6FF-A51D89622D0E}']
@@ -335,9 +335,10 @@ end;
 
 procedure TPosControle.VerificaPagamento(AValue: string);
 var
-  JsonObject, DataObject: TJSONObject;
-  DataValue: TJSONValue;
+  JsonObject, DataObject, DataObjectResponse: TJSONObject;
+  DataValue, DataValueResponse: TJSONValue;
   Pagamentos: string;
+  ResponseCode: string;
 begin
   Pagamentos := ''; // Inicializa com string vazia
   JsonObject := nil;
@@ -345,6 +346,13 @@ begin
   try
     // Verifica se JsonObject foi criado corretamente
     if Assigned(JsonObject) then begin
+      // Verifica se existe a cobranca
+      ResponseCode := JsonObject.GetValue<String>('responseCode');
+      if ResponseCode = '401.05' then begin
+        FCobStatus:= cobNaoExiste;
+        Exit;
+      end;
+
       // Acessa o objeto "data"
       DataValue := JsonObject.GetValue('data');
       if Assigned(DataValue) and (DataValue is TJSONObject) then begin
