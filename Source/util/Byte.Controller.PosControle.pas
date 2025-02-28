@@ -1,16 +1,11 @@
 unit Byte.Controller.PosControle;
-
 interface
-
 uses
   System.Classes, System.SysUtils, System.JSon, RESTRequest4D, Byte.Json;
-
 const
   C_MaxConsultas = 30;
-
 type
   tpCobStatus= (cobAberta, cobCancelada, cobPaga, cobNaoExiste);
-
   iPosControle = interface
     ['{AC24B481-EE86-4B3E-A6FF-A51D89622D0E}']
     function BaseURL(AValue: String): iPosControle;
@@ -23,7 +18,7 @@ type
     function QtParcelas(AValue: String): iPosControle;
     function Cpf(AValue: String): iPosControle;
     function Nome(AValue: String): iPosControle;
-    function Amount(AValue: String): iPosControle;
+    function Amount(AValue: Currency): iPosControle;
     function CobStatus: tpCobStatus;
     function Auth: string;
     function SmartTef: iPosControle; //nova venda
@@ -31,19 +26,19 @@ type
     function GetStatus: iPosControle;
     function QtdConsultas: integer; overload;
     function QtdMaxConsultas: integer;
-
     procedure QtdConsultas(Value: integer); overload;
   end;
-
   TPosControle = class(TInterfacedObject, iPosControle)
   private
     FBaseURL, FSubscriptionKey, FUsername, FPassword: string;
-    FNumSerialPos, FIDCobranca, FIDPagamento, FQtParcelas, FCpf, FNome, FAmount: String;
+    FNumSerialPos, FIDCobranca, FIDPagamento, FQtParcelas, FCpf, FNome: String;
+    FAmount: Currency;
     FCobStatus: tpCobStatus;
     FQtdConsultas: Integer;
     constructor Create;
     destructor Destroy; override;
     procedure VerificaPagamento(AValue: string);
+    function GetResponseCode(const JsonStr: string): Integer;
   public
     class function New: iPosControle;
     function BaseURL(AValue: String): iPosControle;
@@ -56,7 +51,7 @@ type
     function QtParcelas(AValue: String): iPosControle;
     function Cpf(AValue: String): iPosControle;
     function Nome(AValue: String): iPosControle;
-    function Amount(AValue: String): iPosControle;
+    function Amount(AValue: Currency): iPosControle;
     function CobStatus: tpCobStatus;
     function Auth: string;
     function SmartTef: iPosControle;
@@ -64,19 +59,14 @@ type
     function GetStatus: iPosControle;
     function QtdConsultas: integer; overload;
     function QtdMaxConsultas: integer;
-
     procedure QtdConsultas(Value: integer); overload;
   end;
-
 implementation
-
 { TTokenAws }
-
 class function TPosControle.New: iPosControle;
 begin
   Result:= Self.Create;
 end;
-
 constructor TPosControle.Create;
 begin
   FBaseURL:= 'https://api.poscontrole.com.br/';
@@ -86,22 +76,18 @@ begin
   FQtParcelas:= '1';
   FCpf:= '';
   FNome:= '';
-  FAmount:= '0.00';
+  FAmount:= 0.00;
   FQtdConsultas:= 0;
 end;
-
 destructor TPosControle.Destroy;
 begin
-
   inherited;
 end;
-
-function TPosControle.Amount(AValue: String): iPosControle;
+function TPosControle.Amount(AValue: Currency): iPosControle;
 begin
   Result:= Self;
   FAmount:= AValue;
 end;
-
 function TPosControle.CobStatus: tpCobStatus;
 begin
   Result:= FCobStatus;
@@ -181,7 +167,6 @@ begin
               .AddBody('username=' + FUsername + '&password=' + FPassword)
               .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
               .Post;
-
     vJsonVal:= TJsonVal.New(vResp.Content);
     If vResp.StatusCode = 200 then begin
       Result:= vJsonVal.GetValueAsString('jwt');
@@ -198,26 +183,24 @@ var
   vResp: IResponse;
   vRetorno, vToken: string;
   vObj, vObjExtras: TJSONObject;
+  vResponseCode: integer;
 begin
   Result:= Self;
   Try
     vToken:= Auth;
-
     vObj:= TJSONObject.Create;
     try
       vObj.AddPair('NumSerialPOS', FNumSerialPOS);
       vObj.AddPair('IDCobranca', FIDCobranca);
       vObj.AddPair('IDPagamento', FIDPagamento);
       vObj.AddPair('QTParcelas', FQTParcelas);
-      vObj.AddPair('Amount', FAmount);
-
+      vObj.AddPair('Amount', TJSONString.Create(FormatFloat('0.00', FAmount, TFormatSettings.Create('en-US'))));
       if (FCPF <> '') and (FNome <> '') then begin
         vObjExtras := TJSONObject.Create;
         if FCPF <> '' then
           vObjExtras.AddPair('CPF', FCPF);
         if FNome <> '' then
           vObjExtras.AddPair('Nome', FNome);
-
         vObj.AddPair('Extras', vObjExtras);
       end;
 
@@ -229,18 +212,23 @@ begin
                 .TokenBearer(vToken)
                 .AddBody(vObj.ToString)
                 .Post;
-
       If vResp.StatusCode = 200 then begin
-        FCobStatus:= cobAberta;
+        vResponseCode:= GetResponseCode(vResp.Content);
+        if vResponseCode = 200 then
+          FCobStatus:= cobAberta
+        else
+          raise Exception.Create('Erro ao criar cobrança: ' + sLineBreak + vObj.ToString);
       end else begin
         raise Exception.Create('Não autorizado');
       end;
-
     finally
       vObj.Free;
     end;
-  except on E: Exception do
-    raise Exception.Create(E.Message);
+  except
+    on E: Exception do begin
+      FCobStatus:= cobNaoExiste;
+      raise Exception.Create(E.Message);
+    end;
   end;
 end;
 
@@ -249,30 +237,27 @@ var
   vResp: IResponse;
   vRetorno, vToken: string;
   vObj, vObjExtras: TJSONObject;
+  vResponseCode: integer;
 begin
   Result:= '';
   Try
     vToken:= Auth;
-
     vObj:= TJSONObject.Create;
     try
       vObj.AddPair('NumSerialPOS', FNumSerialPOS);
       vObj.AddPair('IDCobranca', FIDCobranca);
       vObj.AddPair('IDPagamento', FIDPagamento);
       vObj.AddPair('QTParcelas', FQTParcelas);
-      vObj.AddPair('Amount', FAmount);
+      vObj.AddPair('Amount', TJSONString.Create(FormatFloat('0.00', FAmount, TFormatSettings.Create('en-US'))));
       vObj.AddPair('action', 'delete');
-
       if (FCPF <> '') and (FNome <> '') then begin
         vObjExtras := TJSONObject.Create;
         if FCPF <> '' then
           vObjExtras.AddPair('CPF', FCPF);
         if FNome <> '' then
           vObjExtras.AddPair('Nome', FNome);
-
         vObj.AddPair('Extras', vObjExtras);
       end;
-
       vResp:= TRequest.New.BaseURL(FBaseURL)
                 .Timeout(10000)
                 .Resource('v3/smart-tef/newItem')
@@ -281,13 +266,15 @@ begin
                 .TokenBearer(vToken)
                 .AddBody(vObj.ToString)
                 .Post;
-
       If vResp.StatusCode = 200 then begin
-        Result:= 'Cobrança cancelada com sucesso!';
-        FCobStatus:= cobCancelada;
+        vResponseCode:= GetResponseCode(vResp.Content);
+        if vResponseCode = 200 then begin
+          Result:= 'Cobrança cancelada com sucesso!';
+          FCobStatus:= cobCancelada;
+        end else
+          raise Exception.Create('Erro ao cancelar: ' + vResp.Content);
       end else
-        raise Exception.Create(vResp.Content);
-
+        raise Exception.Create('Erro ao cancelar: ' + vResp.Content);
     finally
       vObj.Free;
     end;
@@ -303,14 +290,11 @@ var
   vObj, vObjExtras: TJSONObject;
 begin
   Result:= Self;
-
   Try
     vToken:= Auth;
-
     vObj:= TJSONObject.Create;
     try
       vObj.AddPair('IDCobranca', FIDCobranca);
-
       vResp:= TRequest.New.BaseURL(FBaseURL)
                 .Timeout(10000)
                 .Resource('v3/smart-tef/get-status')
@@ -319,12 +303,10 @@ begin
                 .TokenBearer(vToken)
                 .AddBody(vObj.ToString)
                 .Post;
-
       If vResp.StatusCode = 200 then
         VerificaPagamento(vResp.Content)
       else
         raise Exception.Create(vResp.Content);
-
     finally
       vObj.Free;
     end;
@@ -332,7 +314,6 @@ begin
     raise Exception.Create(E.Message);
   end;
 end;
-
 procedure TPosControle.VerificaPagamento(AValue: string);
 var
   JsonObject, DataObject, DataObjectResponse: TJSONObject;
@@ -352,7 +333,6 @@ begin
         FCobStatus:= cobNaoExiste;
         Exit;
       end;
-
       // Acessa o objeto "data"
       DataValue := JsonObject.GetValue('data');
       if Assigned(DataValue) and (DataValue is TJSONObject) then begin
@@ -384,6 +364,31 @@ end;
 function TPosControle.QtdMaxConsultas: integer;
 begin
   Result:= C_MaxConsultas;
+end;
+
+function TPosControle.GetResponseCode(const JsonStr: string): Integer;
+var
+  JSONObj: TJSONObject;
+  ResponseCodeStr: string;
+begin
+  Result := -1; // Valor padrão caso ocorra erro
+  try
+    JSONObj := TJSONObject.ParseJSONValue(JsonStr) as TJSONObject;
+    try
+      if Assigned(JSONObj) and JSONObj.TryGetValue<string>('responseCode', ResponseCodeStr) then begin
+        // Pega a parte antes do ponto (se houver) e converte para inteiro
+        ResponseCodeStr := Copy(ResponseCodeStr, 1, Pos('.', ResponseCodeStr) - 1);
+        if ResponseCodeStr = '' then
+          ResponseCodeStr := JSONObj.GetValue<string>('responseCode');
+        Result := StrToIntDef(ResponseCodeStr, -1);
+      end;
+    finally
+      JSONObj.Free;
+    end;
+  except
+    on E: Exception do
+      Result := -1;
+  end;
 end;
 
 end.
