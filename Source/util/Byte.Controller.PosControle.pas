@@ -330,7 +330,7 @@ begin
       // Verifica se existe a cobranca
       ResponseCode := JsonObject.GetValue<String>('responseCode');
       if ResponseCode = '401.05' then begin
-        FCobStatus:= cobNaoExiste;
+        FCobStatus:= cobPaga;
         Exit;
       end;
       // Acessa o objeto "data"
