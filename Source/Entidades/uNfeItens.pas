@@ -32,7 +32,7 @@ begin
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL(
     'Select NFI.*, P.CLASFISCAL, P.IPI_SAIDA, P.ICMS as CODICMS, P.LISTSERV, ' +
-    'P.PPB, P.COD_BARRA, P.COD_ANP, P.COMPLEMENTO, P.CEST, P.VOLUME ' +
+    'P.PPB, P.COD_BARRA, P.COD_ANP, P.COMPLEMENTO, P.CEST, P.VOLUME, P.PESO ' +
     'From NFISCAL_ITENS NFI ' +
     'Join PRODUTOS P On (P.COD_PROD = NFI.COD_PROD) ' +
     'Where (1 = 1) and  ');
