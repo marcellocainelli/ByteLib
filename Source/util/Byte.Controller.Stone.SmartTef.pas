@@ -3,7 +3,8 @@ unit Byte.Controller.Stone.SmartTef;
 interface
 
 uses
-  System.SysUtils, System.NetEncoding, RESTRequest4D, System.JSON, Byte.Lib;
+  System.SysUtils, System.NetEncoding, RESTRequest4D, System.JSON, Byte.Lib,
+  System.Classes;
 
 type
   swType = (swNone, swDoutorByte, swRinocode);
@@ -31,16 +32,16 @@ type
     function GerarChave: string;
     procedure SetChave(const Chave: string);
 
-    function AtivarPos(out AErro: string): boolean;
-    function EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido: string; out ADados :TRepostas; out AErro: string): boolean;
-    function EnviarCancelamento(AValor: string; out ADados :TRepostas; out AErro: string): boolean;
+    function AtivarPos(ASerial: String; out AErro: string): boolean;
+    function EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido, ASerial: string; out ADados: TRepostas; out AErro: string): boolean;
+    function EnviarCancelamento(AValor, ASerial: string; out ADados :TRepostas; out AErro: string): boolean;
   end;
 
   TControllerStoneSmartTef = class(TInterfacedObject, IControllerStoneSmartTef)
   private
     FIdSw, FPorta: Integer;
-    FEmpresaCNPJ, FIp, FSerial, FAtk: string;
-    const FPassword: string = '2123022025'; // Senha de verificação
+    FEmpresaCNPJ, FIp, FAtk: string;
+    FPassword: string; // Senha de verificação
     function Encrypt(const S: string): string;
     function Decrypt(const S: string): string;
     constructor Create;
@@ -57,9 +58,9 @@ type
     function GerarChave: string;
     procedure SetChave(const Chave: string);
 
-    function AtivarPos(out AErro: string): boolean;
-    function EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido: string; out ADados :TRepostas; out AErro: string): boolean;
-    function EnviarCancelamento(AValor: string; out ADados :TRepostas; out AErro: string): boolean;
+    function AtivarPos(ASerial: String; out AErro: string): boolean;
+    function EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido, ASerial: string; out ADados: TRepostas; out AErro: string): boolean;
+    function EnviarCancelamento(AValor, ASerial: string; out ADados :TRepostas; out AErro: string): boolean;
   end;
 
 implementation
@@ -73,11 +74,11 @@ end;
 
 constructor TControllerStoneSmartTef.Create;
 begin
-  FIdSw := -1;
-  FPorta := 3000;
+  FIdSw := 1;
+  FPorta := 9911;
   FEmpresaCNPJ := '';
   FIp:= '';
-  FSerial:= '';
+  FPassword:= '2123022025';
 end;
 
 destructor TControllerStoneSmartTef.Destroy;
@@ -109,8 +110,7 @@ begin
     // Concatena as propriedades e a senha usando um delimitador (ex: ';')
     RawKey := Format('%d;%s;%d;%s', [FIdSw, FEmpresaCNPJ, FPorta, FPassword]);
     // Criptografa e retorna a chave gerada
-    FSerial := Encrypt(RawKey);
-    Result:= FSerial;
+    Result:= Encrypt(RawKey);
   except
     on E: Exception do
     begin
@@ -203,21 +203,22 @@ begin
   FPorta := AValue;
 end;
 
-function TControllerStoneSmartTef.EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido: string; out ADados: TRepostas; out AErro: string): boolean;
+function TControllerStoneSmartTef.EnviarPagamento(ATipoPagamento, AParcela, AValor, ACodPedido, ASerial: string; out ADados: TRepostas; out AErro: string): boolean;
 var
   vResp: IResponse;
   vObj, vObjR : TJSONObject;
   vMessageValue : TJSONValue;
+  vThread: TThread;
 begin
-  Result := false;
+  Result:= False;
   try
     vResp := TRequest.New.BaseURL('http:\\' + FIp + ':' + FPorta.ToString)
                         .Resource('Pagamento')
-                        .AddHeader('chave', FSerial,[poDoNotEncode])
-                        .AddHeader('tipopagamento', ATipoPagamento,[poDoNotEncode])
-                        .AddHeader('valor', AValor,[poDoNotEncode])
-                        .AddHeader('parcelas', AParcela,[poDoNotEncode])
-                        .AddHeader('pedido', ACodPedido,[poDoNotEncode])
+                        .AddHeader('chave', ASerial, [poDoNotEncode])
+                        .AddHeader('tipopagamento', ATipoPagamento, [poDoNotEncode])
+                        .AddHeader('valor', AValor, [poDoNotEncode])
+                        .AddHeader('parcelas', AParcela, [poDoNotEncode])
+                        .AddHeader('pedido', ACodPedido, [poDoNotEncode])
                         .Accept('application/json')
                         .Timeout(120000)
                         .Post;
@@ -285,6 +286,7 @@ begin
         Result := False;
       end;
     end;
+
   except
     on e: exception do begin
       Result := false;
@@ -297,7 +299,7 @@ begin
   end;
 end;
 
-function TControllerStoneSmartTef.EnviarCancelamento(AValor: string; out ADados: TRepostas; out AErro: string): boolean;
+function TControllerStoneSmartTef.EnviarCancelamento(AValor, ASerial: string; out ADados: TRepostas; out AErro: string): boolean;
 var
   Resp: IResponse;
   Obj, ObjR : TJSONObject;
@@ -307,9 +309,9 @@ begin
   try
     Resp := TRequest.New.BaseURL('http:\\' + FIp + ':' + FPorta.ToString)
                         .Resource('cancelamento')
-                        .AddHeader('chave', FSerial,[poDoNotEncode])
-                        .AddHeader('valor', AValor,[poDoNotEncode])
-                        .AddHeader('atk', FAtk,[poDoNotEncode])
+                        .AddHeader('chave', ASerial, [poDoNotEncode])
+                        .AddHeader('valor', AValor, [poDoNotEncode])
+                        .AddHeader('atk', FAtk, [poDoNotEncode])
                         .Accept('application/json')
                         .Timeout(120000)
                         .Post;
@@ -402,7 +404,7 @@ begin
   end;
 end;
 
-function TControllerStoneSmartTef.AtivarPos(out AErro: string): boolean;
+function TControllerStoneSmartTef.AtivarPos(ASerial: String; out AErro: string): boolean;
 var
   vResp: IResponse;
 begin
@@ -410,7 +412,7 @@ begin
   try
     vResp := TRequest.New.BaseURL('http:\\'+ FIp + ':' + FPorta.ToString)
                         .Resource('ativar')
-                        .AddHeader('chave', FSerial,[poDoNotEncode])
+                        .AddHeader('chave', ASerial, [poDoNotEncode])
                         .Accept('application/json')
                         .Timeout(10000)
                         .post;
