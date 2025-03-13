@@ -82,7 +82,7 @@ end;
 
 procedure TNfse.ModificaDisplayCampos;
 begin
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota')).DisplayFormat:= '#,0.000';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota')).DisplayFormat:= '#,0.0000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('vl_servicos')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('basecalculo')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('vl_iss')).currency:= True;

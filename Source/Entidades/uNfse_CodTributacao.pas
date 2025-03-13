@@ -74,7 +74,7 @@ end;
 
 procedure TNfse_CodTributacao.ModificaDisplayCampos;
 begin
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota')).DisplayFormat:= '#,0.000';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota')).DisplayFormat:= '#,0.0000';
 end;
 
 function TNfse_CodTributacao.DtSrc: TDataSource;
