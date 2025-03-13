@@ -3,7 +3,7 @@ unit Byte.Controller.Stone.SmartTef;
 interface
 
 uses
-  System.SysUtils, System.NetEncoding, RESTRequest4D, System.JSON;
+  System.SysUtils, System.NetEncoding, RESTRequest4D, System.JSON, Byte.Lib;
 
 type
   swType = (swNone, swDoutorByte, swRinocode);
@@ -109,8 +109,8 @@ begin
     // Concatena as propriedades e a senha usando um delimitador (ex: ';')
     RawKey := Format('%d;%s;%d;%s', [FIdSw, FEmpresaCNPJ, FPorta, FPassword]);
     // Criptografa e retorna a chave gerada
-    Result := Encrypt(RawKey);
-    FSerial:= Result;
+    FSerial := Encrypt(RawKey);
+    Result:= FSerial;
   except
     on E: Exception do
     begin
@@ -189,7 +189,7 @@ end;
 function TControllerStoneSmartTef.EmpresaCNPJ(const AValue: string): IControllerStoneSmartTef;
 begin
   Result := Self;
-  FEmpresaCNPJ := AValue;
+  FEmpresaCNPJ := TLib.SomenteNumero(AValue);
 end;
 
 function TControllerStoneSmartTef.Porta: integer;
