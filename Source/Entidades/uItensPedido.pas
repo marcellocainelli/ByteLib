@@ -58,7 +58,7 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
-  FEntidadeBase.Iquery.IndexFieldNames('ID');
+//  FEntidadeBase.Iquery.IndexFieldNames('ID');  //comentado em 20/03/2025 pois não existe esse campo no byte, verificar quando possivel se é algo do app
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;

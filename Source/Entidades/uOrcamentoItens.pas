@@ -35,7 +35,7 @@ begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TextoSQL(
     'select oi.*, p.preco_cust, p.peso, p.flg_grade, p.flg_lote, p.preco_vend as preco_tabela, p.tipo_item, ' +
-    'p.piso_m2_caixa ' +
+    'p.piso_m2_caixa, p.local ' +
     'from pedido oi ' +
     'join produtos p on (p.cod_prod = oi.cod_prod) ');
   InicializaDataSource;
