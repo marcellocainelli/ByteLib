@@ -87,6 +87,7 @@ begin
   FEntidadeBase.SetReadOnly(Value, 'PRECO_TABELA', False);
   FEntidadeBase.SetReadOnly(Value, 'TIPO_ITEM', False);
   FEntidadeBase.SetReadOnly(Value, 'PISO_M2_CAIXA', False);
+  FEntidadeBase.SetReadOnly(Value, 'LOCAL', False);
   FEntidadeBase.CalcFields(MyCalcFields);
 end;
 
