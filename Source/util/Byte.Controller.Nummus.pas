@@ -51,12 +51,16 @@ type
 
   iNummusBase<T> = interface
     ['{D9A2B355-6B29-4EC9-BE04-CD7B88E470F6}']
+    function Sucesso: Boolean; overload;
+    procedure Sucesso(AValue: Boolean); overload;
+    function Mensagem: String; overload;
+    procedure Mensagem(AValue: String); overload;
     function ClientID(AValue: String): iNummusBase<T>; overload;
     function ClientID: String; overload;
     function ApiKey(AValue: String): iNummusBase<T>; overload;
     function ApiKey: String; overload;
     function &End : T;
-    function Cliente(AID: integer): iNummusBase<T>;
+    function Cliente(AID: Integer): iNummusBase<T>;
     function JsonConsumidor : iJsonObj;
     function ClienteIdNummus : String;
   end;
@@ -71,11 +75,16 @@ type
     FJsonConsumidor: iJsonObj;
     constructor Create(Parent: T);
     destructor Destroy; override;
-    function RegistraConsumidor(ACodigo: integer): String;
+    function RegistraConsumidor(ACodigo: Integer): String;
     procedure SalvaIdNummus(AId: String; ACodigo: integer);
+    function ConsultaClientePorDocTel(ACgc, ATelefone: String): String;
   public
     class function New(Parent: T): iNummusBase<T>;
     function &End : T;
+    function Sucesso: Boolean; overload;
+    procedure Sucesso(AValue: Boolean); overload;
+    function Mensagem: String; overload;
+    procedure Mensagem(AValue: String); overload;
     function ClientID(AValue: String): iNummusBase<T>; overload;
     function ClientID: String; overload;
     function ApiKey(AValue: String): iNummusBase<T>; overload;
@@ -88,12 +97,10 @@ type
   iNummusCashback = interface
     ['{C7CAF331-391F-4E1A-B510-BE0FB5F6D5A6}']
     function NummusBase: iNummusBase<iNummusCashback>;
-    function Sucesso: Boolean;
-    function Mensagem: String;
     function AddProduct(AProduct: TProduct): iNummusBase<iNummusCashback>;
-//    function BuscaSaldo(ACodigo: integer): Currency; overload;
+//    function BuscaSaldo(ACodigo: Integer): Currency; overload;
 //    function BuscaSaldo(AIDNummus: String): Currency; overload;
-    function SimulaResgate(ACodigo: integer; AValor: Currency): Currency;
+    function SimulaResgate(ACodigo: Integer; AValor: Currency): Currency;
     procedure NovoCashback(AVenda: TVenda);
     procedure CancelaCashback(AID: String; AMotivo: String);
     procedure BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; ADatasetDestino: TDataSet);
@@ -103,16 +110,12 @@ type
     private
       FNummusBase: iNummusBase<iNummusCashback>;
       FProducts: TObjectList<TProduct>;
-      FSucesso: Boolean;
-      FMensagem: String;
       constructor Create;
       destructor Destroy; override;
       function GeraJson(AVenda: TVenda): String;
     public
       class function New: iNummusCashback;
       function NummusBase: iNummusBase<iNummusCashback>;
-      function Sucesso: Boolean;
-      function Mensagem: String;
       function AddProduct(AProduct: TProduct): iNummusBase<iNummusCashback>;
 //      function BuscaSaldo(ACodigo: integer): Currency; overload;
 //      function BuscaSaldo(AIDNummus: String): Currency; overload;
@@ -176,9 +179,20 @@ begin
   Result:= FJsonConsumidor;
 end;
 
+procedure TNummusBase<T>.Mensagem(AValue: String);
+begin
+  FMensagem:= AValue;
+end;
+
+function TNummusBase<T>.Mensagem: String;
+begin
+  Result:= FMensagem;
+end;
+
 function TNummusBase<T>.Cliente(AID: integer): iNummusBase<T>;
 var
   vCliente: iEntidade;
+  vTelefone: String;
 begin
   try
     vCliente:= TCliente.New;
@@ -187,13 +201,25 @@ begin
     vCliente.Consulta;
 
     if not vCliente.DtSrc.DataSet.IsEmpty then begin
-      if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty then
+      if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
         raise Exception.Create('O telefone do cliente é obrigatório.');
       if vCliente.DtSrc.DataSet.FieldByName('CGC').AsString.IsEmpty then
         raise Exception.Create('O documento do cliente é obrigatório.');
 
+      if not vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
+        vTelefone:= vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString
+      else
+        vTelefone:= vCliente.DtSrc.DataSet.FieldByName('FONE').AsString;
+
+      if not vCliente.DtSrc.Dataset.FieldByName('DDD').asString.IsEmpty then begin
+        if Copy(vTelefone, 1, 2) <> vCliente.DtSrc.Dataset.FieldByName('DDD').asString then
+          vTelefone:= vCliente.DtSrc.Dataset.FieldByName('DDD').asString + vTelefone;
+      end;
+
       if vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString.IsEmpty or vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').IsNull then begin
-        FIdNummus:= RegistraConsumidor(AID);
+        FIDNummus := ConsultaClientePorDocTel(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString, vTelefone);
+        if FIDNummus.IsEmpty then
+          FIdNummus:= RegistraConsumidor(AID);
         if not FIdNummus.IsEmpty then
           SalvaIdNummus(FIdNummus, AID)
         else
@@ -201,7 +227,7 @@ begin
       end else
         FIdNummus:= vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString;
       FJsonConsumidor.AddPair('id', FIdNummus);
-      FJsonConsumidor.AddPair('phone', vCliente.DtSrc.DataSet.FieldByName('FONE').AsString);
+      FJsonConsumidor.AddPair('phone', vTelefone);
       FJsonConsumidor.AddPair('document_number', vCliente.DtSrc.DataSet.FieldByName('CGC').AsString);
       FJsonConsumidor.AddPair('name', vCliente.DtSrc.DataSet.FieldByName('NOME').AsString);
       if not vCliente.DtSrc.DataSet.FieldByName('DTNASC').AsString.IsEmpty then
@@ -216,6 +242,81 @@ begin
       FSucesso:= False;
       FMensagem:= E.Message;
       raise Exception.Create(FMensagem);
+    end;
+  end;
+end;
+
+function TNummusBase<T>.ConsultaClientePorDocTel(ACgc, ATelefone: String): String;
+var
+  vResp: IResponse;
+  JSONObject: TJSONObject;
+  ContentArray: TJSONArray;
+  ContentItem: TJSONObject;
+begin
+  Result:= '';
+  try
+    vResp:= TRequest.New.BaseURL(C_URL)
+              .Timeout(C_TIMEOUT)
+              .Resource('customer')
+              .ContentType('application/json')
+              .AddHeader('x-api-key', FApiKey)
+              .AddHeader('x-client-id', FClientID)
+              .AddParam('limit', '1')
+              .AddParam('document_number', TLib.SomenteNumero(ACgc))
+              .Get;
+
+    if vResp.StatusCode = 200 then begin
+      FSucesso:= True;
+      FMensagem:= vResp.Content;
+      JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+      try
+        if Assigned(JSONObject) then begin
+          ContentArray := JSONObject.GetValue<TJSONArray>('content');
+          if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
+            ContentItem := ContentArray.Items[0] as TJSONObject;
+            Result := ContentItem.GetValue<string>('id');
+          end else
+            raise Exception.Create(vResp.Content);
+        end;
+      finally
+        JSONObject.Free;
+      end;
+    end else
+      raise Exception.Create(vResp.Content);
+
+    if not Result.IsEmpty then
+      Exit;
+
+    vResp:= TRequest.New.BaseURL(C_URL)
+              .Timeout(C_TIMEOUT)
+              .Resource('customer')
+              .ContentType('application/json')
+              .AddHeader('x-api-key', FApiKey)
+              .AddHeader('x-client-id', FClientID)
+              .AddParam('limit', '1')
+              .AddParam('phone', TLib.SomenteNumero(ATelefone))
+              .Get;
+
+    if vResp.StatusCode = 200 then begin
+      JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+      try
+        if Assigned(JSONObject) then begin
+          ContentArray := JSONObject.GetValue<TJSONArray>('content');
+          if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
+            ContentItem := ContentArray.Items[0] as TJSONObject;
+            Result := ContentItem.GetValue<string>('id');
+          end else
+            raise Exception.Create(vResp.Content);
+        end;
+      finally
+        JSONObject.Free;
+      end;
+    end else
+      raise Exception.Create(vResp.Content);
+  except
+    on E:Exception do begin
+      FSucesso:= False;
+      FMensagem:= E.Message;
     end;
   end;
 end;
@@ -262,6 +363,16 @@ begin
   vEntidade.EntidadeBase.Iquery.AddParametro('pCodigo', ACodigo);
   vEntidade.EntidadeBase.Iquery.AddParametro('pID', AId, ftString);
   vEntidade.EntidadeBase.Iquery.ExecQuery('update cadcli set ID_NUMMUS = :pID where codigo = :pCodigo');
+end;
+
+procedure TNummusBase<T>.Sucesso(AValue: Boolean);
+begin
+  FSucesso:= AValue;
+end;
+
+function TNummusBase<T>.Sucesso: Boolean;
+begin
+  Result:= FSucesso;
 end;
 
 { TNummusCashback }
@@ -327,19 +438,9 @@ begin
   end;
 end;
 
-function TNummusCashback.Mensagem: String;
-begin
-  Result:= FMensagem;
-end;
-
 function TNummusCashback.NummusBase: iNummusBase<iNummusCashback>;
 begin
   Result:= FNummusBase;
-end;
-
-function TNummusCashback.Sucesso: Boolean;
-begin
-  Result:= FSucesso;
 end;
 
 procedure TNummusCashback.NovoCashback(AVenda: TVenda);
@@ -357,15 +458,15 @@ begin
               .Post;
 
     if vResp.StatusCode = 200 then begin
-      FSucesso:= True;
-      FMensagem:= vResp.Content;
+      FNummusBase.Sucesso(True);
+      FNummusBase.Mensagem(vResp.Content);
     end else
       raise Exception.Create(vResp.Content);
 
   except
     on E:Exception do begin
-      FSucesso:= False;
-      FMensagem:= E.Message;
+      FNummusBase.Sucesso(False);
+      FNummusBase.Mensagem(E.Message);
     end;
   end;
 end;
@@ -491,9 +592,9 @@ begin
               .Post;
 
     if vResp.StatusCode = 200 then begin
-      FSucesso:= True;
-      FMensagem:= vResp.Content;
-      vJSONObjResult := TJSONObject.ParseJSONValue(FMensagem) as TJSONObject;
+      FNummusBase.Sucesso(True);
+      FNummusBase.Mensagem(vResp.Content);
+      vJSONObjResult := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
       try
         if AValor > 0 then begin
           if Assigned(vJSONObjResult) and vJSONObjResult.TryGetValue<Currency>('rescue_available', Result) then
@@ -510,8 +611,8 @@ begin
 
   except
     on E:Exception do begin
-      FSucesso:= False;
-      FMensagem:= E.Message;
+      FNummusBase.Sucesso(False);
+      FNummusBase.Mensagem(E.Message);
     end;
   end;
 end;
@@ -541,14 +642,14 @@ begin
               .Put;
 
     if vResp.StatusCode = 200 then begin
-      FSucesso:= True;
-      FMensagem:= vResp.Content;
+      FNummusBase.Sucesso(True);
+      FNummusBase.Mensagem(vResp.Content);
     end else
       raise Exception.Create(vResp.Content);
   except
     on E:Exception do begin
-      FSucesso:= False;
-      FMensagem:= E.Message;
+      FNummusBase.Sucesso(False);
+      FNummusBase.Mensagem(E.Message);
     end;
   end;
 end;
@@ -592,14 +693,14 @@ begin
               .Put;
 
     if vResp.StatusCode = 200 then begin
-      FSucesso:= True;
-      FMensagem:= vResp.Content;
+      FNummusBase.Sucesso(True);
+      FNummusBase.Mensagem(vResp.Content);
     end else
       raise Exception.Create(vResp.Content);
   except
     on E:Exception do begin
-      FSucesso:= False;
-      FMensagem:= E.Message;
+      FNummusBase.Sucesso(False);
+      FNummusBase.Mensagem(E.Message);
     end;
   end;
 end;
