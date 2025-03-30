@@ -1,7 +1,5 @@
 unit Byte.Controller.Nummus;
-
 interface
-
 uses
   System.SysUtils,
   System.Classes,
@@ -17,12 +15,12 @@ uses
   Byte.Lib,
   Generics.Collections,
   uEntidade,
-  Data.DB;
-
+  Data.DB,
+  Model.Conexao.Interfaces,
+  Controller.Factory.Table;
 const
-  C_TIMEOUT = 60000;
+  C_TIMEOUT = 120000;
   C_URL = 'https://api.production.nummus.com.br/v1';
-
 type
 //  TCustomerData = record
 //    Id: string;
@@ -34,21 +32,18 @@ type
 //    DocumentNumber: string;
 //    TypeCustomer: string;
 //  end;
-
-  TVenda = record
+  TVendaNummus = class
     TicketNumber: string;
     ValueRescue: Double;
     ValueDiscount: Double;
     DescriptionPurchase: string;
   end;
-
   TProduct = class
     Id: string;
     Name: string;
     Identifier: string;
     ValuePurchase: Double;
   end;
-
   iNummusBase<T> = interface
     ['{D9A2B355-6B29-4EC9-BE04-CD7B88E470F6}']
     function Sucesso: Boolean; overload;
@@ -61,10 +56,9 @@ type
     function ApiKey: String; overload;
     function &End : T;
     function Cliente(AID: Integer): iNummusBase<T>;
-    function JsonConsumidor : iJsonObj;
+    function JsonConsumidor : String;
     function ClienteIdNummus : String;
   end;
-
   TNummusBase<T: IInterface> = class(TInterfacedObject, iNummusBase<T>)
   private
     [Weak]
@@ -90,41 +84,43 @@ type
     function ApiKey(AValue: String): iNummusBase<T>; overload;
     function ApiKey: String; overload;
     function Cliente(AID: integer): iNummusBase<T>;
-    function JsonConsumidor : iJsonObj;
+    function JsonConsumidor : String;
     function ClienteIdNummus : String;
   end;
-
   iNummusCashback = interface
     ['{C7CAF331-391F-4E1A-B510-BE0FB5F6D5A6}']
     function NummusBase: iNummusBase<iNummusCashback>;
     function AddProduct(AProduct: TProduct): iNummusBase<iNummusCashback>;
+    function AddVenda(AVenda: TVendaNummus): iNummusBase<iNummusCashback>;
 //    function BuscaSaldo(ACodigo: Integer): Currency; overload;
 //    function BuscaSaldo(AIDNummus: String): Currency; overload;
     function SimulaResgate(ACodigo: Integer; AValor: Currency): Currency;
-    procedure NovoCashback(AVenda: TVenda);
+    procedure NovoCashback;
     procedure CancelaCashback(AID: String; AMotivo: String);
-    procedure BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; ADatasetDestino: TDataSet);
+    procedure BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; AiTable: iTable);
   end;
-
   TNummusCashback = class(TInterfacedObject, iNummusCashback)
     private
       FNummusBase: iNummusBase<iNummusCashback>;
       FProducts: TObjectList<TProduct>;
+      FVenda: TObjectList<TVendaNummus>;
       constructor Create;
       destructor Destroy; override;
-      function GeraJson(AVenda: TVenda): String;
+      function GeraJson: String;
+      procedure PopulaDatasetFromJson(const AJsonStr: string; AiTable: iTable);
+      procedure CampoGetText(Sender: TField; var Text: string; DisplayText: Boolean);
     public
       class function New: iNummusCashback;
       function NummusBase: iNummusBase<iNummusCashback>;
       function AddProduct(AProduct: TProduct): iNummusBase<iNummusCashback>;
+      function AddVenda(AVenda: TVendaNummus): iNummusBase<iNummusCashback>;
 //      function BuscaSaldo(ACodigo: integer): Currency; overload;
 //      function BuscaSaldo(AIDNummus: String): Currency; overload;
       function SimulaResgate(ACodigo: integer; AValor: Currency): Currency;
-      procedure NovoCashback(AVenda: TVenda);
+      procedure NovoCashback;
       procedure CancelaCashback(AID: String; AMotivo: String);
-      procedure BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; ADatasetDestino: TDataSet);
+      procedure BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; AiTable: iTable);
   end;
-
 implementation
 
 { TNebulazapBase<T> }
@@ -143,7 +139,6 @@ end;
 
 destructor TNummusBase<T>.Destroy;
 begin
-
   inherited;
 end;
 
@@ -174,9 +169,9 @@ begin
   Result:= FParent;
 end;
 
-function TNummusBase<T>.JsonConsumidor: iJsonObj;
+function TNummusBase<T>.JsonConsumidor: String;
 begin
-  Result:= FJsonConsumidor;
+  Result:= FJsonConsumidor.ToString;
 end;
 
 procedure TNummusBase<T>.Mensagem(AValue: String);
@@ -194,28 +189,25 @@ var
   vCliente: iEntidade;
   vTelefone: String;
 begin
+  Result:= Self;
   try
     vCliente:= TCliente.New;
     vCliente.EntidadeBase.TipoPesquisa(0);
     vCliente.EntidadeBase.TextoPesquisa(AID.ToString);
     vCliente.Consulta;
-
     if not vCliente.DtSrc.DataSet.IsEmpty then begin
       if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
         raise Exception.Create('O telefone do cliente é obrigatório.');
       if vCliente.DtSrc.DataSet.FieldByName('CGC').AsString.IsEmpty then
         raise Exception.Create('O documento do cliente é obrigatório.');
-
       if not vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
         vTelefone:= vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString
       else
         vTelefone:= vCliente.DtSrc.DataSet.FieldByName('FONE').AsString;
-
       if not vCliente.DtSrc.Dataset.FieldByName('DDD').asString.IsEmpty then begin
         if Copy(vTelefone, 1, 2) <> vCliente.DtSrc.Dataset.FieldByName('DDD').asString then
           vTelefone:= vCliente.DtSrc.Dataset.FieldByName('DDD').asString + vTelefone;
       end;
-
       if vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString.IsEmpty or vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').IsNull then begin
         FIDNummus := ConsultaClientePorDocTel(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString, vTelefone);
         if FIDNummus.IsEmpty then
@@ -230,9 +222,9 @@ begin
       FJsonConsumidor.AddPair('phone', vTelefone);
       FJsonConsumidor.AddPair('document_number', vCliente.DtSrc.DataSet.FieldByName('CGC').AsString);
       FJsonConsumidor.AddPair('name', vCliente.DtSrc.DataSet.FieldByName('NOME').AsString);
-      if not vCliente.DtSrc.DataSet.FieldByName('DTNASC').AsString.IsEmpty then
-        FJsonConsumidor.AddPair('birth_date', vCliente.DtSrc.DataSet.FieldByName('DTNASC').AsString);
-      FJsonConsumidor.AddPair('gender', '''N/I''');
+      if (not vCliente.DtSrc.DataSet.FieldByName('NASC').AsString.IsEmpty) and (not vCliente.DtSrc.DataSet.FieldByName('NASC').IsNull) then
+        FJsonConsumidor.AddPair('birth_date', vCliente.DtSrc.DataSet.FieldByName('NASC').AsString);
+      FJsonConsumidor.AddPair('gender', 'N/I');
       FJsonConsumidor.AddPair('email', vCliente.DtSrc.DataSet.FieldByName('EMAIL').AsString);
 //      FJsonConsumidor.AddPair('type_customer', '');
     end else
@@ -264,7 +256,6 @@ begin
               .AddParam('limit', '1')
               .AddParam('document_number', TLib.SomenteNumero(ACgc))
               .Get;
-
     if vResp.StatusCode = 200 then begin
       FSucesso:= True;
       FMensagem:= vResp.Content;
@@ -283,10 +274,8 @@ begin
       end;
     end else
       raise Exception.Create(vResp.Content);
-
     if not Result.IsEmpty then
       Exit;
-
     vResp:= TRequest.New.BaseURL(C_URL)
               .Timeout(C_TIMEOUT)
               .Resource('customer')
@@ -296,7 +285,6 @@ begin
               .AddParam('limit', '1')
               .AddParam('phone', TLib.SomenteNumero(ATelefone))
               .Get;
-
     if vResp.StatusCode = 200 then begin
       JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
       try
@@ -341,7 +329,6 @@ begin
               .AddHeader('x-client-id', FClientID)
               .AddBody(FJsonConsumidor.ToString)
               .Post;
-
     if vResp.StatusCode = 200 then begin
       vJsonResp:= TJsonVal.New(vResp.Content);
       Result:= vJsonResp.GetValueAsString('id');
@@ -374,7 +361,6 @@ function TNummusBase<T>.Sucesso: Boolean;
 begin
   Result:= FSucesso;
 end;
-
 { TNummusCashback }
 
 class function TNummusCashback.New: iNummusCashback;
@@ -391,25 +377,29 @@ constructor TNummusCashback.Create;
 begin
   FNummusBase:= TNummusBase<iNummusCashback>.New(Self);
   FProducts := TObjectList<TProduct>.Create;
+  FVenda:= TObjectList<TVendaNummus>.Create;
 end;
 
 destructor TNummusCashback.Destroy;
 begin
   FProducts.Free;
+  FVenda.Free;
   inherited;
 end;
 
-function TNummusCashback.GeraJson(AVenda: TVenda): String;
+function TNummusCashback.GeraJson: String;
 var
-  JsonObj: TJSONObject;
+  JsonObj, JsonConsumidor: TJSONObject;
   JsonProducts: TJSONArray;
   Product: TProduct;
+  Venda: TVendaNummus;
 begin
+  Result:= '';
   // Cria o objeto JSON principal
   JsonObj := TJSONObject.Create;
   try
-    JsonObj.AddPair('customer', FNummusBase.JsonConsumidor.ToJsonObject);
-
+    JsonConsumidor:= TJSONObject.ParseJSONValue(FNummusBase.JsonConsumidor) as TJSONObject;
+    JsonObj.AddPair('customer', JsonConsumidor);
     // Adiciona produtos
     JsonProducts := TJSONArray.Create;
     for Product in FProducts do begin
@@ -422,15 +412,14 @@ begin
       );
     end;
     JsonObj.AddPair('products', JsonProducts);
-
     // Adiciona informações adicionais
-    JsonObj
-      .AddPair('ticket_number', AVenda.TicketNumber)
-      .AddPair('value_rescue', TJSONNumber.Create(AVenda.ValueRescue))
-      .AddPair('value_discount', TJSONNumber.Create(AVenda.ValueDiscount))
-      .AddPair('description_purchase', AVenda.DescriptionPurchase)
-      .AddPair('dh_launch', FormatDateTime('yyyy-mm-ddThh:nn:ss', now));
-
+    for Venda in FVenda do begin
+      JsonObj.AddPair('ticket_number', Venda.TicketNumber);
+      JsonObj.AddPair('value_rescue', TJSONNumber.Create(Venda.ValueRescue));
+      JsonObj.AddPair('value_discount', TJSONNumber.Create(Venda.ValueDiscount));
+      JsonObj.AddPair('description_purchase', Venda.DescriptionPurchase);
+      JsonObj.AddPair('dh_launch', FormatDateTime('yyyy-mm-ddThh:nn:ss', now));
+    end;
     // Converte para string
     Result := JsonObj.ToString;
   finally
@@ -443,7 +432,7 @@ begin
   Result:= FNummusBase;
 end;
 
-procedure TNummusCashback.NovoCashback(AVenda: TVenda);
+procedure TNummusCashback.NovoCashback;
 var
   vResp: IResponse;
 begin
@@ -454,7 +443,7 @@ begin
               .ContentType('application/json')
               .AddHeader('x-api-key', FNummusBase.ApiKey)
               .AddHeader('x-client-id', FNummusBase.ClientID)
-              .AddBody(GeraJson(AVenda))
+              .AddBody(GeraJson)
               .Post;
 
     if vResp.StatusCode = 200 then begin
@@ -462,7 +451,6 @@ begin
       FNummusBase.Mensagem(vResp.Content);
     end else
       raise Exception.Create(vResp.Content);
-
   except
     on E:Exception do begin
       FNummusBase.Sucesso(False);
@@ -548,7 +536,6 @@ end;
 //    end;
 //  end;
 //end;
-
 function TNummusCashback.SimulaResgate(ACodigo: integer; AValor: Currency): Currency;
 var
   vResp: IResponse;
@@ -562,26 +549,21 @@ begin
     vCliente.EntidadeBase.TipoPesquisa(0);
     vCliente.EntidadeBase.TextoPesquisa(ACodigo.ToString);
     vCliente.Consulta;
-
     if vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').IsNull or vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString.IsEmpty then begin
       FNummusBase
-        .Cliente(ACodigo)
-      .&End;
+        .Cliente(ACodigo);
       vIdNummus:= FNummusBase.ClienteIdNummus;
     end else
       vIdNummus:= vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString;
-
     vJsonObj := TJSONObject.Create;
     try
       vJsonObj.AddPair('customer_id', vIdNummus);
       vJsonObj.AddPair('value_purchase', TJSONNumber.Create(AValor));
-
       // Converte para string
       vJson := vJsonObj.ToString;
     finally
       vJsonObj.Free;
     end;
-
     vResp:= TRequest.New.BaseURL(C_URL)
               .Timeout(C_TIMEOUT)
               .Resource('cashback/simulation')
@@ -590,25 +572,23 @@ begin
               .AddHeader('x-client-id', FNummusBase.ClientID)
               .AddBody(vJson)
               .Post;
-
     if vResp.StatusCode = 200 then begin
       FNummusBase.Sucesso(True);
       FNummusBase.Mensagem(vResp.Content);
       vJSONObjResult := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
       try
-        if AValor > 0 then begin
+//        if AValor > 0 then begin
           if Assigned(vJSONObjResult) and vJSONObjResult.TryGetValue<Currency>('rescue_available', Result) then
             Exit(Result);
-        end else begin
-          if Assigned(vJSONObjResult) and vJSONObjResult.TryGetValue<Currency>('amount', Result) then
-            Exit(Result);
-        end;
+//        end else begin
+//          if Assigned(vJSONObjResult) and vJSONObjResult.TryGetValue<Currency>('rescue_available', Result) then
+//            Exit(Result);
+//        end;
       finally
         vJSONObjResult.Free;
       end;
     end else
       raise Exception.Create(vResp.Content);
-
   except
     on E:Exception do begin
       FNummusBase.Sucesso(False);
@@ -631,7 +611,6 @@ begin
     finally
       vJsonObj.Free;
     end;
-
     vResp:= TRequest.New.BaseURL(C_URL)
               .Timeout(C_TIMEOUT)
               .Resource('/cashback/' + AID + '/cancel')
@@ -640,7 +619,6 @@ begin
               .AddHeader('x-client-id', FNummusBase.ClientID)
               .AddBody(vJsonStr)
               .Put;
-
     if vResp.StatusCode = 200 then begin
       FNummusBase.Sucesso(True);
       FNummusBase.Mensagem(vResp.Content);
@@ -654,7 +632,12 @@ begin
   end;
 end;
 
-procedure TNummusCashback.BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; ADatasetDestino: TDataSet);
+function TNummusCashback.AddVenda(AVenda: TVendaNummus): iNummusBase<iNummusCashback>;
+begin
+  FVenda.Add(AVenda);
+end;
+
+procedure TNummusCashback.BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; AiTable: iTable);
 var
   vResp: IResponse;
   vJsonObj: TJSONObject;
@@ -669,7 +652,6 @@ begin
     finally
       vJsonObj.Free;
     end;
-
     vJsonObj := TJSONObject.Create;
     try
       vJsonObj.AddPair('document_number', TLib.SomenteNumero(ACpf));
@@ -677,24 +659,22 @@ begin
     finally
       vJsonObj.Free;
     end;
-
     vResp:= TRequest.New.BaseURL(C_URL)
               .Timeout(C_TIMEOUT)
               .Accept('application/json')
               .Resource('cashback')
               .AddHeader('x-api-key', FNummusBase.ApiKey)
               .AddHeader('x-client-id', FNummusBase.ClientID)
-              .AddParam('limit', '100')
+              .AddParam('limit', '30')
               .AddParam('offset', '0')
-              .AddParam('period', vJsonPeriod)
-              .AddParam('customer', vJsonCustomer)
-              .AddParam('status', 'NOT_REGISTERED')
-              .DataSetAdapter(ADatasetDestino)
-              .Put;
-
+              .AddParam('status', 'ACTIVE')
+//              .AddParam('period', vJsonPeriod)
+//              .AddParam('customer', vJsonCustomer)
+              .Get;
     if vResp.StatusCode = 200 then begin
       FNummusBase.Sucesso(True);
       FNummusBase.Mensagem(vResp.Content);
+      PopulaDatasetFromJson(vResp.Content, AiTable);
     end else
       raise Exception.Create(vResp.Content);
   except
@@ -703,6 +683,55 @@ begin
       FNummusBase.Mensagem(E.Message);
     end;
   end;
+end;
+procedure TNummusCashback.PopulaDatasetFromJson(const AJsonStr: string; AiTable: iTable);
+var
+  JsonObj, ContentItem: TJSONObject;
+  JsonArray: TJSONArray;
+  ProductsArray: TJSONArray;
+  I: Integer;
+  vField: TField;
+begin
+  // Criar campos na MemTable se ainda não existirem
+  if AiTable.Tabela.Fields.Count = 0 then begin
+    AiTable.Tabela.FieldDefs.Add('ID', ftString, 30);
+    AiTable.Tabela.FieldDefs.Add('NAME', ftString, 100);
+    AiTable.Tabela.FieldDefs.Add('VALUE_PAID', ftCurrency);
+    AiTable.Tabela.FieldDefs.Add('VALUE_CASHBACK', ftCurrency);
+    AiTable.Tabela.FieldDefs.Add('DH_OPERATION', ftDateTime);
+    AiTable.Tabela.FieldDefs.Add('EXCLUIR', ftBoolean);
+    AiTable.CriaDataSet;
+  end;
+
+  // Criar o JSON Object
+  JsonObj := TJSONObject.ParseJSONValue(aJsonStr) as TJSONObject;
+  try
+    JsonArray := JsonObj.GetValue<TJSONArray>('content');
+
+    if Assigned(JsonArray) then begin
+      for I := 0 to JsonArray.Count - 1 do begin
+        ContentItem := JsonArray.Items[I] as TJSONObject;
+
+        AiTable.Tabela.Append;
+        AiTable.Tabela.FieldByName('ID').AsString := ContentItem.GetValue<string>('id', '');
+        AiTable.Tabela.FieldByName('NAME').AsString := ContentItem.GetValue<TJSONObject>('customer').GetValue<string>('name', '');
+        AiTable.Tabela.FieldByName('VALUE_PAID').AsCurrency := ContentItem.GetValue<Double>('value_paid', 0);
+        AiTable.Tabela.FieldByName('VALUE_CASHBACK').AsCurrency := ContentItem.GetValue<Double>('value_cashback', 0);
+        AiTable.Tabela.FieldByName('DH_OPERATION').AsString := ContentItem.GetValue<string>('dh_operation', '');
+        AiTable.Tabela.FieldByName('EXCLUIR').AsBoolean := False;
+        AiTable.Tabela.Post;
+      end;
+      vField:= AiTable.Tabela.FieldByName('EXCLUIR');
+      vField.OnGetText:= CampoGetText;
+    end;
+  finally
+    JsonObj.Free;
+  end;
+end;
+
+procedure TNummusCashback.CampoGetText(Sender: TField; var Text: string; DisplayText: Boolean);
+begin
+  Text:= EmptyStr;
 end;
 
 end.
