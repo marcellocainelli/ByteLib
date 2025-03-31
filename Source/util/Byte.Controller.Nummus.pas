@@ -577,13 +577,13 @@ begin
       FNummusBase.Mensagem(vResp.Content);
       vJSONObjResult := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
       try
-//        if AValor > 0 then begin
+        if AValor > 0 then begin
           if Assigned(vJSONObjResult) and vJSONObjResult.TryGetValue<Currency>('rescue_available', Result) then
             Exit(Result);
-//        end else begin
-//          if Assigned(vJSONObjResult) and vJSONObjResult.TryGetValue<Currency>('rescue_available', Result) then
-//            Exit(Result);
-//        end;
+        end else begin
+          if Assigned(vJSONObjResult) and vJSONObjResult.TryGetValue<Currency>('amount', Result) then
+            Exit(Result);
+        end;
       finally
         vJSONObjResult.Free;
       end;

@@ -61,6 +61,7 @@ begin
   FEntidadeBase.Iquery.DataSet.FieldByName('OCULTO').AsString:= 'N';
   FEntidadeBase.Iquery.DataSet.FieldByName('FORMAS_PAGAMENTO').AsInteger:= 0;
   FEntidadeBase.Iquery.DataSet.FieldByName('DASHBOARD').AsString:= 'N';
+  FEntidadeBase.Iquery.DataSet.FieldByName('VER_PRECOS').AsString:= 'S';
 {$ENDIF}
 end;
 
