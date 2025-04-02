@@ -66,12 +66,13 @@ type
     FMensagem: String;
     FSucesso: Boolean;
     FApiKey, FClientID, FIDNummus: String;
-    FJsonConsumidor: iJsonObj;
+    FJsonConsumidor: TJSONObject;
     constructor Create(Parent: T);
     destructor Destroy; override;
-    function RegistraConsumidor(ACodigo: Integer): String;
+    function RegistraConsumidor(ADataset: TDataset; ATelefone: String): String;
     procedure SalvaIdNummus(AId: String; ACodigo: integer);
-    function ConsultaClientePorDocTel(ACgc, ATelefone: String): String;
+    procedure MontaJsonCliente(ADataset: TDataset; ATelefone: String);
+    function ConsultaClientePorDocTel(ACgc, ATelefone: String; ACodCliente: integer): String;
   public
     class function New(Parent: T): iNummusBase<T>;
     function &End : T;
@@ -133,12 +134,13 @@ end;
 constructor TNummusBase<T>.Create(Parent: T);
 begin
   FParent:= Parent;
-  FJsonConsumidor:= TJsonObj.New;
   FMensagem:= '';
 end;
 
 destructor TNummusBase<T>.Destroy;
 begin
+  if Assigned(FJsonConsumidor) then
+    FJsonConsumidor.Free;
   inherited;
 end;
 
@@ -179,6 +181,22 @@ begin
   FMensagem:= AValue;
 end;
 
+procedure TNummusBase<T>.MontaJsonCliente(ADataset: TDataset; ATelefone: String);
+begin
+  if Assigned(FJsonConsumidor) then
+    FJsonConsumidor.Free;
+  FJsonConsumidor:= TJSONObject.Create;
+  if not FIdNummus.IsEmpty then
+    FJsonConsumidor.AddPair('id', FIdNummus);
+  FJsonConsumidor.AddPair('phone', ATelefone);
+  FJsonConsumidor.AddPair('document_number', ADataset.FieldByName('CGC').AsString);
+  FJsonConsumidor.AddPair('name', ADataset.FieldByName('NOME').AsString);
+  if (not ADataset.FieldByName('NASC').AsString.IsEmpty) and (not ADataset.FieldByName('NASC').IsNull) then
+    FJsonConsumidor.AddPair('birth_date', ADataset.FieldByName('NASC').AsString);
+  FJsonConsumidor.AddPair('gender', 'N/I');
+  FJsonConsumidor.AddPair('email', ADataset.FieldByName('EMAIL').AsString);
+end;
+
 function TNummusBase<T>.Mensagem: String;
 begin
   Result:= FMensagem;
@@ -209,24 +227,16 @@ begin
           vTelefone:= vCliente.DtSrc.Dataset.FieldByName('DDD').asString + vTelefone;
       end;
       if vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString.IsEmpty or vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').IsNull then begin
-        FIDNummus := ConsultaClientePorDocTel(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString, vTelefone);
+        FIDNummus := ConsultaClientePorDocTel(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString, vTelefone, AID);
         if FIDNummus.IsEmpty then
-          FIdNummus:= RegistraConsumidor(AID);
+          FIdNummus:= RegistraConsumidor(vCliente.DtSrc.DataSet, vTelefone);
         if not FIdNummus.IsEmpty then
           SalvaIdNummus(FIdNummus, AID)
         else
           raise Exception.Create('Erro: ' + FMensagem);
       end else
         FIdNummus:= vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString;
-      FJsonConsumidor.AddPair('id', FIdNummus);
-      FJsonConsumidor.AddPair('phone', vTelefone);
-      FJsonConsumidor.AddPair('document_number', vCliente.DtSrc.DataSet.FieldByName('CGC').AsString);
-      FJsonConsumidor.AddPair('name', vCliente.DtSrc.DataSet.FieldByName('NOME').AsString);
-      if (not vCliente.DtSrc.DataSet.FieldByName('NASC').AsString.IsEmpty) and (not vCliente.DtSrc.DataSet.FieldByName('NASC').IsNull) then
-        FJsonConsumidor.AddPair('birth_date', vCliente.DtSrc.DataSet.FieldByName('NASC').AsString);
-      FJsonConsumidor.AddPair('gender', 'N/I');
-      FJsonConsumidor.AddPair('email', vCliente.DtSrc.DataSet.FieldByName('EMAIL').AsString);
-//      FJsonConsumidor.AddPair('type_customer', '');
+      MontaJsonCliente(vCliente.DtSrc.DataSet, vTelefone);
     end else
       raise Exception.Create('Cliente não encontrado!');
   except
@@ -238,7 +248,7 @@ begin
   end;
 end;
 
-function TNummusBase<T>.ConsultaClientePorDocTel(ACgc, ATelefone: String): String;
+function TNummusBase<T>.ConsultaClientePorDocTel(ACgc, ATelefone: String; ACodCliente: integer): String;
 var
   vResp: IResponse;
   JSONObject: TJSONObject;
@@ -266,14 +276,14 @@ begin
           if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
             ContentItem := ContentArray.Items[0] as TJSONObject;
             Result := ContentItem.GetValue<string>('id');
-          end else
-            raise Exception.Create(vResp.Content);
+          end;
         end;
       finally
         JSONObject.Free;
       end;
     end else
       raise Exception.Create(vResp.Content);
+
     if not Result.IsEmpty then
       Exit;
     vResp:= TRequest.New.BaseURL(C_URL)
@@ -293,8 +303,7 @@ begin
           if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
             ContentItem := ContentArray.Items[0] as TJSONObject;
             Result := ContentItem.GetValue<string>('id');
-          end else
-            raise Exception.Create(vResp.Content);
+          end;
         end;
       finally
         JSONObject.Free;
@@ -314,13 +323,15 @@ begin
   Result:= FIDNummus;
 end;
 
-function TNummusBase<T>.RegistraConsumidor(ACodigo: integer): String;
+function TNummusBase<T>.RegistraConsumidor(ADataset: TDataset; ATelefone: String): String;
 var
   vResp: IResponse;
   vJsonResp: iJsonVal;
 begin
   Result:= '';
   try
+    FIDNummus:= '';
+    MontaJsonCliente(ADataset, ATelefone);
     vResp:= TRequest.New.BaseURL(C_URL)
               .Timeout(C_TIMEOUT)
               .Resource('customer')
