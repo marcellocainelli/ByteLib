@@ -36,7 +36,6 @@ class function TCliente.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-
 function TCliente.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
@@ -45,6 +44,7 @@ function TCliente.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
   vNumeroAux: integer;
+  vDataAux: TDateTime;
 begin
   Result:= Self;
   if Value = nil then
@@ -97,12 +97,20 @@ begin
     5: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(CIDADE) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
     6: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(FONE) Containing Upper(:Parametro)';
     7: vTextoSQL:= FEntidadeBase.TextoSql + 'Upper(RAZAOSOCIAL) ' + FEntidadeBase.RegraPesquisa + ' Upper(:Parametro)';
-    8: begin
-        vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) Containing :Parametro';
-        FEntidadeBase.TextoPesquisa(TLib.SomenteNumero(FEntidadeBase.TextoPesquisa));
+    8:
+    begin
+      vTextoSQL:= FEntidadeBase.TextoSql + '(SELECT Retorno FROM spApenasNumeros(CGC) as so_numero) Containing :Parametro';
+      FEntidadeBase.TextoPesquisa(TLib.SomenteNumero(FEntidadeBase.TextoPesquisa));
     end;
     9: vTextoSQL:= FEntidadeBase.TextoSql + 'DETALHE containing :Parametro';
-    10: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)';
+    10:
+    begin
+      if TryStrToDate(FEntidadeBase.TextoPesquisa, vDataAux) then begin
+        FEntidadeBase.TextoPesquisa(FormatDateTime('mm/dd/yyyy', vDataAux));
+        vTextoSQL:= FEntidadeBase.TextoSql + 'NASC = :Parametro';
+      end else
+        vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (SELECT v.cod_cli FROM CARRO v where v.placa Containing :Parametro)';
+    end;
     11: vTextoSQL:='Select c.* From CADCLI c Where c.codigo in (' + FEntidadeBase.TextoPesquisa + ')';
   end;
   {$ENDIF}
