@@ -4,6 +4,7 @@ uses
   System.Classes, System.SysUtils, System.JSon, RESTRequest4D, Byte.Json;
 const
   C_MaxConsultas = 30;
+  C_TIMEOUT = 30000;
 type
   tpCobStatus= (cobAberta, cobCancelada, cobPaga, cobNaoExiste);
   iPosControle = interface
@@ -161,7 +162,7 @@ var
 begin
   Try
     vResp:= TRequest.New.BaseURL(FBaseURL)
-              .Timeout(10000)
+              .Timeout(C_TIMEOUT)
               .Resource('v2/auth/token')
               .ContentType('application/x-www-form-urlencoded')
               .AddBody('username=' + FUsername + '&password=' + FPassword)
@@ -205,7 +206,7 @@ begin
       end;
 
       vResp:= TRequest.New.BaseURL(FBaseURL)
-                .Timeout(10000)
+                .Timeout(C_TIMEOUT)
                 .Resource('v3/smart-tef/newItem')
                 .ContentType('application/json')
                 .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
@@ -259,7 +260,7 @@ begin
         vObj.AddPair('Extras', vObjExtras);
       end;
       vResp:= TRequest.New.BaseURL(FBaseURL)
-                .Timeout(10000)
+                .Timeout(C_TIMEOUT)
                 .Resource('v3/smart-tef/newItem')
                 .ContentType('application/json')
                 .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
@@ -296,7 +297,7 @@ begin
     try
       vObj.AddPair('IDCobranca', FIDCobranca);
       vResp:= TRequest.New.BaseURL(FBaseURL)
-                .Timeout(10000)
+                .Timeout(C_TIMEOUT)
                 .Resource('v3/smart-tef/get-status')
                 .ContentType('application/json')
                 .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
@@ -316,7 +317,7 @@ begin
 end;
 procedure TPosControle.VerificaPagamento(AValue: string);
 var
-  JsonObject, DataObject, DataObjectResponse: TJSONObject;
+  JsonObject, DataObject, DataObj: TJSONObject;
   DataValue, DataValueResponse: TJSONValue;
   Pagamentos: string;
   ResponseCode: string;
@@ -330,19 +331,26 @@ begin
       // Verifica se existe a cobranca
       ResponseCode := JsonObject.GetValue<String>('responseCode');
       if ResponseCode = '401.05' then begin
-        FCobStatus:= cobPaga;
+        if not (FCobStatus = cobCancelada) then begin
+          SmartTef_Del;
+          FCobStatus:= cobNaoExiste;
+        end;
         Exit;
       end;
       // Acessa o objeto "data"
-      DataValue := JsonObject.GetValue('data');
-      if Assigned(DataValue) and (DataValue is TJSONObject) then begin
-        DataObject := DataValue as TJSONObject;
-        // Captura o valor de "Pagamentos" se ele estiver presente e não for null
-        if DataObject.TryGetValue<string>('Pagamentos', Pagamentos) then begin
-          if Pagamentos.IsEmpty then
-            FCobStatus:= cobAberta
-          else
-            FCobStatus:= cobPaga;
+      if JsonObject.TryGetValue<TJSONObject>('data', DataObj) then begin
+        if DataObj.TryGetValue<TJSONValue>('Pagamentos', DataValue) then begin
+          if (DataValue <> nil) and (not DataValue.Null) then begin
+            // Se for uma string, verificar se a string não está vazia
+            if DataValue is TJSONString then begin
+              Pagamentos := (DataValue as TJSONString).Value;
+              if (Pagamentos <> '') and (Pagamentos <> '[]') then
+                FCobStatus:= cobPaga
+              else
+                FCobStatus:= cobAberta;
+            end;
+          end else
+            FCobStatus:= cobAberta;
         end;
       end;
     end;
