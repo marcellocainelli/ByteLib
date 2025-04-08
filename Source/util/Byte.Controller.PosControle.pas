@@ -93,67 +93,56 @@ function TPosControle.CobStatus: tpCobStatus;
 begin
   Result:= FCobStatus;
 end;
-
 function TPosControle.Cpf(AValue: String): iPosControle;
 begin
   Result:= Self;
   FCpf:= AValue;
 end;
-
 function TPosControle.IDCobranca(AValue: String): iPosControle;
 begin
   Result:= Self;
   FIDCobranca:= AValue;
 end;
-
 function TPosControle.IDPagamento(AValue: String): iPosControle;
 begin
   Result:= Self;
   FIDPagamento:= AValue;
 end;
-
 function TPosControle.Nome(AValue: String): iPosControle;
 begin
   Result:= Self;
   FNome:= AValue;
 end;
-
 function TPosControle.NumSerialPos(AValue: String): iPosControle;
 begin
   Result:= Self;
   FNumSerialPos:= AValue;
 end;
-
 function TPosControle.QtParcelas(AValue: String): iPosControle;
 begin
   Result:= Self;
   FQtParcelas:= AValue;
 end;
-
 function TPosControle.Password(AValue: String): iPosControle;
 begin
   Result:= Self;
   FPassword:= AValue;
 end;
-
 function TPosControle.SubscriptionKey(AValue: String): iPosControle;
 begin
   Result:= Self;
   FSubscriptionKey:= AValue;
 end;
-
 function TPosControle.Username(AValue: String): iPosControle;
 begin
   Result:= Self;
   FUsername:= AValue;
 end;
-
 function TPosControle.BaseURL(AValue: String): iPosControle;
 begin
   Result:= Self;
   FBaseURL:= AValue;
 end;
-
 function TPosControle.Auth: string;
 var
   vResp: IResponse;
@@ -178,7 +167,6 @@ begin
     raise Exception.Create('Erro ao autenticar: '+ E.Message);
   end;
 end;
-
 function TPosControle.SmartTef: iPosControle;
 var
   vResp: IResponse;
@@ -204,7 +192,6 @@ begin
           vObjExtras.AddPair('Nome', FNome);
         vObj.AddPair('Extras', vObjExtras);
       end;
-
       vResp:= TRequest.New.BaseURL(FBaseURL)
                 .Timeout(C_TIMEOUT)
                 .Resource('v3/smart-tef/newItem')
@@ -232,7 +219,6 @@ begin
     end;
   end;
 end;
-
 function TPosControle.SmartTef_Del: string;
 var
   vResp: IResponse;
@@ -283,7 +269,6 @@ begin
     raise Exception.Create(E.Message);
   end;
 end;
-
 function TPosControle.GetStatus: iPosControle;
 var
   vResp: IResponse;
@@ -358,22 +343,18 @@ begin
     JsonObject.Free;
   end;
 end;
-
 function TPosControle.QtdConsultas: integer;
 begin
   Result:= FQtdConsultas;
 end;
-
 procedure TPosControle.QtdConsultas(Value: integer);
 begin
   FQtdConsultas:= Value;
 end;
-
 function TPosControle.QtdMaxConsultas: integer;
 begin
   Result:= C_MaxConsultas;
 end;
-
 function TPosControle.GetResponseCode(const JsonStr: string): Integer;
 var
   JSONObj: TJSONObject;
@@ -398,5 +379,4 @@ begin
       Result := -1;
   end;
 end;
-
 end.
