@@ -1,7 +1,5 @@
 unit Byte.Lib;
-
 interface
-
 uses
   System.SysUtils,
   System.Classes,
@@ -13,10 +11,8 @@ uses
   System.MaskUtils,
   System.DateUtils,
   System.Math,
-
   Data.DB,
   Byte.Consts,
-
   IdCoderMIME,
   {$IFDEF MSWINDOWS}
   Vcl.Controls,
@@ -44,12 +40,9 @@ uses
   IdSSLOpenSSLHeaders,
   IdAttachmentFile,
   IdText;
-
 type
   TProcedureExcept = reference to procedure (const AExcpetion: String);
-
   TTipoValidacao = (tvCPFCNPJ, tvEmail, tvFixoCelular, tvRG, tvIE, tvCEP);
-
   TLib = class
     private
       class function FormatarCnpj(const Valor: string): string;
@@ -86,20 +79,17 @@ type
       class function PadC(sTexto: string; iTamanho: Integer): string;
       class function padL(const AString: String; const nLen : Integer; const Caracter : AnsiChar = ' ') : String;
       class function Padr(s:string;n:integer):string;
-
       {Funções matematicas}
       class function RoundABNT(const AValue: Double; const Digits: TRoundToRange; const Delta: Double = 0.00001 ): Double;
       class function RoundTo2(const AValue: Double; const ADigit: TRoundToRange): Double;
-
       {Funções de validação}
       class function IsCNPJ(AValue: string): boolean;
       class function IsCPF(AValue: string): boolean;
       class function Valida(AValue: String; ATipoValidacao: TTipoValidacao): Boolean;
-
+      class function ValidaEAN13(codigoBarras: string): boolean;
       {FUNÇÕES BASE64}
       class function Base64_Encode(AFile: string): string;
       class procedure Base64_Decode(ABase64: string; AStream: TMemoryStream);
-
       {Encriptação}
       class function Crypt(Texto,Chave :String): String;
       class function Crypto (aText: string): string;
@@ -107,13 +97,9 @@ type
       class function Decrypto (aText, aChave: string): string; overload;
       class function CryptSameTextLength(Texto,Chave :String): String;
   end;
-
 implementation
-
 { TLib }
-
 {$REGION 'FUNÇÕES UTEIS'}
-
 class function TLib.CheckInternet(AHost: string; APort: integer): Boolean;
 var
   LIDTCPClient: TIdTCPClient;
@@ -140,7 +126,6 @@ begin
     LIDTCPClient := nil;
   end;
 end;
-
 class function TLib.ClearDirectory(aDirectory: String): Boolean;
 var
   SR: TSearchRec;
@@ -158,7 +143,6 @@ begin
   end;
   Result := True;
 end;
-
 class procedure TLib.CustomThread(AOnStart, AOnProcess, AOnComplete: TProc; AOnError: TprocedureExcept; const ADoCompleteWithError: Boolean);
 var
   vThread: TThread;
@@ -180,10 +164,8 @@ begin
               end
             );
           end;
-
           if Assigned(AOnProcess) then
             AOnProcess;
-
         except on E:Exception do
           begin
             vDoComplete:= ADoCompleteWithError;
@@ -215,12 +197,10 @@ begin
   vThread.FreeOnTerminate:= True;
   vThread.Start;
 end;
-
 class function TLib.GetRandomNumber(AStartNum, AEndNum: integer): integer;
 begin
   Result:= AStartNum + Random(AEndNum);
 end;
-
 class procedure TLib.VCL_OpenPDF(AFile: TFileName; ATypeForm: Integer);
 var
   vDir: PChar;
@@ -232,26 +212,22 @@ begin
   FreeMem(vDir, 256);
 {$ENDIF}
 end;
-
 class function TLib.IIf(pCond: Boolean; pTrue, pFalse: Variant): Variant;
 begin
   If pCond Then Result:= pTrue else Result:= pFalse;
 end;
-
 //Converte boolean para string - S = True N = False
 class function TLib.MyBoolToStr(S: Boolean): string;
 begin
   Result := 'N';
   If S then Result := 'S';
 end;
-
 //Converte string para boolean - S = True N = False
 class function TLib.MyStrToBool(S: string): boolean;
 begin
   Result := false;
   if S = 'S' then Result := True;
 end;
-
 //------------------------------------------------------------------------------
 // função que retorna valores em extenso
 // esta função tem uma limitação. no caso este projeto foi desenvolvido no
@@ -264,7 +240,6 @@ class function TLib.Extenso(pValor: extended): String;
 const
   Unidades: array[1..19] of string = ('um', 'dois', 'três', 'quatro','cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze',
   'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito','dezenove');
-
   Dezenas: array[1..9] of string = ('dez', 'vinte', 'trinta', 'quarenta','cinqüenta', 'sessenta', 'setenta', 'oitenta', 'noventa');
   Centenas: array[1..9] of string = ('cem', 'duzentos', 'trezentos','quatrocentos', 'quinhentos', 'seiscentos', 'setecentos',          'oitocentos','novecentos');
   Min = 0.01;
@@ -277,7 +252,6 @@ const
 var
   lResultado : string;
   //myE : erangeerror;
-
       //------------------------------------------------------------------------
       function ConversaoRecursiva(N: LongInt): string;
       begin
@@ -307,7 +281,6 @@ var
                         Result := ConversaoRecursiva(N div 1000000000) + ' bilhões ' + ConversaoRecursiva(N mod 1000000000);
         end;
       end;
-
 begin // início Extenso
   try try
     if (pValor >= Min) and (pValor <= Max) then
@@ -319,7 +292,6 @@ begin // início Extenso
       else
           if Round(Int(pValor)) <> 0 then
              lResultado := lResultado + Moedas;
-
       //Tratar centavos
       if not(Frac(pValor) = 0.00) then
       begin
@@ -348,7 +320,6 @@ begin // início Extenso
     result := lResultado;
   end;
 end;
-
 class function TLib.FormatarCnpj(const Valor: string): string;
 begin
   Result := Valor;
@@ -393,7 +364,6 @@ begin
     StartPos := 1;
   Result := Copy(S, StartPos, NumDigitos);
 end;
-
 class procedure TLib.RegistraInicializarWindows(const AProgTitle, AExePath: string; ARunOnce: Boolean);
 var
   vSKey: string;
@@ -407,7 +377,6 @@ begin
   vSKey:= '';
   if ARunOnce then
     vSKey:= 'Once';
-
   vReg:= TRegIniFile.Create('');
   try
     vReg.RootKey:= HKEY_LOCAL_MACHINE;
@@ -417,11 +386,8 @@ begin
   end;
 {$ENDIF}
 end;
-
 {$ENDREGION}
-
 {$REGION 'FUNÇÕES DE FORMATAÇÃO'}
-
 class function TLib.PoeZeros(Valor: String; Tamanho, Decimais: Integer): String;
 var
   Inteiro, Fracao: String;
@@ -435,7 +401,6 @@ begin
   end else while Length(Valor) < Tamanho do Valor := '0' + Valor;
   Result := Valor;
 end;
-
 class function TLib.RemoveAcento(AString: String): String;
 Const
   ComAcento = 'àâêôûãõáéíóúçüÀÂÊÔÛÃÕÁÉÍÓÚÇÜ°';
@@ -448,7 +413,6 @@ Begin
       AString[x] := SemAcento[Pos(AString[x],ComAcento)];
   Result := AString;
 end;
-
 class function TLib.RoundABNT(const AValue: Double; const Digits: TRoundToRange; const Delta: Double): Double;
 var
    Pow, FracValue, PowValue : Extended;
@@ -457,39 +421,31 @@ var
    Negativo: Boolean;
 Begin
    Negativo  := (AValue < 0);
-
    Pow       := intpower(10, abs(Digits) );
    PowValue  := abs(AValue) / 10 ;
    IntValue  := trunc(PowValue);
    FracValue := frac(PowValue);
-
    PowValue := SimpleRoundToEX( FracValue * 10 * Pow, -9) ; // SimpleRoundTo elimina dizimas ;
    IntCalc  := trunc( PowValue );
    FracCalc := trunc( frac( PowValue ) * 100 );
-
    if (FracCalc > 50) then
      Inc( IntCalc )
-
    else if (FracCalc = 50) then
    begin
      LastNumber := round( frac( IntCalc / 10) * 10);
-
      if odd(LastNumber) then
        Inc( IntCalc )
      else
      begin
        RestPart := frac( PowValue * 10 ) ;
-
        if RestPart > Delta then
          Inc( IntCalc );
      end ;
    end ;
-
    Result := ((IntValue*10) + (IntCalc / Pow));
    if Negativo then
      Result := -Result;
 end;
-
 class function TLib.RoundTo2(const AValue: Double; const ADigit: TRoundToRange): Double;
 var
   LFactor: Double;
@@ -497,7 +453,6 @@ begin
   LFactor := IntPower(10, ADigit);
   Result := Round((AValue / LFactor) + 0.05) * LFactor;
 end;
-
 class function TLib.SimpleRoundToEX(const AValue: Extended; const ADigit: TRoundToRange): Extended;
 var
   LFactor: Extended;
@@ -508,7 +463,6 @@ begin
   else
     Result := Int((AValue / LFactor) + 0.5) * LFactor;
 end;
-
 class function TLib.SomenteLetras(const AValue: String): string;
 var
   vStr: String;
@@ -521,7 +475,6 @@ begin
     ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y', 'W', 'Z', ' ']) then
       Result:= Result + vStr[I];
 end;
-
 class function TLib.SomenteNumero(const AValue: string): string;
 var
   I: integer;
@@ -534,11 +487,9 @@ begin
       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) of
       0,1,2,3,4,5,6,7,8,9: Result:= Result + vStr;
     else
-
     end;
   end;
 end;
-
 class function TLib.PadC(sTexto: string; iTamanho: Integer): string;
 var
   iContador                   : Integer;
@@ -552,7 +503,6 @@ begin
   for iContador := 1 to iPosicao do
     Result := Result + ' ';
 end;
-
 {-----------------------------------------------------------------------------
   Completa <AString> com <Caracter> a direita, até o tamanho <nLen>, Alinhando
   a <AString> a Esquerda. Se <AString> for maior que <nLen>, ela será truncada
@@ -568,16 +518,12 @@ begin
   else
     Result := copy(AString,1,nLen) ;
 end;
-
 class function TLib.Padr(s: string; n: integer): string;
 begin
   Result:=Format('%'+IntToStr(n)+'.'+IntToStr(n)+'s',[s]);
 end;
-
 {$ENDREGION}
-
 {$REGION 'FUNÇÕES DE VALIDAÇÃO'}
-
 class function TLib.IsCNPJ(AValue: string): boolean;
 var
   dig13, dig14: string;
@@ -595,7 +541,6 @@ begin
     isCNPJ := False;
     Exit;
   end;
-
   // "try" - protege o código para eventuais erros de conversão de tipo através da função "StrToInt"
   try
     { *-- Cálculo do 1o. Digito Verificador --* }
@@ -608,13 +553,11 @@ begin
       if (peso = 10) then
         peso := 2;
     end;
-
     r := sm mod 11;
     if ((r = 0) or (r = 1)) then
       dig13 := '0'
     else
       str((11-r):1, dig13); // converte um número no respectivo caractere numérico
-
     { *-- Cálculo do 2o. Digito Verificador --* }
     sm := 0;
     peso := 2;
@@ -624,13 +567,11 @@ begin
       if (peso = 10) then
         peso := 2;
     end;
-
     r := sm mod 11;
     if ((r = 0) or (r = 1)) then
       dig14 := '0'
     else
       str((11-r):1, dig14);
-
     { Verifica se os digitos calculados conferem com os digitos informados. }
     if ((dig13 = Copy(aValue, 13, 1)) and (dig14 = Copy(aValue, 14, 1))) then
       isCNPJ := true
@@ -640,7 +581,6 @@ begin
     isCNPJ := False
   end;
 end;
-
 class function TLib.IsCPF(AValue: string): boolean;
 var
   dig10, dig11: string;
@@ -658,7 +598,6 @@ begin
   isCPF := false;
   exit;
   end;
-
   // try - protege o código para eventuais erros de conversão de tipo na função StrToInt
   try
     { *-- Cálculo do 1o. Digito Verificador --* }
@@ -670,14 +609,12 @@ begin
       s := s + (StrToInt(Copy(aValue, i, 1)) * peso);
       peso := peso - 1;
     end;
-
     r := 11 - (s mod 11);
     if ((r = 10) or (r = 11))
     then
       dig10 := '0'
     else
       str(r:1, dig10); // converte um número no respectivo caractere numérico
-
     { *-- Cálculo do 2o. Digito Verificador --* }
     s := 0;
     peso := 11;
@@ -686,14 +623,12 @@ begin
       s := s + (StrToInt(Copy(aValue, i, 1)) * peso);
       peso := peso - 1;
     end;
-
     r := 11 - (s mod 11);
     if ((r = 10) or (r = 11))
     then
       dig11 := '0'
     else
       str(r:1, dig11);
-
     { Verifica se os digitos calculados conferem com os digitos informados. }
     if ((dig10 = Copy(aValue, 10, 1)) and (dig11 = Copy(aValue, 11, 1)))
     then
@@ -704,14 +639,11 @@ begin
     isCPF := false
   end;
 end;
-
 class function TLib.Valida(AValue: String; ATipoValidacao: TTipoValidacao): Boolean;
 begin
   Result:= False;
-
   if AValue.IsEmpty then
     Exit;
-
   case ATipoValidacao of
     tvCPFCNPJ: begin
       Result:= TRegEx.IsMatch(AValue, C_EXP_CPF_CNPJ);
@@ -734,6 +666,36 @@ begin
   end;
 end;
 
+class function TLib.ValidaEAN13(codigoBarras: string): boolean;
+var
+  i, soma, digitoVerificador: integer;
+begin
+  // Remove espaços em branco e outros caracteres não numéricos
+  codigoBarras := StringReplace(codigoBarras, ' ', '', [rfReplaceAll]);
+  codigoBarras := StringReplace(codigoBarras, '-', '', [rfReplaceAll]);
+
+  // Verifica se o código de barras tem 13 dígitos
+  if Length(codigoBarras) <> 13 then begin
+    Result := False;
+    Exit;
+  end;
+
+  // Calcula o dígito verificador
+  soma := 0;
+  for i := 1 to 12 do
+  begin
+    if Odd(i) then
+      soma := soma + StrToInt(codigoBarras[i])
+    else
+      soma := soma + 3 * StrToInt(codigoBarras[i]);
+  end;
+
+  digitoVerificador := (10 - (soma mod 10)) mod 10;
+
+  // Verifica se o dígito verificador calculado é igual ao dígito verificador do código de barras
+  Result := digitoVerificador = StrToInt(codigoBarras[13]);
+end;
+
 class procedure TLib.VclRoundCornerOf(Control: TWinControl);
 var
    R: TRect;
@@ -750,12 +712,9 @@ begin
      Invalidate;
    end;
 end;
-
 {$ENDREGION}
 
-
 {$REGION 'FUNÇÕES BASE64'}
-
 class function TLib.Base64_Encode(AFile: string): string;
 var
   vStream: TFileStream;
@@ -783,7 +742,6 @@ begin
   end else
     Result:= 'Erro Arquivo não encontrado.';
 end;
-
 class procedure TLib.Base64_Decode(ABase64: string; AStream: TMemoryStream);
 var
   vDecoder: TIdDecoderMIME;
@@ -792,7 +750,6 @@ begin
     try
       try
         vDecoder:= TIdDecoderMIME.Create(nil);
-
         TIdDecoderMIME.DecodeStream(ABase64, AStream);
         AStream.Position:= 0;
       finally
@@ -804,9 +761,7 @@ begin
     end;
   end;
 end;
-
 {$ENDREGION}
-
 
 {$REGION 'ENCRIPTAÇÃO'}
 class function TLib.Crypt(Texto, Chave: String): String;
@@ -822,22 +777,18 @@ begin
   end;
   Result := Texto;
 end;
-
 class function TLib.Crypto(aText: string): string;
 begin
   Result:= Crypt(aText, 'DOUTORBY');
 end;
-
 class function TLib.Decrypto(aText: string): string;
 begin
   Result:= Crypt(aText, 'DOUTORBY');
 end;
-
 class function TLib.Decrypto(aText, aChave: string): string;
 begin
   Result:= Crypt(aText, aChave);
 end;
-
 class function TLib.CryptSameTextLength(Texto, Chave: String): String;
 var
   x, y: Integer;
@@ -852,5 +803,4 @@ begin
   Result := Texto;
 end;
 {$ENDREGION}
-
 end.
