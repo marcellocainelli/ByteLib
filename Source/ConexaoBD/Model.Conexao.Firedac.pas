@@ -52,8 +52,7 @@ Type
       procedure InsertOnLostConnection(AEvent: TNotifyEvent);
       procedure FDConnLostConnection(Sender: TObject);
       procedure InsertOnErrorConnection(AEvent: TFDErrorEvent);
-      procedure FDConnError(ASender, AInitiator: TObject; var AException: Exception);
-      procedure ErroConnectionContingencia(const AMsg: PWideChar);
+      procedure ErroConnection(const AMsg: PWideChar);
     public
       constructor Create;
       destructor Destroy; override;
@@ -168,27 +167,22 @@ begin
       FConexao.Params.Password:= vArqIni.ReadString('SISTEMA','Password', FPassword);
       //alteração para a contingencia
 //      InsertOnLostConnection(FDConnLostConnection);
-//      InsertOnErrorConnection(FDConnError);
-//      try
-//        TLib.CheckInternet(vArqIni.ReadString('SISTEMA','Server',''));
-//      except
-//        on E:Exception do begin
-//          raise Exception.Create(E.Message);
-//        end;
-//      end;
     end;
   finally
     vArqIni.Free;
   end;
 end;
+
 procedure TModelConexaoFiredac.InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
 begin
   FConexao.BeforeConnect:= AEvent;
 end;
+
 procedure TModelConexaoFiredac.InsertOnLostConnection(AEvent: TNotifyEvent);
 begin
   FConexao.OnLost:= AEvent;
 end;
+
 procedure TModelConexaoFiredac.FDConnBeforeConnect(Sender: TObject);
 begin
   FConexao.DriverName:= 'SQLITE';
@@ -201,22 +195,20 @@ begin
   FConexao.Params.Values['Username']:= FUsername;
   FConexao.Params.Values['Password']:= FPassword;
 end;
+
 procedure TModelConexaoFiredac.FDConnLostConnection(Sender: TObject);
 begin
 {$IFDEF MSWINDOWS}
-  ShowMessage('A conexão com o banco de dados foi perdida devido a um problema nessa máquina ou na rede. O sistema será encerrado.');
-  Application.Terminate;
+  ErroConnection('Erro de conexão com o banco de dados! Verifique o servidor e a rede.');
 {$ENDIF}
 end;
+
 procedure TModelConexaoFiredac.InsertOnErrorConnection(AEvent: TFDErrorEvent);
 begin
   FConexao.OnError:= AEvent;
 end;
-procedure TModelConexaoFiredac.FDConnError(ASender, AInitiator: TObject; var AException: Exception);
-begin
-  ErroConnectionContingencia('Erro de conexão em nuvem');
-end;
-procedure TModelConexaoFiredac.ErroConnectionContingencia(const AMsg: PWideChar);
+
+procedure TModelConexaoFiredac.ErroConnection(const AMsg: PWideChar);
 var
   vArqIni: TIniFile;
   vArqIniPath, vIniFileName: String;
@@ -227,10 +219,14 @@ begin
   vArqIniPath:= ExtractFilePath(ParamStr(0));
   vArqIni:= TIniFile.Create(vArqIniPath + vIniFileName);
   vAcessoOnline:= vArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
-  If Application.MessageBox('Deseja mudar para o modo OFFLINE?', AMsg, MB_ICONQUESTION + MB_YESNO)= IDYES then begin
-    vArqIni.WriteBool('SISTEMA_OFFLINE', 'BancoOffline', True);
-    ShowMessage('O sistema irá fechar para alternar para o modo OFFLINE.');
-  end;
+  if vAcessoOnline then begin
+    If Application.MessageBox(
+         'Verifique sua internet ou confirme abaixo para mudar para o modo OFFLINE.', 'Erro na conexão em nuvem!', MB_ICONQUESTION + MB_YESNO)= IDYES then begin
+      vArqIni.WriteBool('SISTEMA_OFFLINE', 'BancoOffline', True);
+      ShowMessage('O sistema irá fechar para alternar para o modo OFFLINE.');
+    end;
+  end else
+    ShowMessage(AMsg);
   ExitProcess(0);
 {$ENDIF}
 end;
