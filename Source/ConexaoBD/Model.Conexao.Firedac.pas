@@ -42,7 +42,7 @@ Type
   TModelConexaoFiredac = class(TInterfacedObject, iConexao)
     private
       FConexao: TFDConnection;
-//      FArqIni: TIniFile;
+      FUpdateTransaction: TFDTransaction;
       class var FDatabase, FUsername, FPassword, FPort: String;
       class var FForceBDConfig: Boolean;
       procedure ConnWindows;
@@ -67,6 +67,10 @@ implementation
 constructor TModelConexaoFiredac.Create;
 begin
   FConexao:= TFDConnection.Create(nil);
+  //ALTERACOES PARA TESTE
+//  FUpdateTransaction:= TFDTransaction.Create(nil);
+//  FConexao.UpdateTransaction:= FUpdateTransaction;
+//  FConexao.Transaction:= FUpdateTransaction;
   {$IFDEF APP}
     ConnApp;
   {$ELSE}
@@ -77,7 +81,7 @@ end;
 destructor TModelConexaoFiredac.Destroy;
 begin
   FreeAndNil(FConexao);
-//  FreeAndNil(FArqIni);
+//  FreeAndNil(FUpdateTransaction);
   inherited;
 end;
 class function TModelConexaoFiredac.New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'; APort: String = ''; AForceBDConfig: Boolean = False): iConexao;
