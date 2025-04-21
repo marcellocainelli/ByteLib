@@ -16,6 +16,8 @@ type
     ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
     function Instancia(AValue: String): iPlugzapi<T>;
     function Token(AValue: String): iPlugzapi<T>;
+    function Bearer(AValue: String): iPlugzapi<T>;
+    function ClientToken(AValue: String): iPlugzapi<T>;
     function Get(const AResource: String; out AJSONResult: String): iPlugzapi<T>;
     function Send(const AResource: String; AJSON: String): iPlugzapi<T>;
     function &End : T;
@@ -24,7 +26,7 @@ type
   private
     [Weak]
     FParent: T;
-    FInstancia, FToken, FMensagem: String;
+    FInstancia, FToken, FBearer, FClientToken, FMensagem: String;
     FSucesso: Boolean;
   public
     constructor Create(Parent: T);
@@ -33,6 +35,8 @@ type
     function &End : T;
     function Instancia(AValue: String): iPlugzapi<T>;
     function Token(AValue: String): iPlugzapi<T>;
+    function Bearer(AValue: String): iPlugzapi<T>;
+    function ClientToken(AValue: String): iPlugzapi<T>;
     function Get(const AResource: String; out AJSONResult: String): iPlugzapi<T>;
     function Send(const AResource: String; AJSON: String): iPlugzapi<T>;
   end;
@@ -90,6 +94,7 @@ class function TPlugzapi<T>.New(Parent: T): iPlugzapi<T>;
 begin
   Result:= Self.Create(Parent);
 end;
+
 constructor TPlugzapi<T>.Create(Parent: T);
 begin
   FParent:= Parent;
@@ -114,6 +119,19 @@ begin
   Result:= Self;
   FInstancia:= AValue;
 end;
+
+function TPlugzapi<T>.Bearer(AValue: String): iPlugzapi<T>;
+begin
+  Result:= Self;
+  FBearer:= AValue;
+end;
+
+function TPlugzapi<T>.ClientToken(AValue: String): iPlugzapi<T>;
+begin
+  Result:= Self;
+  FClientToken:= AValue;
+end;
+
 function TPlugzapi<T>.Get(const AResource: string; out AJSONResult: string): iPlugzapi<T>;
 var
   vResp: IResponse;
@@ -126,8 +144,9 @@ begin
           .Timeout(C_TIMEOUT)
           .Resource(AResource)
           .ContentType('application/json')
-          .AddHeader('Client-Token', C_CLIENTTOKEN)
+          .AddHeader('Client-Token', FClientToken)
           .AcceptEncoding('UTF-8')
+          .TokenBearer(FBearer)
           .Get;
     if not (vResp.StatusCode = 200) then begin
       vJSONResp:= TJsonVal.New(vResp.Content);
@@ -151,9 +170,10 @@ begin
           .Timeout(C_TIMEOUT)
           .Resource(AResource)
           .ContentType('application/json')
-          .AddHeader('Client-Token', C_CLIENTTOKEN)
+          .AddHeader('Client-Token', FClientToken)
           .AcceptEncoding('UTF-8')
           .AddBody(AJSON)
+          .TokenBearer(FBearer)
           .Post;
     if not (vResp.StatusCode = 200) then begin
       vJSONResp:= TJsonVal.New(vResp.Content);
@@ -164,15 +184,19 @@ begin
       raise Exception.Create(E.Message);
   end;
 end;
+
 { TPlugzapiInstancia }
+
 class function TPlugzapiInstancia.New: iPlugzapiInstancia;
 begin
   Result:= Self.Create;
 end;
+
 constructor TPlugzapiInstancia.Create;
 begin
   FPlugzapi:= TPlugzapi<iPlugzapiInstancia>.New(Self);
 end;
+
 destructor TPlugzapiInstancia.Destroy;
 begin
   inherited;
@@ -231,22 +255,27 @@ begin
 end;
 
 { TPlugzapiMsg }
+
 class function TPlugzapiMsg.New: iPlugzapiMsg;
 begin
   Result:= Self.Create;
 end;
+
 constructor TPlugzapiMsg.Create;
 begin
   FPlugzapi:= TPlugzapi<iPlugzapiMsg>.New(Self);
 end;
+
 destructor TPlugzapiMsg.Destroy;
 begin
   inherited;
 end;
+
 function TPlugzapiMsg.Plugzapi: iPlugzapi<iPlugzapiMsg>;
 begin
   Result:= FPlugzapi;
 end;
+
 procedure TPlugzapiMsg.SetReqResult(ASucesso: Boolean; AMensagem: String);
 begin
   FSucesso:= ASucesso;
@@ -302,8 +331,9 @@ begin
     vJSONObj.AddPair('document', 'data:file/pdf;base64,' + vBase64);
     vJSONObj.AddPair('fileName', AFileName);
     vJSONObj.AddPair('delayMessage', TLib.GetRandomNumber(5000, 30000));
+    vJSONObj.AddPair('caption', AMsg);
     FPlugzapi.Send('send-document/pdf', vJSONObj.ToString);
-    EnviaMsg(ATelefone, AMsg);
+//    EnviaMsg(ATelefone, AMsg);
   except
     on E:Exception do
       SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);
