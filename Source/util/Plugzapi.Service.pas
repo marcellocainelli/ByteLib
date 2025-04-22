@@ -9,8 +9,8 @@ uses
   Byte.Lib;
 const
   C_URL_API = 'https://api-windows.plugzapi.com.br/instances/%s/token/%s';
-  C_TIMEOUT = 5000;
-  C_CLIENTTOKEN = 'Fd8aae0ec65564d76a147631e85815811S';
+  C_TIMEOUT = 10000;
+
 type
   iPlugzapi<T> = interface
     ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
