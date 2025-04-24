@@ -43,6 +43,7 @@ function THaver.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
+
 function THaver.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSQL: string;
@@ -57,9 +58,12 @@ begin
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NUM_OPER');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
-  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  FEntidadeBase.CriaCampo(Value, ['Marcado'], [ftBoolean]);
+  ModificaDisplayCampos;
+  Value.DataSet.Open;
 end;
+
 function THaver.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
