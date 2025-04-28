@@ -72,7 +72,7 @@ type
     function RegistraConsumidor(ADataset: TDataset; ATelefone: String): String;
     procedure SalvaIdNummus(AId: String; ACodigo: integer);
     procedure MontaJsonCliente(ADataset: TDataset; ATelefone: String);
-    function ConsultaClientePorDocTel(ACgc, ATelefone: String; ACodCliente: integer): String;
+    function ConsultaClientePorDocTel(ACgc, ATelefone, AWhatsApp: String; ACodCliente: integer): String;
   public
     class function New(Parent: T): iNummusBase<T>;
     function &End : T;
@@ -205,7 +205,7 @@ end;
 function TNummusBase<T>.Cliente(AID: integer): iNummusBase<T>;
 var
   vCliente: iEntidade;
-  vTelefone: String;
+  vTelefone, vWhatsapp: String;
 begin
   Result:= Self;
   try
@@ -213,23 +213,35 @@ begin
     vCliente.EntidadeBase.TipoPesquisa(0);
     vCliente.EntidadeBase.TextoPesquisa(AID.ToString);
     vCliente.Consulta;
+
     if not vCliente.DtSrc.DataSet.IsEmpty then begin
-      if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
-        raise Exception.Create('O telefone do cliente é obrigatório.');
-      if vCliente.DtSrc.DataSet.FieldByName('CGC').AsString.IsEmpty then
-        raise Exception.Create('O documento do cliente é obrigatório.');
-      if not vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
-        vTelefone:= vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString
-      else
-        vTelefone:= vCliente.DtSrc.DataSet.FieldByName('FONE').AsString;
-      if not vCliente.DtSrc.Dataset.FieldByName('DDD').asString.IsEmpty then begin
-        if Copy(vTelefone, 1, 2) <> vCliente.DtSrc.Dataset.FieldByName('DDD').asString then
-          vTelefone:= vCliente.DtSrc.Dataset.FieldByName('DDD').asString + vTelefone;
-      end;
+//      if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
+//        raise Exception.Create('O telefone do cliente é obrigatório.');
+//      if vCliente.DtSrc.DataSet.FieldByName('CGC').AsString.IsEmpty then
+//        raise Exception.Create('O documento do cliente é obrigatório.');
+
+      if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('CGC').AsString.IsEmpty  then
+        raise Exception.Create('Para gerar o cashback é necessário estar cadastrado o telefone ou CPF/CNPJ do cliente.');
+
       if vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString.IsEmpty or vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').IsNull then begin
-        FIDNummus := ConsultaClientePorDocTel(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString, vTelefone, AID);
-        if FIDNummus.IsEmpty then
+        vTelefone:= TLib.SomenteNumero(vCliente.DtSrc.DataSet.FieldByName('FONE').AsString);
+        vWhatsapp:= TLib.SomenteNumero(vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString);
+
+        if not vCliente.DtSrc.Dataset.FieldByName('DDD').asString.IsEmpty then begin
+          var vDDD: String := TLib.SomenteNumero(vCliente.DtSrc.Dataset.FieldByName('DDD').asString);
+          if Copy(vTelefone, 1, 2) <> vDDD then
+            vTelefone:= vDDD + vTelefone;
+          if Copy(vWhatsapp, 1, 2) <> vDDD then
+            vWhatsapp:= vDDD + vWhatsapp;
+        end;
+
+        FIDNummus := ConsultaClientePorDocTel(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString, vTelefone, vWhatsapp, AID);
+        if FIDNummus.IsEmpty then begin
+          if vTelefone.IsEmpty then
+            vTelefone:= vWhatsapp;
           FIdNummus:= RegistraConsumidor(vCliente.DtSrc.DataSet, vTelefone);
+        end;
+
         if not FIdNummus.IsEmpty then
           SalvaIdNummus(FIdNummus, AID)
         else
@@ -248,7 +260,7 @@ begin
   end;
 end;
 
-function TNummusBase<T>.ConsultaClientePorDocTel(ACgc, ATelefone: String; ACodCliente: integer): String;
+function TNummusBase<T>.ConsultaClientePorDocTel(ACgc, ATelefone, AWhatsApp: String; ACodCliente: integer): String;
 var
   vResp: IResponse;
   JSONObject: TJSONObject;
@@ -256,60 +268,94 @@ var
   ContentItem: TJSONObject;
 begin
   Result:= '';
-  try
-    vResp:= TRequest.New.BaseURL(C_URL)
-              .Timeout(C_TIMEOUT)
-              .Resource('customer')
-              .ContentType('application/json')
-              .AddHeader('x-api-key', FApiKey)
-              .AddHeader('x-client-id', FClientID)
-              .AddParam('limit', '1')
-              .AddParam('document_number', TLib.SomenteNumero(ACgc))
-              .Get;
-    if vResp.StatusCode = 200 then begin
-      FSucesso:= True;
-      FMensagem:= vResp.Content;
-      JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
-      try
-        if Assigned(JSONObject) then begin
-          ContentArray := JSONObject.GetValue<TJSONArray>('content');
-          if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
-            ContentItem := ContentArray.Items[0] as TJSONObject;
-            Result := ContentItem.GetValue<string>('id');
-          end;
-        end;
-      finally
-        JSONObject.Free;
-      end;
-    end else
-      raise Exception.Create(vResp.Content);
 
-    if not Result.IsEmpty then
-      Exit;
-    vResp:= TRequest.New.BaseURL(C_URL)
-              .Timeout(C_TIMEOUT)
-              .Resource('customer')
-              .ContentType('application/json')
-              .AddHeader('x-api-key', FApiKey)
-              .AddHeader('x-client-id', FClientID)
-              .AddParam('limit', '1')
-              .AddParam('phone', TLib.SomenteNumero(ATelefone))
-              .Get;
-    if vResp.StatusCode = 200 then begin
-      JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
-      try
-        if Assigned(JSONObject) then begin
-          ContentArray := JSONObject.GetValue<TJSONArray>('content');
-          if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
-            ContentItem := ContentArray.Items[0] as TJSONObject;
-            Result := ContentItem.GetValue<string>('id');
+  try
+    if not ACgc.IsEmpty then begin
+      vResp:= TRequest.New.BaseURL(C_URL)
+                .Timeout(C_TIMEOUT)
+                .Resource('customer')
+                .ContentType('application/json')
+                .AddHeader('x-api-key', FApiKey)
+                .AddHeader('x-client-id', FClientID)
+                .AddParam('limit', '1')
+                .AddParam('document_number', TLib.SomenteNumero(ACgc))
+                .Get;
+      if vResp.StatusCode = 200 then begin
+        FSucesso:= True;
+        FMensagem:= vResp.Content;
+        JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+        try
+          if Assigned(JSONObject) then begin
+            ContentArray := JSONObject.GetValue<TJSONArray>('content');
+            if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
+              ContentItem := ContentArray.Items[0] as TJSONObject;
+              Result := ContentItem.GetValue<string>('id');
+            end;
           end;
+        finally
+          JSONObject.Free;
         end;
-      finally
-        JSONObject.Free;
       end;
-    end else
-      raise Exception.Create(vResp.Content);
+
+      if not Result.IsEmpty then
+        Exit;
+    end;
+
+
+    if not ATelefone.IsEmpty then begin
+      vResp:= TRequest.New.BaseURL(C_URL)
+                .Timeout(C_TIMEOUT)
+                .Resource('customer')
+                .ContentType('application/json')
+                .AddHeader('x-api-key', FApiKey)
+                .AddHeader('x-client-id', FClientID)
+                .AddParam('limit', '1')
+                .AddParam('phone', TLib.SomenteNumero(ATelefone))
+                .Get;
+      if vResp.StatusCode = 200 then begin
+        JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+        try
+          if Assigned(JSONObject) then begin
+            ContentArray := JSONObject.GetValue<TJSONArray>('content');
+            if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
+              ContentItem := ContentArray.Items[0] as TJSONObject;
+              Result := ContentItem.GetValue<string>('id');
+            end;
+          end;
+        finally
+          JSONObject.Free;
+        end;
+      end;
+
+      if not Result.IsEmpty then
+        Exit;
+    end;
+
+    if not AWhatsApp.IsEmpty then begin
+      vResp:= TRequest.New.BaseURL(C_URL)
+                .Timeout(C_TIMEOUT)
+                .Resource('customer')
+                .ContentType('application/json')
+                .AddHeader('x-api-key', FApiKey)
+                .AddHeader('x-client-id', FClientID)
+                .AddParam('limit', '1')
+                .AddParam('phone', TLib.SomenteNumero(AWhatsApp))
+                .Get;
+      if vResp.StatusCode = 200 then begin
+        JSONObject := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+        try
+          if Assigned(JSONObject) then begin
+            ContentArray := JSONObject.GetValue<TJSONArray>('content');
+            if Assigned(ContentArray) and (ContentArray.Count > 0) then begin
+              ContentItem := ContentArray.Items[0] as TJSONObject;
+              Result := ContentItem.GetValue<string>('id');
+            end;
+          end;
+        finally
+          JSONObject.Free;
+        end;
+      end;
+    end;
   except
     on E:Exception do begin
       FSucesso:= False;
