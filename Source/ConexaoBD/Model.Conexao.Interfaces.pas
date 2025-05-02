@@ -41,6 +41,7 @@ type
     function FetchOptions(AMode: String = ''; ARowSetSize: integer = 0): iQuery;
     function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
     function SQL_Add(ASQL: string; AClearBeforeAdd: Boolean = false): iQuery;
+    function SaveFileFromField(AFieldName, AFilePath: String): Boolean;
   end;
 
   iTable = interface

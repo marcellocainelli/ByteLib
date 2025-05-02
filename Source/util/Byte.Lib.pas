@@ -212,6 +212,7 @@ begin
   FreeMem(vDir, 256);
 {$ENDIF}
 end;
+
 class function TLib.IIf(pCond: Boolean; pTrue, pFalse: Variant): Variant;
 begin
   If pCond Then Result:= pTrue else Result:= pFalse;
@@ -673,13 +674,11 @@ begin
   // Remove espaços em branco e outros caracteres não numéricos
   codigoBarras := StringReplace(codigoBarras, ' ', '', [rfReplaceAll]);
   codigoBarras := StringReplace(codigoBarras, '-', '', [rfReplaceAll]);
-
   // Verifica se o código de barras tem 13 dígitos
   if Length(codigoBarras) <> 13 then begin
     Result := False;
     Exit;
   end;
-
   // Calcula o dígito verificador
   soma := 0;
   for i := 1 to 12 do
@@ -689,9 +688,7 @@ begin
     else
       soma := soma + 3 * StrToInt(codigoBarras[i]);
   end;
-
   digitoVerificador := (10 - (soma mod 10)) mod 10;
-
   // Verifica se o dígito verificador calculado é igual ao dígito verificador do código de barras
   Result := digitoVerificador = StrToInt(codigoBarras[13]);
 end;

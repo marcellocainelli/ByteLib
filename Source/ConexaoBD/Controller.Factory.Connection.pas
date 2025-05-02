@@ -31,6 +31,7 @@ begin
   FUsername:= 'SYSDBA';
   FPassword:= 'masterkey';
   FPort:= '';
+  FForceBDConfig:= False;
 end;
 destructor TControllerFactoryConn.Destroy;
 begin

@@ -55,6 +55,7 @@ Type
       function TrataErrosApplyUpdates(AMsgErro: string): string;
       function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
       function SQL_Add(ASQL: string; AClearBeforeAdd: Boolean = false): iQuery;
+      function SaveFileFromField(AFieldName, AFilePath: String): Boolean;
   end;
 implementation
 { TModelQueryFiredac }
@@ -219,6 +220,34 @@ begin
     end;
   end;
 end;
+
+function TModelQueryFiredac.SaveFileFromField(AFieldName, AFilePath: String): Boolean;
+var
+  BlobStream: TStringStream;
+begin
+  Result:= False;
+  try
+    if (FDQuery = nil) or (FDQuery.FieldByName(AFieldName) = nil) then
+      raise Exception.Create('Dataset ou campo inválido.');
+
+    BlobStream:= TStringStream.Create;
+    try
+      TBlobField(FDQuery.FieldByName(AFieldName)).SaveToStream(BlobStream);
+      // Posiciona o stream no início
+      BlobStream.Position := 0;
+      // Salva o conteúdo do stream para um arquivo
+      BlobStream.SaveToFile(AFilePath);
+      Result:= True;
+    finally
+      BlobStream.Free;
+    end;
+  except
+    on E:Exception do begin
+      raise Exception.Create(E.Message);
+    end;
+  end;
+end;
+
 function TModelQueryFiredac.SetMode(pModo: string): iQuery;
 begin
   Result:= Self;
