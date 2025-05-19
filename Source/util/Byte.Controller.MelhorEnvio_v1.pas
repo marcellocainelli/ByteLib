@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON, RESTRequest4D, Model.Entidade.Interfaces, uEntidade,
-  Byte.Lib, System.DateUtils, Data.DB, System.Generics.Collections;
+  Byte.Lib, System.DateUtils, Data.DB, System.Generics.Collections, uFilial, uCliente;
 
 const
   C_TIMEOUT = 30000;
@@ -23,6 +23,12 @@ type
     Quantity: Int32;
   end;
 
+  TVolumes = class
+    Width: Double;
+    Height: Double;
+    Length: Double;
+    Weight: Double;
+  end;
 
   iMelhorEnvioBase<T> = interface
     ['{F6F5167E-917F-4CCC-9CDC-BAA373315934}']
@@ -40,6 +46,8 @@ type
     function RefreshTokenToString: String;
     function AccessToken: iMelhorEnvioBase<T>;
     function AccessTokenToString: String;
+    function CodFilial: integer; overload;
+    function CodFilial(AValue: integer): iMelhorEnvioBase<T>; overload;
     function &End : T;
   end;
 
@@ -51,6 +59,7 @@ type
     FSucesso: Boolean;
     FSecretKey, FClientID, FCode, FRefreshToken, FAccessToken: String;
     FDateToken, FDateRefreshToken: TDate;
+    FCodFilial: integer;
     constructor Create(Parent: T);
     destructor Destroy; override;
     procedure GetDados;
@@ -73,6 +82,8 @@ type
     function RefreshTokenToString: String;
     function AccessToken: iMelhorEnvioBase<T>;
     function AccessTokenToString: String;
+    function CodFilial: integer; overload;
+    function CodFilial(AValue: integer): iMelhorEnvioBase<T>;
   end;
 
   iMelhorEnvio = interface
@@ -87,14 +98,21 @@ type
     private
       FMelhorEnvioBase: iMelhorEnvioBase<iMelhorEnvio>;
       FProdutos: TObjectList<TProduct>;
+      FVolumes: TObjectList<TVolumes>;
       constructor Create;
       destructor Destroy; override;
+      procedure PreencheDadosRemetente(AJsonObject: TJSONObject);
+      procedure PreencheDadosDestinatario(AIdCliente: integer; AJsonObject: TJSONObject);
+      procedure SeparaPackages(APackages: String);
     public
       class function New: iMelhorEnvio;
       function Sucesso: Boolean;
       function Mensagem: String;
       function AddProduct(AProduct: TProduct): iMelhorEnvio;
       function CalculoFrete(AFrom, ATo: String): String;
+      function AdicionaFreteCarrinho(AIdTransportadora, AIdCliente: integer; APackages: String): String;
+      procedure CompraFrete(AIdList: TDataset);
+      procedure ImprimeEtiquetaArquivo(AIdOrder: String; AFile: TStringStream);
   end;
 
 implementation
@@ -171,6 +189,16 @@ function TMelhorEnvioBase<T>.Code(AValue: String): iMelhorEnvioBase<T>;
 begin
   Result:= Self;
   FCode:= AValue;
+end;
+
+function TMelhorEnvioBase<T>.CodFilial: integer;
+begin
+  Result:= FCodFilial;
+end;
+
+function TMelhorEnvioBase<T>.CodFilial(AValue: integer): iMelhorEnvioBase<T>;
+begin
+  FCodFilial:= AValue;
 end;
 
 function TMelhorEnvioBase<T>.AccessTokenToString: String;
@@ -275,7 +303,6 @@ begin
       FRefreshToken := JSONObject.GetValue<String>('refresh_token');
       FDateToken:= IncMonth(Today, 1);
       FDateRefreshToken:= IncMonth(Today, 1);
-
       vSalvaToken:= TEntidade.New;
       vSalvaToken.EntidadeBase.Iquery.AddParametro('pRefreshToken', TLib.Crypt(FRefreshToken, 'xg89aQyUj7g3P3JWKQRS30ZjehtlFL'), ftString);
       vSalvaToken.EntidadeBase.Iquery.AddParametro('pREFRESH_TOKEN_EXPIRA', FDateRefreshToken, ftDate);
@@ -316,12 +343,14 @@ end;
 constructor TMelhorEnvio.Create;
 begin
   FMelhorEnvioBase:= TMelhorEnvioBase<iMelhorEnvio>.New(Self);
-  FProdutos := TObjectList<TProduct>.Create;
+  FProdutos:= TObjectList<TProduct>.Create;
+  FVolumes:= TObjectList<TVolumes>.Create;
 end;
 
 destructor TMelhorEnvio.Destroy;
 begin
   FProdutos.Free;
+  FVolumes.Free;
   inherited;
 end;
 
@@ -382,8 +411,10 @@ begin
 
       vResp:= TRequest.New.BaseURL(C_URL_SANDBOX)
                 .Timeout(C_TIMEOUT)
-                .Resource('oauth/token')
+                .Resource('api/v2/me/shipment/calculate')
                 .ContentType('application/json')
+                .AcceptEncoding('application/json')
+                .AddHeader('Authorization', 'Bearer token')
                 .AddHeader('User-Agent', 'Doutor Byte(adm@doutorbytesistemas.com.br)')
                 .TokenBearer(FMelhorEnvioBase.AccessTokenToString)
                 .AddBody(JsonObj.ToString)
@@ -391,11 +422,281 @@ begin
 
       if vResp.StatusCode <> 200 then
         raise Exception.Create(vResp.Content)
-      else
+      else begin
+        FMelhorEnvioBase.Sucesso(True);
+        FMelhorEnvioBase.Mensagem('Consulta realizada com sucesso!');
         Result:= vResp.Content;
+      end;
     finally
       JsonObj.Free;
     end;
+  except
+    on E:Exception do begin
+      FMelhorEnvioBase.Sucesso(False);
+      FMelhorEnvioBase.Mensagem(E.Message);
+    end;
+  end;
+end;
+
+procedure TMelhorEnvio.PreencheDadosDestinatario(AIdCliente: integer; AJsonObject: TJSONObject);
+var
+  vCliente: iEntidade;
+begin
+  AJsonObject:= TJSONObject.Create;
+  vCliente:= TCliente.New;
+  vCliente.EntidadeBase.TipoPesquisa(0);
+  vCliente.EntidadeBase.TextoPesquisa(AIdCliente.ToString);
+  vCliente.Consulta;
+
+  AJsonObject.AddPair('name', vCliente.DtSrc.DataSet.FieldByName('NOME').AsString);
+  AJsonObject.AddPair('phone', vCliente.DtSrc.DataSet.FieldByName('FONE').AsString);
+  AJsonObject.AddPair('email', vCliente.DtSrc.DataSet.FieldByName('EMAIL').AsString);
+  if vCliente.DtSrc.DataSet.FieldByName('TIPO').AsString = 'F' then
+    AJsonObject.AddPair('document', vCliente.DtSrc.DataSet.FieldByName('CGC').AsString)
+  else
+    AJsonObject.AddPair('company_document', vCliente.DtSrc.DataSet.FieldByName('CGC').AsString);
+  AJsonObject.AddPair('state_register', vCliente.DtSrc.DataSet.FieldByName('IE').AsString);
+  AJsonObject.AddPair('address', vCliente.DtSrc.DataSet.FieldByName('ENDERECO').AsString);
+  AJsonObject.AddPair('complement', vCliente.DtSrc.DataSet.FieldByName('END_COMPLEMENTO').AsString);
+  AJsonObject.AddPair('number', vCliente.DtSrc.DataSet.FieldByName('NUMERO').AsString);
+  AJsonObject.AddPair('district', vCliente.DtSrc.DataSet.FieldByName('BAIRRO').AsString);
+  AJsonObject.AddPair('city', vCliente.DtSrc.DataSet.FieldByName('CIDADE').AsString);
+  AJsonObject.AddPair('country_id', vCliente.DtSrc.DataSet.FieldByName('COD_PAIS').AsString);
+  AJsonObject.AddPair('postal_code', vCliente.DtSrc.DataSet.FieldByName('CEP').AsString);
+  AJsonObject.AddPair('state_abbr', vCliente.DtSrc.DataSet.FieldByName('UF').AsString);
+end;
+
+procedure TMelhorEnvio.PreencheDadosRemetente(AJsonObject: TJSONObject);
+var
+  vFilial: iEntidade;
+begin
+  AJsonObject:= TJSONObject.Create;
+  vFilial:= TFilial.New;
+  vFilial.EntidadeBase.TipoPesquisa(1);
+  vFilial.EntidadeBase.AddParametro('CodFilial', FMelhorEnvioBase.CodFilial);
+  vFilial.Consulta;
+
+  AJsonObject.AddPair('name', vFilial.DtSrc.DataSet.FieldByName('RAZAOSOCIAL').AsString);
+  AJsonObject.AddPair('phone', vFilial.DtSrc.DataSet.FieldByName('FONE').AsString);
+  AJsonObject.AddPair('email', vFilial.DtSrc.DataSet.FieldByName('EMAIL').AsString);
+//  AJsonObject.AddPair('document', vFilial.DtSrc.DataSet.FieldByName('CNPJ').AsString);
+  AJsonObject.AddPair('company_document', vFilial.DtSrc.DataSet.FieldByName('CNPJ').AsString);
+  AJsonObject.AddPair('state_register', vFilial.DtSrc.DataSet.FieldByName('IE').AsString);
+  AJsonObject.AddPair('address', vFilial.DtSrc.DataSet.FieldByName('ENDERECO').AsString);
+//  AJsonObject.AddPair('complement', vFilial.DtSrc.DataSet.FieldByName('').AsString);
+  AJsonObject.AddPair('number', vFilial.DtSrc.DataSet.FieldByName('NUMERO').AsString);
+  AJsonObject.AddPair('district', vFilial.DtSrc.DataSet.FieldByName('BAIRRO').AsString);
+  AJsonObject.AddPair('city', vFilial.DtSrc.DataSet.FieldByName('CIDADE').AsString);
+//  AJsonObject.AddPair('country_id', vFilial.DtSrc.DataSet.FieldByName('').AsString);
+  AJsonObject.AddPair('postal_code', vFilial.DtSrc.DataSet.FieldByName('CEP').AsString);
+  AJsonObject.AddPair('state_abbr', vFilial.DtSrc.DataSet.FieldByName('UF').AsString);
+end;
+
+procedure TMelhorEnvio.SeparaPackages(APackages: String);
+var
+  LJsonValue: TJSONValue;
+  LJsonObject: TJSONObject;
+  LJsonArray: TJSONArray;
+  LPackage: TJSONValue;
+  LDimensions: TJSONObject;
+  LVolume: TVolumes;
+begin
+  // Limpa a lista existente antes de preencher
+  if Assigned(FVolumes) then begin
+    FVolumes.Clear;
+  end else begin
+    FVolumes := TObjectList<TVolumes>.Create;
+  end;
+
+  LJsonValue := TJSONObject.ParseJSONValue(APackages);
+  if LJsonValue is TJSONObject then
+  begin
+    LJsonObject := LJsonValue as TJSONObject;
+    LJsonArray := LJsonObject.GetValue('packages') as TJSONArray;
+
+    if Assigned(LJsonArray) then
+    begin
+      for LPackage in LJsonArray do
+      begin
+        if LPackage is TJSONObject then
+        begin
+          LJsonObject := LPackage as TJSONObject;
+
+          // Cria um novo objeto TVolumes para cada pacote
+          LVolume := TVolumes.Create;
+
+          LVolume.Weight := StrToFloat(LJsonObject.GetValue('weight').Value);
+
+          // Extrai as dimensões
+          LDimensions := LJsonObject.GetValue('dimensions') as TJSONObject;
+          if Assigned(LDimensions) then begin
+            if LDimensions.TryGetValue<Double>('height', LVolume.Height) then;
+            if LDimensions.TryGetValue<Double>('width', LVolume.Width) then;
+            if LDimensions.TryGetValue<Double>('length', LVolume.Length) then;
+          end;
+
+          // Adiciona o volume à lista
+          FVolumes.Add(LVolume);
+        end;
+      end;
+    end;
+  end;
+
+  LJsonValue.Free; // Libera a memória do objeto JSON
+end;
+
+function TMelhorEnvio.AdicionaFreteCarrinho(AIdTransportadora, AIdCliente: integer; APackages: String): String;
+var
+  vResp: IResponse;
+  JsonObj, vJsonObjFrom, vJsonObjTo, vJsonObjOptions : TJSONObject;
+  JsonProdutos, JsonVolumes: TJSONArray;
+  Product: TProduct;
+  Volume: TVolumes;
+  vInsuranceValue: Currency;
+begin
+  vInsuranceValue:= 0;
+  try
+    JsonObj:= TJSONObject.Create;
+    try
+      PreencheDadosRemetente(vJsonObjFrom);
+
+      PreencheDadosDestinatario(AIdCliente, vJsonObjTo);
+
+      SeparaPackages(APackages);
+
+      // Adiciona produtos
+      JsonProdutos := TJSONArray.Create;
+      for Product in FProdutos do begin
+        JsonProdutos.Add(
+          TJSONObject.Create
+            .AddPair('id', Product.Id)
+            .AddPair('width', Product.Width)
+            .AddPair('height', Product.Height)
+            .AddPair('length', Product.Length)
+            .AddPair('weight', Product.Weight)
+            .AddPair('insurance_value', Product.InsuranceValue)
+            .AddPair('quantity', Product.Quantity)
+        );
+        vInsuranceValue:= vInsuranceValue + Product.InsuranceValue;
+      end;
+
+      // Adiciona volumes
+      JsonVolumes := TJSONArray.Create;
+      for Volume in FVolumes do begin
+        JsonVolumes.Add(
+          TJSONObject.Create
+            .AddPair('width', Volume.Width)
+            .AddPair('height', Volume.Height)
+            .AddPair('length', Volume.Length)
+            .AddPair('weight', Volume.Weight)
+        );
+      end;
+
+      vJsonObjOptions:= TJSONObject.Create;
+      vJsonObjOptions.AddPair('receipt', false);
+      vJsonObjOptions.AddPair('own_hand', false);
+      vJsonObjOptions.AddPair('reverse', false);
+      vJsonObjOptions.AddPair('non_commercial', false);
+      vJsonObjOptions.AddPair('insurance_value', vInsuranceValue);
+
+      JsonObj.AddPair('service', AIdTransportadora);
+      JsonObj.AddPair('from', vJsonObjFrom);
+      JsonObj.AddPair('to', vJsonObjTo);
+      JsonObj.AddPair('products', JsonProdutos);
+      JsonObj.AddPair('volumes', JsonVolumes);
+      JsonObj.AddPair('options', vJsonObjOptions);
+
+
+      vResp:= TRequest.New.BaseURL(C_URL_SANDBOX)
+                .Timeout(C_TIMEOUT)
+                .Resource('api/v2/me/cart')
+                .ContentType('application/json')
+                .AcceptEncoding('application/json')
+                .AddHeader('Authorization', 'Bearer token')
+                .AddHeader('User-Agent', 'Doutor Byte(adm@doutorbytesistemas.com.br)')
+                .TokenBearer(FMelhorEnvioBase.AccessTokenToString)
+                .AddBody(JsonObj.ToString)
+                .Post;
+
+      if vResp.StatusCode <> 201 then
+        raise Exception.Create(vResp.Content)
+      else begin
+        FMelhorEnvioBase.Sucesso(True);
+        FMelhorEnvioBase.Mensagem('Consulta realizada com sucesso!');
+        Result:= vResp.Content;
+      end;
+    finally
+      JsonObj.Free;
+    end;
+  except
+    on E:Exception do begin
+      FMelhorEnvioBase.Sucesso(False);
+      FMelhorEnvioBase.Mensagem(E.Message);
+    end;
+  end;
+end;
+
+procedure TMelhorEnvio.CompraFrete(AIdList: TDataset);
+var
+  vResp: IResponse;
+  vJsonObject: TJSONObject;
+  vJsonOrders: TJSONArray;
+begin
+  try
+    vJsonObject:= TJSONObject.Create;
+    try
+      AIdList.First;
+      vJsonOrders:= TJSONArray.Create;
+      while not AIdList.Eof do begin
+        vJsonOrders.Add(AIdList.FieldByName('IdOrder').AsString);
+        AIdList.Next;
+      end;
+      vJsonObject.AddPair('orders', vJsonOrders);
+
+      vResp:= TRequest.New.BaseURL(C_URL_SANDBOX)
+                .Timeout(C_TIMEOUT)
+                .Resource('api/v2/me/shipment/checkout')
+                .ContentType('application/json')
+                .AcceptEncoding('application/json')
+                .AddHeader('Authorization', 'Bearer token')
+                .AddHeader('User-Agent', 'Doutor Byte(adm@doutorbytesistemas.com.br)')
+                .TokenBearer(FMelhorEnvioBase.AccessTokenToString)
+                .AddBody(vJsonObject.ToString)
+                .Post;
+    finally
+      vJsonObject.Free;
+    end;
+  except
+    on E:Exception do begin
+      FMelhorEnvioBase.Sucesso(False);
+      FMelhorEnvioBase.Mensagem(E.Message);
+    end;
+  end;
+end;
+
+procedure TMelhorEnvio.ImprimeEtiquetaArquivo(AIdOrder: String; AFile: TStringStream);
+var
+  vResp: IResponse;
+begin
+  try
+      vResp:= TRequest.New.BaseURL(C_URL_SANDBOX)
+                .Timeout(C_TIMEOUT)
+                .Resource('api/v2/me/imprimir/pdf/' + AIdOrder)
+                .ContentType('application/json')
+                .AcceptEncoding('application/json')
+                .AddHeader('Authorization', 'Bearer token')
+                .AddHeader('User-Agent', 'Doutor Byte(adm@doutorbytesistemas.com.br)')
+                .TokenBearer(FMelhorEnvioBase.AccessTokenToString)
+                .Get;
+
+    if vResp.StatusCode <> 200 then
+      raise Exception.Create(vResp.Content)
+    else begin
+      AFile:= TStringStream.Create(vResp.Content);
+      FMelhorEnvioBase.Sucesso(True);
+      FMelhorEnvioBase.Mensagem('Consulta realizada com sucesso!');
+    end;
+
   except
     on E:Exception do begin
       FMelhorEnvioBase.Sucesso(False);
