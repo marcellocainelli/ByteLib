@@ -63,6 +63,8 @@ begin
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  FEntidadeBase.SetReadOnly(Value, 'NOME', False);
+  FEntidadeBase.SetReadOnly(Value, 'NOME_PROD', False);
 end;
 
 function TPosto_PrecoCliente.InicializaDataSource(Value: TDataSource): iEntidade;

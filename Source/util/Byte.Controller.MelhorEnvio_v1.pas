@@ -83,7 +83,7 @@ type
     function AccessToken: iMelhorEnvioBase<T>;
     function AccessTokenToString: String;
     function CodFilial: integer; overload;
-    function CodFilial(AValue: integer): iMelhorEnvioBase<T>;
+    function CodFilial(AValue: integer): iMelhorEnvioBase<T>; overload;
   end;
 
   iMelhorEnvio = interface
@@ -507,13 +507,11 @@ begin
   end else begin
     FVolumes := TObjectList<TVolumes>.Create;
   end;
-
   LJsonValue := TJSONObject.ParseJSONValue(APackages);
   if LJsonValue is TJSONObject then
   begin
     LJsonObject := LJsonValue as TJSONObject;
     LJsonArray := LJsonObject.GetValue('packages') as TJSONArray;
-
     if Assigned(LJsonArray) then
     begin
       for LPackage in LJsonArray do
@@ -521,12 +519,9 @@ begin
         if LPackage is TJSONObject then
         begin
           LJsonObject := LPackage as TJSONObject;
-
           // Cria um novo objeto TVolumes para cada pacote
           LVolume := TVolumes.Create;
-
           LVolume.Weight := StrToFloat(LJsonObject.GetValue('weight').Value);
-
           // Extrai as dimensões
           LDimensions := LJsonObject.GetValue('dimensions') as TJSONObject;
           if Assigned(LDimensions) then begin
@@ -534,14 +529,12 @@ begin
             if LDimensions.TryGetValue<Double>('width', LVolume.Width) then;
             if LDimensions.TryGetValue<Double>('length', LVolume.Length) then;
           end;
-
           // Adiciona o volume à lista
           FVolumes.Add(LVolume);
         end;
       end;
     end;
   end;
-
   LJsonValue.Free; // Libera a memória do objeto JSON
 end;
 
