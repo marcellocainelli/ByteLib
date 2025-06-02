@@ -185,6 +185,7 @@ var
   vField: TField;
   i: integer;
 begin
+  Result:= Self;
   if ADataSource = nil then
     ADataSource:= FDataSource;
   ADataSource.DataSet.Close;
@@ -208,6 +209,7 @@ var
   vField: TField;
   i, j: integer;
 begin
+  Result:= Self;
   ADataSource.DataSet.Close;
   ADataSource.Dataset.FieldDefs.Updated:= false;
   ADataSource.Dataset.FieldDefs.Update;
