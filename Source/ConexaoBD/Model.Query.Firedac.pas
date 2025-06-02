@@ -36,6 +36,7 @@ Type
       function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery; overload;
       function AddParametro(NomeParametro: String; ValorParametro: integer): iQuery; overload;
       function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iQuery; overload;
+      function AddParametro(NomeParametro: String; DataType: TFieldType; Stream: TStream): iQuery; overload;
       function Close: iQuery;
       function ExecQuery(Value: String): iQuery;
       function Salva(Commit: Boolean = True): iQuery;
@@ -160,7 +161,6 @@ begin
   end;
 end;
 
-
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: integer): iQuery;
 begin
   Result:= Self;
@@ -168,6 +168,20 @@ begin
   FDQuery.Params.ParamValues[NomeParametro]:= ValorParametro;
   FDQuery.Params.Add.DataType:= ftInteger;
   FDQuery.Params.Add.ParamType:= ptInput;
+end;
+
+function TModelQueryFiredac.AddParametro(NomeParametro: String; DataType: TFieldType; Stream: TStream): iQuery;
+var
+  BlobField: TFDParam;
+begin
+  Result:= Self;
+  if (DataType = ftBlob) then begin
+    BlobField := FDQuery.Params.Add;
+    BlobField.Name := NomeParametro;
+    BlobField.DataType := DataType;
+    BlobField.ParamType := ptInput;
+    BlobField.LoadFromStream(Stream, ftBlob);
+  end;
 end;
 
 function TModelQueryFiredac.Close: iQuery;
@@ -332,4 +346,5 @@ begin
   if AMsgErro.Contains('violation of PRIMARY or UNIQUE KEY') then
     Result:= 'Código já cadastrado!';
 end;
+
 end.

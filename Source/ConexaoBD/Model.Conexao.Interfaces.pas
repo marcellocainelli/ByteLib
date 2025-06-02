@@ -24,6 +24,7 @@ type
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iQuery; overload;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iQuery; overload;
+    function AddParametro(NomeParametro: String; DataType: TFieldType; Stream: TStream): iQuery; overload;
     function Close: iQuery;
     function ExecQuery(Value: String = ''): iQuery;
     function Salva(Commit: Boolean = True): iQuery;

@@ -6,7 +6,7 @@ uses
   Controller.Factory.Query,
   Data.DB,
   Model.Conexao.Interfaces,
-  Model.Entidade.Interfaces, Controller.Factory.Connection;
+  Model.Entidade.Interfaces, Controller.Factory.Connection, System.Classes;
 Type
   TEntidadeBase<T: IInterface> = class(TInterfacedObject, iEntidadeBase<T>)
   private
@@ -30,6 +30,7 @@ Type
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iEntidadeBase<T>; overload;
     function AddParametro(NomeParametro: String; ValorParametro: integer): iEntidadeBase<T>; overload;
     function AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iEntidadeBase<T>; overload;
+    function AddParametro(NomeParametro: String; DataType: TFieldType; Stream: TStream): iEntidadeBase<T>; overload;
     function RefreshDataSource(Value: TDataSource = nil): iEntidadeBase<T>;
     function SaveIfChangeCount(DataSource: TDataSource = nil): iEntidadeBase<T>;
     function InsertBeforePost(DataSource: TDataSource = nil; AEvent: TDataSetNotifyEvent = nil): iEntidadeBase<T>;
@@ -157,7 +158,14 @@ begin
 end;
 function TEntidadeBase<T>.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iEntidadeBase<T>;
 begin
+  Result:= Self;
   FQuery.AddParametro(NomeParametro, ValorParametro, DataType, FilePath);
+end;
+
+function TEntidadeBase<T>.AddParametro(NomeParametro: String; DataType: TFieldType; Stream: TStream): iEntidadeBase<T>;
+begin
+  Result:= Self;
+  FQuery.AddParametro(NomeParametro, DataType, Stream);
 end;
 
 function TEntidadeBase<T>.CalcFields(AEvent: TDatasetNotifyEvent): iEntidadeBase<T>;
