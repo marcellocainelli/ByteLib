@@ -10,6 +10,7 @@ uses
   System.UITypes,
   System.MaskUtils,
   System.DateUtils,
+  System.JSON,
   System.Math,
   Data.DB,
   Byte.Consts,
@@ -39,7 +40,8 @@ uses
   IdSSLOpenSSL,
   IdSSLOpenSSLHeaders,
   IdAttachmentFile,
-  IdText;
+  IdText,
+  RESTRequest4D;
 type
   TProcedureExcept = reference to procedure (const AExcpetion: String);
   TTipoValidacao = (tvCPFCNPJ, tvEmail, tvFixoCelular, tvRG, tvIE, tvCEP);
@@ -70,6 +72,7 @@ type
       {$IFDEF MSWINDOWS}
       class procedure VclRoundCornerOf(Control: TWinControl);
       {$ENDIF}
+      class function GetTokenApiProdutos(AUsuario, ASenha: String) : String;
       {Funções de formatação}
       class function FormatarDocumento(pTexto: string): string;
       class function SomenteNumero(const AValue: string): string;
@@ -201,6 +204,7 @@ class function TLib.GetRandomNumber(AStartNum, AEndNum: integer): integer;
 begin
   Result:= AStartNum + Random(AEndNum);
 end;
+
 class procedure TLib.VCL_OpenPDF(AFile: TFileName; ATypeForm: Integer);
 var
   vDir: PChar;
@@ -387,6 +391,31 @@ begin
   end;
 {$ENDIF}
 end;
+
+class function TLib.GetTokenApiProdutos(AUsuario, ASenha: String): String;
+var
+  vResp: IResponse;
+  vJsonObject: TJsonObject;
+begin
+  Result:= '';
+  vResp:= TRequest.New.BaseURL('https://byteapiprodutos.byteempresa.com.br/')
+    .Timeout(30000)
+    .Resource('token')
+    .ContentType('application/json')
+    .AcceptEncoding('UTF-8')
+    .BasicAuthentication(AUsuario, ASenha)
+    .Get;
+
+  if vResp.StatusCode = 200 then begin
+    vJsonObject:= TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+    try
+      vJsonObject.TryGetValue<String>('token', Result);
+    finally
+      vJsonObject.Free;
+    end;
+  end;
+end;
+
 {$ENDREGION}
 {$REGION 'FUNÇÕES DE FORMATAÇÃO'}
 class function TLib.PoeZeros(Valor: String; Tamanho, Decimais: Integer): String;
