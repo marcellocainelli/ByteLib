@@ -71,6 +71,7 @@ type
     function Mensagem: String;
     function EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
     function EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iPlugzapiMsg;
+    function Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iPlugzapiMsg;
   end;
   TPlugzapiMsg = class(TInterfacedObject, iPlugzapiMsg)
     private
@@ -87,6 +88,7 @@ type
       function Mensagem: String;
       function EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
       function EnviaPdf(ATelefone, AMsg, APath, AFileName: String): iPlugzapiMsg;
+      function Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iPlugzapiMsg;
   end;
 implementation
 { TPlugzapi<T> }
@@ -329,6 +331,27 @@ begin
     end;
     vJSONObj.AddPair('phone', '55' + ATelefone);
     vJSONObj.AddPair('document', 'data:file/pdf;base64,' + vBase64);
+    vJSONObj.AddPair('fileName', AFileName);
+    vJSONObj.AddPair('delayMessage', TLib.GetRandomNumber(5000, 30000));
+    vJSONObj.AddPair('caption', AMsg);
+    FPlugzapi.Send('send-document/pdf', vJSONObj.ToString);
+//    EnviaMsg(ATelefone, AMsg);
+  except
+    on E:Exception do
+      SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);
+  end;
+end;
+
+function TPlugzapiMsg.Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iPlugzapiMsg;
+var
+  vJSONObj: iJsonObj;
+begin
+  Result:= Self;
+  ATelefone:= TLib.SomenteNumero(ATelefone);
+  vJSONObj:= TJsonObj.New;
+  try
+    vJSONObj.AddPair('phone', '55' + ATelefone);
+    vJSONObj.AddPair('document', 'data:file/pdf;base64,' + AFile);
     vJSONObj.AddPair('fileName', AFileName);
     vJSONObj.AddPair('delayMessage', TLib.GetRandomNumber(5000, 30000));
     vJSONObj.AddPair('caption', AMsg);

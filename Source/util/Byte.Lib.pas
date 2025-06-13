@@ -21,6 +21,9 @@ uses
   Registry,
   Winapi.Windows,
   Winapi.Messages,
+  Vcl.ExtCtrls,
+  Vcl.Imaging.jpeg,
+  Vcl.Imaging.pngimage,
   {$ENDIF}
   //Componentes Indy
   IdComponent,
@@ -71,6 +74,7 @@ type
       class procedure RegistraInicializarWindows(const AProgTitle: string; const AExePath: string; ARunOnce: Boolean);
       {$IFDEF MSWINDOWS}
       class procedure VclRoundCornerOf(Control: TWinControl);
+      class procedure LoadImgFromURL(const AURL: string; AImage: TImage);
       {$ENDIF}
       class function GetTokenApiProdutos(AUsuario, ASenha: String) : String;
       {Funções de formatação}
@@ -738,6 +742,69 @@ begin
      Invalidate;
    end;
 end;
+
+class procedure TLib.LoadImgFromURL(const AURL: string; AImage: TImage);
+var
+  Http: TIdHTTP;
+  Stream: TMemoryStream;
+  Ext: string;
+  JpegImg: TJPEGImage;
+  PngImg: TPngImage;
+  IOHandler: TIdSSLIOHandlerSocketOpenSSL;
+begin
+  Http := TIdHTTP.Create(nil);
+  IOHandler := TIdSSLIOHandlerSocketOpenSSL.Create(nil);
+  Stream := TMemoryStream.Create;
+  try
+    try
+      // Configura o IOHandler para usar TLS moderno
+      IOHandler.SSLOptions.Method := sslvTLSv1_2;
+      IOHandler.SSLOptions.SSLVersions := [sslvTLSv1_2];
+      Http.IOHandler := IOHandler;
+      Http.Request.UserAgent := 'Mozilla/5.0';
+      Http.Get(AURL, Stream);
+      Stream.Position := 0;
+
+      // Tenta identificar o formato da imagem pela URL
+      Ext := LowerCase(ExtractFileExt(AURL));
+
+      if (Ext = '.jpg') or (Ext = '.jpeg') then
+      begin
+        JpegImg := TJPEGImage.Create;
+        try
+          JpegImg.LoadFromStream(Stream);
+          AImage.Picture.Graphic := JpegImg;
+        finally
+          JpegImg.Free;
+        end;
+      end
+      else if (Ext = '.png') then
+      begin
+        PngImg := TPngImage.Create;
+        try
+          PngImg.LoadFromStream(Stream);
+          AImage.Picture.Graphic := PngImg;
+        finally
+          PngImg.Free;
+        end;
+      end
+      else
+      begin
+        // Para outros formatos (como BMP), tentar carregar direto
+        AImage.Picture.LoadFromStream(Stream);
+      end;
+
+    except
+      on E: Exception do
+        raise Exception.Create('Erro ao carregar imagem: ' + E.Message);
+    end;
+  finally
+    Stream.Free;
+    Http.Free;
+    IOHandler.Free;
+  end;
+end;
+
 {$ENDREGION}
 
 {$REGION 'FUNÇÕES BASE64'}

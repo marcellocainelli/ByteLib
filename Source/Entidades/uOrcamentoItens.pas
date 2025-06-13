@@ -106,6 +106,7 @@ begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VrVista')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR_VISTA')).currency:= True;
   TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('FLG_ENTREGA')).OnGetText:= GetText;
 end;
 
