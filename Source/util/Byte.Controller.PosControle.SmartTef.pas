@@ -5,13 +5,11 @@ uses
 const
   C_MaxConsultas = 30;
   C_TIMEOUT = 30000;
+  C_BASE_URL = 'https://api.smarttef.mobi/';
 type
   tpCobStatus= (cobAberta, cobCancelada, cobPaga, cobNaoExiste);
   iPosControle = interface
     ['{AC24B481-EE86-4B3E-A6FF-A51D89622D0E}']
-    function BaseURL(AValue: String): iPosControle;
-    function Username(AValue: String): iPosControle;
-    function Password(AValue: String): iPosControle;
     function SubscriptionKey(AValue: String): iPosControle;
     function NumSerialPos(AValue: String): iPosControle;
     function IDCobranca(AValue: String): iPosControle;
@@ -31,20 +29,17 @@ type
   end;
   TPosControle = class(TInterfacedObject, iPosControle)
   private
-    FBaseURL, FSubscriptionKey, FUsername, FPassword: string;
+    FSubscriptionKey: string;
     FNumSerialPos, FIDCobranca, FIDPagamento, FQtParcelas, FCpf, FNome: String;
     FAmount: Currency;
     FCobStatus: tpCobStatus;
     FQtdConsultas: Integer;
+    FPaymentId: String;
     constructor Create;
     destructor Destroy; override;
     procedure VerificaPagamento(AValue: string);
-    function GetResponseCode(const JsonStr: string): Integer;
   public
     class function New: iPosControle;
-    function BaseURL(AValue: String): iPosControle;
-    function Username(AValue: String): iPosControle;
-    function Password(AValue: String): iPosControle;
     function SubscriptionKey(AValue: String): iPosControle;
     function NumSerialPos(AValue: String): iPosControle;
     function IDCobranca(AValue: String): iPosControle;
@@ -70,7 +65,6 @@ begin
 end;
 constructor TPosControle.Create;
 begin
-  FBaseURL:= 'https://api.poscontrole.com.br/';
   FNumSerialPos:= '';
   FIDCobranca:= '';
   FIDPagamento:= '';
@@ -108,106 +102,103 @@ begin
   Result:= Self;
   FIDPagamento:= AValue;
 end;
+
 function TPosControle.Nome(AValue: String): iPosControle;
 begin
   Result:= Self;
   FNome:= AValue;
 end;
+
 function TPosControle.NumSerialPos(AValue: String): iPosControle;
 begin
   Result:= Self;
   FNumSerialPos:= AValue;
 end;
+
 function TPosControle.QtParcelas(AValue: String): iPosControle;
 begin
   Result:= Self;
   FQtParcelas:= AValue;
 end;
-function TPosControle.Password(AValue: String): iPosControle;
-begin
-  Result:= Self;
-  FPassword:= AValue;
-end;
+
 function TPosControle.SubscriptionKey(AValue: String): iPosControle;
 begin
   Result:= Self;
   FSubscriptionKey:= AValue;
 end;
-function TPosControle.Username(AValue: String): iPosControle;
-begin
-  Result:= Self;
-  FUsername:= AValue;
-end;
-function TPosControle.BaseURL(AValue: String): iPosControle;
-begin
-  Result:= Self;
-  FBaseURL:= AValue;
-end;
+
 function TPosControle.Auth: string;
-var
-  vResp: IResponse;
-  vRetorno: string;
-  vJsonVal: iJsonVal;
+//var
+//  vResp: IResponse;
+//  vRetorno: string;
+//  vJsonVal: iJsonVal;
 begin
-  Try
-    vResp:= TRequest.New.BaseURL(FBaseURL)
-              .Timeout(C_TIMEOUT)
-              .Resource('v2/auth/token')
-              .ContentType('application/x-www-form-urlencoded')
-              .AddBody('username=' + FUsername + '&password=' + FPassword)
-              .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
-              .Post;
-    vJsonVal:= TJsonVal.New(vResp.Content);
-    If vResp.StatusCode = 200 then begin
-      Result:= vJsonVal.GetValueAsString('jwt');
-    end else begin
-      raise Exception.Create('Não autorizado');
-    end;
-  except on E: Exception do
-    raise Exception.Create('Erro ao autenticar: '+ E.Message);
-  end;
+  Result:= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbnBqIjoiMzY4NDE4MzUwMDAxMTEiLCJjbnBqX2ludGVncmFkb3IiOiIwODY0ODM2NzA' +
+  'wMDEyOCIsInN0b3JlX2lkIjozMCwic3RvcmVfaWRlbnRpZmllciI6IjAxOTY4MmE3LTY2MmQtN2YwMS04MDMyLTBmZGNjYjNjMzM1YiIsImlhdCI6MTc0N' +
+  'Tk0ODczMywiaXNzIjoiYXBwLXdlYi0wNC1zbXRlZi1hcGktcHJkLmF6dXJld2Vic2l0ZXMubmV0In0.4sFRNX3KV6WuqfpPICS3s4s_4W5szEKSK9I5HZ38AQY';
+//  Try
+//    vResp:= TRequest.New.BaseURL(FBaseURL)
+//              .Timeout(C_TIMEOUT)
+//              .Resource('v2/auth/token')
+//              .ContentType('application/x-www-form-urlencoded')
+//              .AddBody('username=' + FUsername + '&password=' + FPassword)
+//              .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
+//              .Post;
+//    vJsonVal:= TJsonVal.New(vResp.Content);
+//    If vResp.StatusCode = 200 then begin
+//      Result:= vJsonVal.GetValueAsString('jwt');
+//    end else begin
+//      raise Exception.Create('Não autorizado');
+//    end;
+//  except on E: Exception do
+//    raise Exception.Create('Erro ao autenticar: '+ E.Message);
+//  end;
 end;
+
 function TPosControle.SmartTef: iPosControle;
 var
   vResp: IResponse;
   vRetorno, vToken: string;
-  vObj, vObjExtras: TJSONObject;
-  vResponseCode: integer;
+  vObj, vObjExtras, JSONObjRetorno: TJSONObject;
 begin
   Result:= Self;
   Try
     vToken:= Auth;
     vObj:= TJSONObject.Create;
     try
-      vObj.AddPair('NumSerialPOS', FNumSerialPOS);
-      vObj.AddPair('IDCobranca', FIDCobranca);
-      vObj.AddPair('IDPagamento', FIDPagamento);
-      vObj.AddPair('QTParcelas', FQTParcelas);
-      vObj.AddPair('Amount', TJSONString.Create(FormatFloat('0.00', FAmount, TFormatSettings.Create('en-US'))));
+      vObj.AddPair('user_id', TJSONNumber.Create(FNumSerialPos));
+      vObj.AddPair('charge_id', FIDCobranca);
+      vObj.AddPair('payment_type', FIDPagamento);
+      vObj.AddPair('installments', TJSONNumber.Create(FQTParcelas));
+      vObj.AddPair('order_type', 'CRD_UNICO');
+      vObj.AddPair('value', TJSONNumber.Create(FormatFloat('0.00', FAmount, TFormatSettings.Create('en-US'))));
       if (FCPF <> '') and (FNome <> '') then begin
         vObjExtras := TJSONObject.Create;
         if FCPF <> '' then
           vObjExtras.AddPair('CPF', FCPF);
         if FNome <> '' then
           vObjExtras.AddPair('Nome', FNome);
-        vObj.AddPair('Extras', vObjExtras);
+        vObj.AddPair('extras', vObjExtras);
       end;
-      vResp:= TRequest.New.BaseURL(FBaseURL)
+      vObj.AddPair('has_details', TJSONBool.Create(false));
+      vResp:= TRequest.New.BaseURL(C_BASE_URL)
                 .Timeout(C_TIMEOUT)
-                .Resource('v3/smart-tef/newItem')
+                .Resource('commands/order/create')
                 .ContentType('application/json')
                 .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
                 .TokenBearer(vToken)
                 .AddBody(vObj.ToString)
                 .Post;
-      If vResp.StatusCode = 200 then begin
-        vResponseCode:= GetResponseCode(vResp.Content);
-        if vResponseCode = 200 then
-          FCobStatus:= cobAberta
-        else
-          raise Exception.Create('Erro ao criar cobrança: ' + sLineBreak + vObj.ToString);
+      If vResp.StatusCode = 201 then begin
+        FCobStatus:= cobAberta;
+        JSONObjRetorno := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
+        try
+          JSONObjRetorno.TryGetValue<string>('payment_identifier', FPaymentId);
+        finally
+          JSONObjRetorno.Free;
+        end;
       end else begin
-        raise Exception.Create('Não autorizado');
+        raise Exception.Create('Erro ao criar cobrança: ' + sLineBreak + vObj.ToString);
       end;
     finally
       vObj.Free;
@@ -219,6 +210,7 @@ begin
     end;
   end;
 end;
+
 function TPosControle.SmartTef_Del: string;
 var
   vResp: IResponse;
@@ -231,35 +223,18 @@ begin
     vToken:= Auth;
     vObj:= TJSONObject.Create;
     try
-      vObj.AddPair('NumSerialPOS', FNumSerialPOS);
-      vObj.AddPair('IDCobranca', FIDCobranca);
-      vObj.AddPair('IDPagamento', FIDPagamento);
-      vObj.AddPair('QTParcelas', FQTParcelas);
-      vObj.AddPair('Amount', TJSONString.Create(FormatFloat('0.00', FAmount, TFormatSettings.Create('en-US'))));
-      vObj.AddPair('action', 'delete');
-      if (FCPF <> '') and (FNome <> '') then begin
-        vObjExtras := TJSONObject.Create;
-        if FCPF <> '' then
-          vObjExtras.AddPair('CPF', FCPF);
-        if FNome <> '' then
-          vObjExtras.AddPair('Nome', FNome);
-        vObj.AddPair('Extras', vObjExtras);
-      end;
-      vResp:= TRequest.New.BaseURL(FBaseURL)
+      vObj.AddPair('payment_identifier', FPaymentId);
+
+      vResp:= TRequest.New.BaseURL(C_BASE_URL)
                 .Timeout(C_TIMEOUT)
-                .Resource('v3/smart-tef/newItem')
+                .Resource('/commands/order/status/cancelar')
                 .ContentType('application/json')
                 .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
                 .TokenBearer(vToken)
                 .AddBody(vObj.ToString)
                 .Post;
-      If vResp.StatusCode = 200 then begin
-        vResponseCode:= GetResponseCode(vResp.Content);
-        if vResponseCode = 200 then begin
-          Result:= 'Cobrança cancelada com sucesso!';
-          FCobStatus:= cobCancelada;
-        end else
-          raise Exception.Create('Erro ao cancelar: ' + vResp.Content);
+      If vResp.StatusCode = 201 then begin
+        FCobStatus:= cobCancelada;
       end else
         raise Exception.Create('Erro ao cancelar: ' + vResp.Content);
     finally
@@ -269,6 +244,7 @@ begin
     raise Exception.Create(E.Message);
   end;
 end;
+
 function TPosControle.GetStatus: iPosControle;
 var
   vResp: IResponse;
@@ -280,19 +256,22 @@ begin
     vToken:= Auth;
     vObj:= TJSONObject.Create;
     try
-      vObj.AddPair('IDCobranca', FIDCobranca);
-      vResp:= TRequest.New.BaseURL(FBaseURL)
+      vObj.AddPair('payment_identifier', FPaymentId);
+
+      vResp:= TRequest.New.BaseURL(C_BASE_URL)
                 .Timeout(C_TIMEOUT)
-                .Resource('v3/smart-tef/get-status')
+                .Resource('pooling/order/get')
                 .ContentType('application/json')
                 .AddHeader('Ocp-Apim-Subscription-Key', FSubscriptionKey)
                 .TokenBearer(vToken)
                 .AddBody(vObj.ToString)
                 .Post;
-      If vResp.StatusCode = 200 then
+      If vResp.StatusCode = 201 then
         VerificaPagamento(vResp.Content)
-      else
+      else begin
+        FCobStatus:= cobNaoExiste;
         raise Exception.Create(vResp.Content);
+      end;
     finally
       vObj.Free;
     end;
@@ -300,49 +279,34 @@ begin
     raise Exception.Create(E.Message);
   end;
 end;
+
 procedure TPosControle.VerificaPagamento(AValue: string);
 var
-  JsonObject, DataObject, DataObj: TJSONObject;
-  DataValue, DataValueResponse: TJSONValue;
-  Pagamentos: string;
-  ResponseCode: string;
+  JSONArray: TJSONArray;
+  JSONObject: TJSONObject;
+  vPaymentStatus: String;
 begin
-  Pagamentos := ''; // Inicializa com string vazia
-  JsonObject := nil;
-  JsonObject := TJSONObject.ParseJSONValue(AValue) as TJSONObject;
+  JSONArray := TJSONObject.ParseJSONValue(AValue) as TJSONArray;
   try
-    // Verifica se JsonObject foi criado corretamente
-    if Assigned(JsonObject) then begin
-      // Verifica se existe a cobranca
-      ResponseCode := JsonObject.GetValue<String>('responseCode');
-      if ResponseCode = '401.05' then begin
-        if not (FCobStatus = cobCancelada) then begin
-          SmartTef_Del;
-          FCobStatus:= cobNaoExiste;
-        end;
+    if (JSONArray <> nil) and (JSONArray.Count > 0) then begin
+      JSONObject := JSONArray.Items[0] as TJSONObject;
+      if JSONObject.TryGetValue('payment_status', vPaymentStatus) then begin
+        if vPaymentStatus.Contains('CAN') or vPaymentStatus.Contains('REJ') then
+          FCobStatus:= cobCancelada
+        else if vPaymentStatus.Equals('PDT') or vPaymentStatus.Equals('PROC_PAG') then
+          FCobStatus:= cobAberta
+        else
+          FCobStatus:= cobPaga;
+
         Exit;
-      end;
-      // Acessa o objeto "data"
-      if JsonObject.TryGetValue<TJSONObject>('data', DataObj) then begin
-        if DataObj.TryGetValue<TJSONValue>('Pagamentos', DataValue) then begin
-          if (DataValue <> nil) and (not DataValue.Null) then begin
-            // Se for uma string, verificar se a string não está vazia
-            if DataValue is TJSONString then begin
-              Pagamentos := (DataValue as TJSONString).Value;
-              if (Pagamentos <> '') and (Pagamentos <> '[]') then
-                FCobStatus:= cobPaga
-              else
-                FCobStatus:= cobAberta;
-            end;
-          end else
-            FCobStatus:= cobAberta;
-        end;
-      end;
+      end else
+        raise Exception.Create('Erro ao obter informação de pagamento.');
     end;
   finally
-    JsonObject.Free;
+    JSONArray.Free;
   end;
 end;
+
 function TPosControle.QtdConsultas: integer;
 begin
   Result:= FQtdConsultas;
@@ -355,28 +319,5 @@ function TPosControle.QtdMaxConsultas: integer;
 begin
   Result:= C_MaxConsultas;
 end;
-function TPosControle.GetResponseCode(const JsonStr: string): Integer;
-var
-  JSONObj: TJSONObject;
-  ResponseCodeStr: string;
-begin
-  Result := -1; // Valor padrão caso ocorra erro
-  try
-    JSONObj := TJSONObject.ParseJSONValue(JsonStr) as TJSONObject;
-    try
-      if Assigned(JSONObj) and JSONObj.TryGetValue<string>('responseCode', ResponseCodeStr) then begin
-        // Pega a parte antes do ponto (se houver) e converte para inteiro
-        ResponseCodeStr := Copy(ResponseCodeStr, 1, Pos('.', ResponseCodeStr) - 1);
-        if ResponseCodeStr = '' then
-          ResponseCodeStr := JSONObj.GetValue<string>('responseCode');
-        Result := StrToIntDef(ResponseCodeStr, -1);
-      end;
-    finally
-      JSONObj.Free;
-    end;
-  except
-    on E: Exception do
-      Result := -1;
-  end;
-end;
+
 end.
