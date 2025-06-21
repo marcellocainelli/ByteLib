@@ -12,6 +12,7 @@ type
     ['{AC24B481-EE86-4B3E-A6FF-A51D89622D0E}']
     function SubscriptionKey(AValue: String): iPosControle;
     function NumSerialPos(AValue: String): iPosControle;
+    function Token(AValue: String): iPosControle;
     function IDCobranca(AValue: String): iPosControle;
     function IDPagamento(AValue: String): iPosControle;
     function QtParcelas(AValue: String): iPosControle;
@@ -30,7 +31,7 @@ type
   TPosControle = class(TInterfacedObject, iPosControle)
   private
     FSubscriptionKey: string;
-    FNumSerialPos, FIDCobranca, FIDPagamento, FQtParcelas, FCpf, FNome: String;
+    FNumSerialPos, FIDCobranca, FIDPagamento, FQtParcelas, FCpf, FNome, FToken: String;
     FAmount: Currency;
     FCobStatus: tpCobStatus;
     FQtdConsultas: Integer;
@@ -42,6 +43,7 @@ type
     class function New: iPosControle;
     function SubscriptionKey(AValue: String): iPosControle;
     function NumSerialPos(AValue: String): iPosControle;
+    function Token(AValue: String): iPosControle;
     function IDCobranca(AValue: String): iPosControle;
     function IDPagamento(AValue: String): iPosControle;
     function QtParcelas(AValue: String): iPosControle;
@@ -58,11 +60,14 @@ type
     procedure QtdConsultas(Value: integer); overload;
   end;
 implementation
+
 { TTokenAws }
+
 class function TPosControle.New: iPosControle;
 begin
   Result:= Self.Create;
 end;
+
 constructor TPosControle.Create;
 begin
   FNumSerialPos:= '';
@@ -74,29 +79,35 @@ begin
   FAmount:= 0.00;
   FQtdConsultas:= 0;
 end;
+
 destructor TPosControle.Destroy;
 begin
   inherited;
 end;
+
 function TPosControle.Amount(AValue: Currency): iPosControle;
 begin
   Result:= Self;
   FAmount:= AValue;
 end;
+
 function TPosControle.CobStatus: tpCobStatus;
 begin
   Result:= FCobStatus;
 end;
+
 function TPosControle.Cpf(AValue: String): iPosControle;
 begin
   Result:= Self;
   FCpf:= AValue;
 end;
+
 function TPosControle.IDCobranca(AValue: String): iPosControle;
 begin
   Result:= Self;
   FIDCobranca:= AValue;
 end;
+
 function TPosControle.IDPagamento(AValue: String): iPosControle;
 begin
   Result:= Self;
@@ -127,15 +138,19 @@ begin
   FSubscriptionKey:= AValue;
 end;
 
+function TPosControle.Token(AValue: String): iPosControle;
+begin
+  Result:= Self;
+  FToken:= AValue;
+end;
+
 function TPosControle.Auth: string;
 //var
 //  vResp: IResponse;
 //  vRetorno: string;
 //  vJsonVal: iJsonVal;
 begin
-  Result:= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbnBqIjoiMzY4NDE4MzUwMDAxMTEiLCJjbnBqX2ludGVncmFkb3IiOiIwODY0ODM2NzA' +
-  'wMDEyOCIsInN0b3JlX2lkIjozMCwic3RvcmVfaWRlbnRpZmllciI6IjAxOTY4MmE3LTY2MmQtN2YwMS04MDMyLTBmZGNjYjNjMzM1YiIsImlhdCI6MTc0N' +
-  'Tk0ODczMywiaXNzIjoiYXBwLXdlYi0wNC1zbXRlZi1hcGktcHJkLmF6dXJld2Vic2l0ZXMubmV0In0.4sFRNX3KV6WuqfpPICS3s4s_4W5szEKSK9I5HZ38AQY';
+  Result:= FToken;
 //  Try
 //    vResp:= TRequest.New.BaseURL(FBaseURL)
 //              .Timeout(C_TIMEOUT)
