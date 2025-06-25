@@ -60,6 +60,8 @@ begin
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  FEntidadeBase.SetReadOnly(Value, 'TAMANHO', False);
+  FEntidadeBase.SetReadOnly(Value, 'COR', False);
 end;
 
 function TEstoqueFilialGrade.InicializaDataSource(Value: TDataSource): iEntidade;
