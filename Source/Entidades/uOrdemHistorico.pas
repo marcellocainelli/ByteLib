@@ -1,10 +1,11 @@
-unit uConfigCashback;
+unit uOrdemHistorico;
 
 interface
+
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils;
 Type
-  TConfigCashback = class(TInterfacedObject, iEntidade)
+  TOrdemHistorico = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
@@ -20,52 +21,59 @@ Type
 implementation
 uses
   uEntidadeBase;
-{ TConfigCashback }
-constructor TConfigCashback.Create;
+
+{ TOrdemHistorico }
+
+constructor TOrdemHistorico.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * from CONFIG_CASHBACK where id = 1 ');
+  FEntidadeBase.TextoSQL('select * from ORD_HISTORICO where NR_ORDEM = :pNr_Ordem');
   InicializaDataSource;
 end;
-destructor TConfigCashback.Destroy;
+
+destructor TOrdemHistorico.Destroy;
 begin
   inherited;
 end;
-class function TConfigCashback.New: iEntidade;
+
+class function TOrdemHistorico.New: iEntidade;
 begin
   Result:= Self.Create;
 end;
-function TConfigCashback.EntidadeBase: iEntidadeBase<iEntidade>;
+
+function TOrdemHistorico.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-function TConfigCashback.Consulta(Value: TDataSource): iEntidade;
-var
-  vTextoSQL: string;
+
+function TOrdemHistorico.Consulta(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('ID');
-  FEntidadeBase.Iquery.SQL(vTextoSQL);
+  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-function TConfigCashback.InicializaDataSource(Value: TDataSource): iEntidade;
-var
-  vTextoSql: String;
+
+function TOrdemHistorico.InicializaDataSource(Value: TDataSource): iEntidade;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  vTextoSql:= 'Select * From CONFIG_CASHBACK Where 1 <> 1';
-  FEntidadeBase.Iquery.SQL(vTextoSql);
+  FEntidadeBase.Iquery.SQL('Select * From ORD_HISTORICO Where 1 <> 1');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-procedure TConfigCashback.ModificaDisplayCampos;
+
+procedure TOrdemHistorico.ModificaDisplayCampos;
 begin
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('data')).EditMask:= '!99/99/00;1;_';
 end;
-function TConfigCashback.DtSrc: TDataSource;
+
+function TOrdemHistorico.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
+
 end.
