@@ -88,8 +88,7 @@ begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('vrtotalprodutos')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('vrtotalnota')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('desconto')).currency:= True;
-  //  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('cep')).EditMask:= '00000\-999;1;_';
-  //  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cpf_co')).EditMask:= '###.###.###-##;1;_';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('frete')).currency:= True;
 end;
 
 function TNfeEntidade.DtSrc: TDataSource;
