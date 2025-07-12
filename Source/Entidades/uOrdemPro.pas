@@ -29,8 +29,7 @@ uses
 constructor TOrdemPro.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('select * from ORD_PRO');
-
+  FEntidadeBase.TextoSQL('select OP.*, P.TIPO_ITEM from ORD_PRO OP left join PRODUTOS P on (P.COD_PROD = OP.COD_PROD) ');
   InicializaDataSource;
 end;
 
