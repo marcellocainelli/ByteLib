@@ -55,16 +55,17 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-
   vTextoSQL:= FEntidadeBase.TextoSql;
   Case FEntidadeBase.TipoPesquisa of
     1: vTextoSQL:= vTextoSQL + ' where NR_ORDEM = :pNr_Ordem';
   end;
-
-  FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
+  FEntidadeBase.AddParametro('pNr_Ordem', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NR_ORDEM');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  FEntidadeBase.CriaCampo(Value, 'VrOrdem', ftCurrency);
+  ModificaDisplayCampos;
+  Value.DataSet.Open;
 end;
 
 function TOrdemPro.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -79,7 +80,9 @@ end;
 
 procedure TOrdemPro.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.000';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VrOrdem')).currency:= True;
 end;
 
 function TOrdemPro.DtSrc: TDataSource;

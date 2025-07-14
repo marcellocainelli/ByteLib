@@ -46,6 +46,7 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
   FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
