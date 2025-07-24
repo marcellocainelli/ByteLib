@@ -80,6 +80,7 @@ end;
 
 procedure TOrdemPro.ModificaDisplayCampos;
 begin
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_CUSTO')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECO_VEND')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VrOrdem')).currency:= True;
