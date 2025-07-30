@@ -61,6 +61,7 @@ begin
     1: vTextoSQL:= vTextoSql + 'NUMNFISCAL = :Parametro';
     2: vTextoSQL:= vTextoSql + 'DTEMISSAO = :Parametro';
     3: vTextoSQL:= vTextoSql + 'NOME Containing :Parametro';
+    4: vTextoSQL:= vTextoSql + 'SERIE = :Parametro and (STATUS = ''P'' or STATUS = ''R'')';
   end;
   FEntidadeBase.AddParametro('Parametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('NUMERO');
