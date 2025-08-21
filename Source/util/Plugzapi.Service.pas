@@ -9,8 +9,7 @@ uses
   Byte.Lib;
 const
   C_URL_API = 'https://api-windows.plugzapi.com.br/instances/%s/token/%s';
-  C_TIMEOUT = 10000;
-
+  C_TIMEOUT = 60000;
 type
   iPlugzapi<T> = interface
     ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
@@ -96,7 +95,6 @@ class function TPlugzapi<T>.New(Parent: T): iPlugzapi<T>;
 begin
   Result:= Self.Create(Parent);
 end;
-
 constructor TPlugzapi<T>.Create(Parent: T);
 begin
   FParent:= Parent;
@@ -121,19 +119,16 @@ begin
   Result:= Self;
   FInstancia:= AValue;
 end;
-
 function TPlugzapi<T>.Bearer(AValue: String): iPlugzapi<T>;
 begin
   Result:= Self;
   FBearer:= AValue;
 end;
-
 function TPlugzapi<T>.ClientToken(AValue: String): iPlugzapi<T>;
 begin
   Result:= Self;
   FClientToken:= AValue;
 end;
-
 function TPlugzapi<T>.Get(const AResource: string; out AJSONResult: string): iPlugzapi<T>;
 var
   vResp: IResponse;
@@ -186,24 +181,19 @@ begin
       raise Exception.Create(E.Message);
   end;
 end;
-
 { TPlugzapiInstancia }
-
 class function TPlugzapiInstancia.New: iPlugzapiInstancia;
 begin
   Result:= Self.Create;
 end;
-
 constructor TPlugzapiInstancia.Create;
 begin
   FPlugzapi:= TPlugzapi<iPlugzapiInstancia>.New(Self);
 end;
-
 destructor TPlugzapiInstancia.Destroy;
 begin
   inherited;
 end;
-
 function TPlugzapiInstancia.Plugzapi: iPlugzapi<iPlugzapiInstancia>;
 begin
   Result:= FPlugzapi;
@@ -225,7 +215,6 @@ begin
       raise Exception.Create(E.Message);
   end;
 end;
-
 function TPlugzapiInstancia.Status: boolean;
 var
   vJSONResp: iJsonVal;
@@ -249,15 +238,12 @@ function TPlugzapiInstancia.Sucesso: Boolean;
 begin
   Result:= FSucesso;
 end;
-
 procedure TPlugzapiInstancia.SetReqResult(ASucesso: Boolean; AMensagem: String);
 begin
   FSucesso:= ASucesso;
   FMensagem:= AMensagem;
 end;
-
 { TPlugzapiMsg }
-
 class function TPlugzapiMsg.New: iPlugzapiMsg;
 begin
   Result:= Self.Create;
@@ -267,33 +253,27 @@ constructor TPlugzapiMsg.Create;
 begin
   FPlugzapi:= TPlugzapi<iPlugzapiMsg>.New(Self);
 end;
-
 destructor TPlugzapiMsg.Destroy;
 begin
   inherited;
 end;
-
 function TPlugzapiMsg.Plugzapi: iPlugzapi<iPlugzapiMsg>;
 begin
   Result:= FPlugzapi;
 end;
-
 procedure TPlugzapiMsg.SetReqResult(ASucesso: Boolean; AMensagem: String);
 begin
   FSucesso:= ASucesso;
   FMensagem:= AMensagem;
 end;
-
 function TPlugzapiMsg.Sucesso: Boolean;
 begin
   Result:= FSucesso;
 end;
-
 function TPlugzapiMsg.Mensagem: String;
 begin
   Result:= FMensagem;
 end;
-
 function TPlugzapiMsg.EnviaMsg(ATelefone, AMsg: String): iPlugzapiMsg;
 var
   vJSONObj: iJsonObj;
@@ -341,7 +321,6 @@ begin
       SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);
   end;
 end;
-
 function TPlugzapiMsg.Boletos_EnviaPdf(ATelefone, AMsg, AFile, AFileName: String): iPlugzapiMsg;
 var
   vJSONObj: iJsonObj;
