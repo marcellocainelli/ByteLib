@@ -134,9 +134,13 @@ begin
       vBancoOffline:= vArqIni.ReadBool('SISTEMA_OFFLINE', 'BancoOffline', False);
       if FDatabase.IsEmpty then begin
         {$IFDEF APPSERVER}
-          FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
-          if FDatabase.IsEmpty then
-            FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
+          FDatabase:= vArqIni.ReadString('HORSE_CONFIG','Database','');
+          if FDatabase.IsEmpty then begin
+            if vAcessoOnline then
+              FDatabase:= vArqIni.ReadString('SISTEMA', 'DatabaseName', '')
+            else
+              FDatabase:= vArqIni.ReadString('SISTEMA','Database', '');
+          end;
         {$ELSE}
           if vBancoOffline then begin
             FDatabase:= vArqIni.ReadString('SISTEMA_OFFLINE', 'Database', '');
