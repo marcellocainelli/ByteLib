@@ -43,6 +43,8 @@ type
     function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
     function SQL_Add(ASQL: string; AClearBeforeAdd: Boolean = false): iQuery;
     function SaveFileFromField(AFieldName, AFilePath: String): Boolean;
+    function CaminhoBD: String;
+    function Password: String;
   end;
 
   iTable = interface

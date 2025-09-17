@@ -315,7 +315,7 @@ begin
     vJSONObj.AddPair('delayMessage', TLib.GetRandomNumber(5000, 30000));
     vJSONObj.AddPair('caption', AMsg);
     FPlugzapi.Send('send-document/pdf', vJSONObj.ToString);
-//    EnviaMsg(ATelefone, AMsg);
+    SetReqResult(True, 'Enviado com sucesso');
   except
     on E:Exception do
       SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);
@@ -335,7 +335,7 @@ begin
     vJSONObj.AddPair('delayMessage', TLib.GetRandomNumber(5000, 30000));
     vJSONObj.AddPair('caption', AMsg);
     FPlugzapi.Send('send-document/pdf', vJSONObj.ToString);
-//    EnviaMsg(ATelefone, AMsg);
+    SetReqResult(True, 'Enviado com sucesso');
   except
     on E:Exception do
       SetReqResult(False, 'Erro ao enviar o arquivo:' + #13#10 + E.Message);

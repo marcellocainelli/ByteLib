@@ -57,6 +57,8 @@ Type
       function InsertNewRecordEvent(AEvent: TDataSetNotifyEvent = nil): iQuery;
       function SQL_Add(ASQL: string; AClearBeforeAdd: Boolean = false): iQuery;
       function SaveFileFromField(AFieldName, AFilePath: String): Boolean;
+      function CaminhoBD: String;
+      function Password: String;
   end;
 implementation
 { TModelQueryFiredac }
@@ -317,6 +319,7 @@ begin
   Result:= Self;
   FDQuery.OnCalcFields:= AEvent;
 end;
+
 function TModelQueryFiredac.ClearDataset(Value: TDataSet): iQuery;
 begin
   Result:= Self;
@@ -345,6 +348,16 @@ begin
   Result:= AMsgErro;
   if AMsgErro.Contains('violation of PRIMARY or UNIQUE KEY') then
     Result:= 'Código já cadastrado!';
+end;
+
+function TModelQueryFiredac.CaminhoBD: String;
+begin
+  Result:= FDQuery.Connection.Params.Database;
+end;
+
+function TModelQueryFiredac.Password: String;
+begin
+  Result:= FDQuery.Connection.Params.Password;
 end;
 
 end.
