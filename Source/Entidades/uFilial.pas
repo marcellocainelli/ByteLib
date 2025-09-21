@@ -95,6 +95,7 @@ begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota_simples')).DisplayFormat:= '####0.0000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('aliquota_funrural')).DisplayFormat:= '####0.00';
   TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('pixavulso_cep')).EditMask:= '00000\-999;1;_';
+  FEntidadeBase.Iquery.Dataset.FieldByName('COD_MUNICIPIO').Required:= True;
 end;
 
 function TFilial.DtSrc: TDataSource;

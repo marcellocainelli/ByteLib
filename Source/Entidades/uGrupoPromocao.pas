@@ -50,8 +50,8 @@ begin
     Value:= FEntidadeBase.DataSource;
   vTextoSQL:= FEntidadeBase.TextoSQL;
   case FEntidadeBase.TipoPesquisa of
-    1: vTextoSQL:= vTextoSQL + 'where (current_date between dt_inicio and dt_fim) or (current_date < dt_inicio)'; //ativas e futuras
-    2: vTextoSQL:= vTextoSQL + 'where current_date > dt_fim'; //inativas
+    1: vTextoSQL:= vTextoSQL + 'where (current_date between dt_inicio and dt_fim) or (current_date < dt_inicio) and flag_promo_max = :pFlag_promo_max'; //ativas e futuras
+    2: vTextoSQL:= vTextoSQL + 'where current_date > dt_fim and flag_promo_max = :pFlag_promo_max'; //inativas
   end;
   FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(vTextoSql);

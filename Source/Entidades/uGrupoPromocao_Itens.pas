@@ -62,8 +62,7 @@ begin
     3: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd';
     4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and ((gpi.id_grupo_promo <> :pIdGrupoPromo) or (gpi.id_grupo_promo = :pIdGrupoPromo)) ' +
                                ' and gp.dt_fim >= :pDtInicio';
-//    4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and gpi.id_grupo_promo <> :pIdGrupoPromo ' +
-//                               ' and ((:pDtInicio between gp.dt_inicio and gp.dt_fim) or (:pDtFim between gp.dt_inicio and gp.dt_fim))';
+    5: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo and gpi.cod_prod = :pCodProd and gp.FLAG_REGRA_GRUPOPROMOCAO = :pFLAG_REGRA_GRUPOPROMOCAO';
   end;
 //  FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   If not FEntidadeBase.Inativos then
