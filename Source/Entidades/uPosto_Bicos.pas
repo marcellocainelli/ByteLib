@@ -27,7 +27,7 @@ uses
 constructor TPosto_Bicos.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From BOMBA Where COD_FILIAL = :pCod_Filial Order By COD_BOMBA');
+  FEntidadeBase.TextoSQL('Select * From BOMBA Where COD_FILIAL = :pCod_Filial ');
   InicializaDataSource;
 end;
 
@@ -47,12 +47,20 @@ begin
 end;
 
 function TPosto_Bicos.Consulta(Value: TDataSource): iEntidade;
+var
+  vTextoSQL: string;
 begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
+  vTextoSQL:= FEntidadeBase.TextoSQL;
+  Case FEntidadeBase.TipoPesquisa of
+    0:;
+    1: vTextoSQL:= FEntidadeBase.TextoSQL + ' and COD_BOMBA = :pParametro';
+  end;
+  FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('COD_BOMBA');
-  FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSQL);
+  FEntidadeBase.Iquery.SQL(vTextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
