@@ -28,7 +28,7 @@ begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
     'SELECT gpi.*, gp.dt_inicio, gp.dt_fim, gp.preco_promo as grupo_preco, gp.flag_regra_grupopromocao, gp.quantidade_min as grupo_qtdd, p.nome_prod, gp.descricao as promo_nome, ' +
-    'gp.flag_clube ' +
+    'gp.flag_clube, gp.flag_promo_max ' +
     'from GRUPO_PROMOCAO_ITEM gpi ' +
     'join produtos p on (p.cod_prod = gpi.cod_prod) ' +
     'join grupo_promocao gp on (gp.id = gpi.id_grupo_promo)'
@@ -62,7 +62,8 @@ begin
     3: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd';
     4: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and ((gpi.id_grupo_promo <> :pIdGrupoPromo) or (gpi.id_grupo_promo = :pIdGrupoPromo)) ' +
                                ' and gp.dt_fim >= :pDtInicio';
-    5: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo and gpi.cod_prod = :pCodProd and gp.FLAG_REGRA_GRUPOPROMOCAO = :pFLAG_REGRA_GRUPOPROMOCAO';
+    5: vTextoSQL:= vTextoSQL + ' where gpi.id_grupo_promo = :pIdGrupoPromo and gpi.cod_prod = :pCodProd and gp.FLAG_REGRA_GRUPOPROMOCAO = :pFLAG_REGRA_GRUPOPROMOCAO and gp.flag_promo_max = :pFLAG_PROMO_MAX';  //promo max
+    6: vTextoSQL:= vTextoSQL + ' where gpi.cod_prod = :pCodProd and gp.flag_promo_max = :pFLAG_PROMO_MAX';  //promo max
   end;
 //  FEntidadeBase.Iquery.IndexFieldNames('NOME_PROD');
   If not FEntidadeBase.Inativos then
