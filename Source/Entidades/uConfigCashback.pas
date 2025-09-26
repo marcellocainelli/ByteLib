@@ -60,10 +60,13 @@ begin
     Value:= FEntidadeBase.DataSource;
   vTextoSql:= 'Select * From CONFIG_CASHBACK Where 1 <> 1';
   FEntidadeBase.Iquery.SQL(vTextoSql);
+  ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
 procedure TConfigCashback.ModificaDisplayCampos;
 begin
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PORC_CASHBACK')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR_MIN')).currency:= True;
 end;
 function TConfigCashback.DtSrc: TDataSource;
 begin
