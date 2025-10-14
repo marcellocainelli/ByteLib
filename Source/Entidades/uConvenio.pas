@@ -30,7 +30,7 @@ uses
 constructor TConvenio.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select C.codigo, C.nome, C.limite, 0 as INDICE from Convenio C');
+  FEntidadeBase.TextoSQL('Select c.*, 0 as INDICE from Convenio c ');
 
   InicializaDataSource;
 end;
@@ -75,6 +75,7 @@ end;
 procedure TConvenio.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LIMITE')).DisplayFormat:= '#,0.00';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DESCONTO')).DisplayFormat:= '#,0.00';
 end;
 
 function TConvenio.DtSrc: TDataSource;
