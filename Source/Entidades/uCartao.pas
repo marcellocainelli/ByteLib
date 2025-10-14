@@ -71,6 +71,7 @@ begin
   FEntidadeBase.SetReadOnly(Value, 'tipo_operacao', False);
   FEntidadeBase.SetReadOnly(Value, 'flg_gera_transferencia_banco', False);
   FEntidadeBase.SetReadOnly(Value, 'flg_nao_gera_cashback', False);
+  FEntidadeBase.SetReadOnly(Value, 'tef_pinpad', False);
 end;
 
 function TCartao.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -103,7 +104,7 @@ end;
 procedure TCartao.SelecionaSQLConsulta;
 begin
   FEntidadeBase.TextoSQL(
-    'select c.*, o.nome as operadora, o.tipo_operacao, o.flg_gera_transferencia_banco, o.flg_nao_gera_cashback ' +
+    'select c.*, o.nome as operadora, o.tipo_operacao, o.flg_gera_transferencia_banco, o.flg_nao_gera_cashback, o.tef_pinpad ' +
     ' from cartao c join operadora o on (o.codigo = c.cod_operadora)');
 end;
 
