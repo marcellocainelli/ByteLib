@@ -235,7 +235,7 @@ begin
             vWhatsapp:= vDDD + vWhatsapp;
         end;
 
-        FIDNummus := ConsultaClientePorDocTel(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString, vTelefone, vWhatsapp, AID);
+        FIDNummus := ConsultaClientePorDocTel(TLib.SomenteNumero(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString), vTelefone, vWhatsapp, AID);
         if FIDNummus.IsEmpty then begin
           if vTelefone.IsEmpty then
             vTelefone:= vWhatsapp;
