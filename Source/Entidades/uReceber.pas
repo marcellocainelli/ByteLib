@@ -62,7 +62,8 @@ begin
   vTextoSQL:= FEntidadeBase.TextoSQL;
   Case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= vTextoSQL + ' and r.NUM_OPER = :pParametro';
-    1: vTextoSQL:= vTextoSQL + ' and r.COD_CLI  = :pParametro and r.BAIXADO = ''X'' and r.COD_FILIAL = :pCodFilial';
+    1: vTextoSQL:= vTextoSQL +
+      ' and r.COD_CLI  = :pParametro and r.BAIXADO = ''X'' and (r.COD_FILIAL = :pCodFilial or :pCodfilial = -1) ';
     2: vTextoSQL:= vTextoSQL + ' and r.COD_CLI  = :pParametro and r.BAIXADO = ''X'' and r.COD_FILIAL = :pCodFilial and r.vencimento between :pDt_ini and :pDt_Fim ';
   end;
   FEntidadeBase.AddParametro('pParametro', FEntidadeBase.TextoPesquisa, ftString);
