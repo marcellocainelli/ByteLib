@@ -189,7 +189,7 @@ begin
   if not FIdNummus.IsEmpty then
     FJsonConsumidor.AddPair('id', FIdNummus);
   FJsonConsumidor.AddPair('phone', ATelefone);
-  FJsonConsumidor.AddPair('document_number', ADataset.FieldByName('CGC').AsString);
+  FJsonConsumidor.AddPair('document_number', TLib.SomenteNumero(ADataset.FieldByName('CGC').AsString));
   FJsonConsumidor.AddPair('name', ADataset.FieldByName('NOME').AsString);
   if (not ADataset.FieldByName('NASC').AsString.IsEmpty) and (not ADataset.FieldByName('NASC').IsNull) then
     FJsonConsumidor.AddPair('birth_date', ADataset.FieldByName('NASC').AsString);
