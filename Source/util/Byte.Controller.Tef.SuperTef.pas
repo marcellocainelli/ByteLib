@@ -6,6 +6,7 @@ const
   C_MaxConsultas = 30;
   C_TIMEOUT = 30000;
   C_BASE_URL = 'https://api.supertef.com.br/api/';
+  C_TOKEN = '1ndbg64nd5deobg3416ofn3gca4c62dgof2efca1aeo1d6fb4fg3c51`35bfcngo';
 type
   tpCobStatus= (cobAberta, cobCancelada, cobPaga, cobNaoExiste);
   iSuperTef = interface

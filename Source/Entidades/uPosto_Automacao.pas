@@ -70,7 +70,7 @@ end;
 
 procedure TPosto_Automacao.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VALOR')).currency:= True;
 end;
 
 function TPosto_Automacao.DtSrc: TDataSource;
