@@ -65,6 +65,7 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames('DESCRICAO');
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  ModificaDisplayCampos;
 end;
 
 function TGrupo.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -84,7 +85,8 @@ end;
 
 procedure TGrupo.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('TX_DESCONTO')).DisplayFormat:= '#,0.00';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('TX_DESCONTO_MAXIMO')).DisplayFormat:= '#,0.00';
 end;
 
 function TGrupo.DtSrc: TDataSource;
