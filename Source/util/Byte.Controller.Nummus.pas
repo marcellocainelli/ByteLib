@@ -70,6 +70,7 @@ type
     constructor Create(Parent: T);
     destructor Destroy; override;
     function RegistraConsumidor(ADataset: TDataset; ATelefone: String): String;
+    function RegistraConsumidor_Anotacao(ACodConvenio: integer; AIDNummus: String): String;
     procedure SalvaIdNummus(AId: String; ACodigo: integer);
     procedure MontaJsonCliente(ADataset: TDataset; ATelefone: String);
     function ConsultaClientePorDocTel(ACgc, ATelefone, AWhatsApp: String; ACodCliente: integer): String;
@@ -389,6 +390,8 @@ begin
     if vResp.StatusCode = 200 then begin
       vJsonResp:= TJsonVal.New(vResp.Content);
       Result:= vJsonResp.GetValueAsString('id');
+
+      RegistraConsumidor_Anotacao(ADataset.FieldByName('COD_CONV').AsInteger, Result);
     end else
       raise Exception.Create(vResp.Content);
   except
@@ -396,6 +399,43 @@ begin
       FSucesso:= False;
       FMensagem:= E.Message;
     end;
+  end;
+end;
+
+function TNummusBase<T>.RegistraConsumidor_Anotacao(ACodConvenio: integer; AIDNummus: String): String;
+var
+  vEntidade: iEntidade;
+  vResp: IResponse;
+  vJson: TJSONObject;
+  vJsonString: String;
+begin
+  Result:= '';
+  try
+    vEntidade:= TEntidade.New;
+    vEntidade.EntidadeBase.TextoSQL(
+      'SELECT NOME FROM CONVENIO WHERE CODIGO = :pCodigo'
+    );
+    vEntidade.EntidadeBase.AddParametro('pCodigo', ACodConvenio);
+    vEntidade.Consulta;
+
+    vJson:= TJSONObject.Create;
+    try
+      vJson.AddPair('note', vEntidade.DtSrc.DataSet.FieldByName('NOME').AsString);
+      vJsonString:= vJson.ToString;
+    finally
+      vJson.Free;
+    end;
+
+    vResp:= TRequest.New.BaseURL(C_URL)
+              .Timeout(C_TIMEOUT)
+              .Resource('customer/' + AIDNummus)
+              .ContentType('application/json')
+              .AddHeader('x-api-key', FApiKey)
+              .AddHeader('x-client-id', FClientID)
+              .AddBody(vJsonString)
+              .Put;
+  except
+
   end;
 end;
 
