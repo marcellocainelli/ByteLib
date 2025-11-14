@@ -124,64 +124,52 @@ type
       procedure BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; AiTable: iTable);
   end;
 implementation
-
 { TNebulazapBase<T> }
-
 class function TNummusBase<T>.New(Parent: T): iNummusBase<T>;
 begin
   Result:= Self.Create(Parent);
 end;
-
 constructor TNummusBase<T>.Create(Parent: T);
 begin
   FParent:= Parent;
   FMensagem:= '';
 end;
-
 destructor TNummusBase<T>.Destroy;
 begin
   if Assigned(FJsonConsumidor) then
     FJsonConsumidor.Free;
   inherited;
 end;
-
 function TNummusBase<T>.ApiKey(AValue: String): iNummusBase<T>;
 begin
   Result:= Self;
   FApiKey:= AValue;
 end;
-
 function TNummusBase<T>.ApiKey: String;
 begin
   Result:= FApiKey;
 end;
-
 function TNummusBase<T>.ClientID(AValue: String): iNummusBase<T>;
 begin
   Result:= Self;
   FClientID:= AValue;
 end;
-
 function TNummusBase<T>.ClientID: String;
 begin
   Result:= FClientID;
 end;
-
 function TNummusBase<T>.&End: T;
 begin
   Result:= FParent;
 end;
-
 function TNummusBase<T>.JsonConsumidor: String;
 begin
   Result:= FJsonConsumidor.ToString;
 end;
-
 procedure TNummusBase<T>.Mensagem(AValue: String);
 begin
   FMensagem:= AValue;
 end;
-
 procedure TNummusBase<T>.MontaJsonCliente(ADataset: TDataset; ATelefone: String);
 begin
   if Assigned(FJsonConsumidor) then
@@ -197,12 +185,10 @@ begin
   FJsonConsumidor.AddPair('gender', 'N/I');
   FJsonConsumidor.AddPair('email', ADataset.FieldByName('EMAIL').AsString);
 end;
-
 function TNummusBase<T>.Mensagem: String;
 begin
   Result:= FMensagem;
 end;
-
 function TNummusBase<T>.Cliente(AID: integer): iNummusBase<T>;
 var
   vCliente: iEntidade;
@@ -214,20 +200,16 @@ begin
     vCliente.EntidadeBase.TipoPesquisa(0);
     vCliente.EntidadeBase.TextoPesquisa(AID.ToString);
     vCliente.Consulta;
-
     if not vCliente.DtSrc.DataSet.IsEmpty then begin
 //      if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty then
 //        raise Exception.Create('O telefone do cliente é obrigatório.');
 //      if vCliente.DtSrc.DataSet.FieldByName('CGC').AsString.IsEmpty then
 //        raise Exception.Create('O documento do cliente é obrigatório.');
-
       if vCliente.DtSrc.DataSet.FieldByName('FONE').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString.IsEmpty and vCliente.DtSrc.DataSet.FieldByName('CGC').AsString.IsEmpty  then
         raise Exception.Create('Para gerar o cashback é necessário estar cadastrado o telefone ou CPF/CNPJ do cliente.');
-
       if vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').AsString.IsEmpty or vCliente.DtSrc.DataSet.FieldByName('ID_NUMMUS').IsNull then begin
         vTelefone:= TLib.SomenteNumero(vCliente.DtSrc.DataSet.FieldByName('FONE').AsString);
         vWhatsapp:= TLib.SomenteNumero(vCliente.DtSrc.DataSet.FieldByName('WHATSAPP').AsString);
-
         if not vCliente.DtSrc.Dataset.FieldByName('DDD').asString.IsEmpty then begin
           var vDDD: String := TLib.SomenteNumero(vCliente.DtSrc.Dataset.FieldByName('DDD').asString);
           if Copy(vTelefone, 1, 2) <> vDDD then
@@ -235,14 +217,12 @@ begin
           if Copy(vWhatsapp, 1, 2) <> vDDD then
             vWhatsapp:= vDDD + vWhatsapp;
         end;
-
         FIDNummus := ConsultaClientePorDocTel(TLib.SomenteNumero(vCliente.DtSrc.DataSet.FieldByName('CGC').AsString), vTelefone, vWhatsapp, AID);
         if FIDNummus.IsEmpty then begin
           if vTelefone.IsEmpty then
             vTelefone:= vWhatsapp;
           FIdNummus:= RegistraConsumidor(vCliente.DtSrc.DataSet, vTelefone);
         end;
-
         if not FIdNummus.IsEmpty then
           SalvaIdNummus(FIdNummus, AID)
         else
@@ -260,7 +240,6 @@ begin
     end;
   end;
 end;
-
 function TNummusBase<T>.ConsultaClientePorDocTel(ACgc, ATelefone, AWhatsApp: String; ACodCliente: integer): String;
 var
   vResp: IResponse;
@@ -269,7 +248,6 @@ var
   ContentItem: TJSONObject;
 begin
   Result:= '';
-
   try
     if not ACgc.IsEmpty then begin
       vResp:= TRequest.New.BaseURL(C_URL)
@@ -297,11 +275,9 @@ begin
           JSONObject.Free;
         end;
       end;
-
       if not Result.IsEmpty then
         Exit;
     end;
-
 
     if not ATelefone.IsEmpty then begin
       vResp:= TRequest.New.BaseURL(C_URL)
@@ -327,11 +303,9 @@ begin
           JSONObject.Free;
         end;
       end;
-
       if not Result.IsEmpty then
         Exit;
     end;
-
     if not AWhatsApp.IsEmpty then begin
       vResp:= TRequest.New.BaseURL(C_URL)
                 .Timeout(C_TIMEOUT)
@@ -364,12 +338,10 @@ begin
     end;
   end;
 end;
-
 function TNummusBase<T>.ClienteIdNummus: String;
 begin
   Result:= FIDNummus;
 end;
-
 function TNummusBase<T>.RegistraConsumidor(ADataset: TDataset; ATelefone: String): String;
 var
   vResp: IResponse;
@@ -390,7 +362,6 @@ begin
     if vResp.StatusCode = 200 then begin
       vJsonResp:= TJsonVal.New(vResp.Content);
       Result:= vJsonResp.GetValueAsString('id');
-
       RegistraConsumidor_Anotacao(ADataset.FieldByName('COD_CONV').AsInteger, Result);
     end else
       raise Exception.Create(vResp.Content);
@@ -401,7 +372,6 @@ begin
     end;
   end;
 end;
-
 function TNummusBase<T>.RegistraConsumidor_Anotacao(ACodConvenio: integer; AIDNummus: String): String;
 var
   vEntidade: iEntidade;
@@ -448,42 +418,35 @@ begin
   vEntidade.EntidadeBase.Iquery.AddParametro('pID', AId, ftString);
   vEntidade.EntidadeBase.Iquery.ExecQuery('update cadcli set ID_NUMMUS = :pID where codigo = :pCodigo');
 end;
-
 procedure TNummusBase<T>.Sucesso(AValue: Boolean);
 begin
   FSucesso:= AValue;
 end;
-
 function TNummusBase<T>.Sucesso: Boolean;
 begin
   Result:= FSucesso;
 end;
 { TNummusCashback }
-
 class function TNummusCashback.New: iNummusCashback;
 begin
   Result:= Self.Create;
 end;
-
 function TNummusCashback.AddProduct(AProduct: TProduct): iNummusBase<iNummusCashback>;
 begin
   FProducts.Add(AProduct);
 end;
-
 constructor TNummusCashback.Create;
 begin
   FNummusBase:= TNummusBase<iNummusCashback>.New(Self);
   FProducts := TObjectList<TProduct>.Create;
   FVenda:= TObjectList<TVendaNummus>.Create;
 end;
-
 destructor TNummusCashback.Destroy;
 begin
   FProducts.Free;
   FVenda.Free;
   inherited;
 end;
-
 function TNummusCashback.GeraJson: String;
 var
   JsonObj, JsonConsumidor: TJSONObject;
@@ -523,12 +486,10 @@ begin
     JsonObj.Free;
   end;
 end;
-
 function TNummusCashback.NummusBase: iNummusBase<iNummusCashback>;
 begin
   Result:= FNummusBase;
 end;
-
 procedure TNummusCashback.NovoCashback;
 var
   vResp: IResponse;
@@ -542,7 +503,6 @@ begin
               .AddHeader('x-client-id', FNummusBase.ClientID)
               .AddBody(GeraJson)
               .Post;
-
     if vResp.StatusCode = 200 then begin
       FNummusBase.Sucesso(True);
       FNummusBase.Mensagem(vResp.Content);
@@ -555,7 +515,6 @@ begin
     end;
   end;
 end;
-
 //function TNummusCashback.BuscaSaldo(AIDNummus: String): Currency;
 //var
 //  vResp: IResponse;
@@ -693,7 +652,6 @@ begin
     end;
   end;
 end;
-
 procedure TNummusCashback.CancelaCashback(AID: String; AMotivo: String);
 var
   vResp: IResponse;
@@ -728,12 +686,10 @@ begin
     end;
   end;
 end;
-
 function TNummusCashback.AddVenda(AVenda: TVendaNummus): iNummusBase<iNummusCashback>;
 begin
   FVenda.Add(AVenda);
 end;
-
 procedure TNummusCashback.BuscaCachbacks(AInicio, AFim: TDate; ACpf: String; AiTable: iTable);
 var
   vResp: IResponse;
@@ -799,16 +755,13 @@ begin
     AiTable.Tabela.FieldDefs.Add('EXCLUIR', ftBoolean);
     AiTable.CriaDataSet;
   end;
-
   // Criar o JSON Object
   JsonObj := TJSONObject.ParseJSONValue(aJsonStr) as TJSONObject;
   try
     JsonArray := JsonObj.GetValue<TJSONArray>('content');
-
     if Assigned(JsonArray) then begin
       for I := 0 to JsonArray.Count - 1 do begin
         ContentItem := JsonArray.Items[I] as TJSONObject;
-
         AiTable.Tabela.Append;
         AiTable.Tabela.FieldByName('ID').AsString := ContentItem.GetValue<string>('id', '');
         AiTable.Tabela.FieldByName('NAME').AsString := ContentItem.GetValue<TJSONObject>('customer').GetValue<string>('name', '');
@@ -825,10 +778,8 @@ begin
     JsonObj.Free;
   end;
 end;
-
 procedure TNummusCashback.CampoGetText(Sender: TField; var Text: string; DisplayText: Boolean);
 begin
   Text:= EmptyStr;
 end;
-
 end.
