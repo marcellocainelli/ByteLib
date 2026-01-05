@@ -9,7 +9,8 @@ uses
     Component.ProgressStream,
   {$ENDIF}
   Data.Cloud.CloudAPI,
-  Data.Cloud.AmazonAPI;
+  Data.Cloud.AmazonAPI,
+  System.Generics.Collections;
 type
   iAWSs3Config = interface
     ['{3E51350F-1063-4B11-9F1E-F3CBD8D03900}']
@@ -195,34 +196,143 @@ begin
   FBucketName:= AConfig.BucketName;
   FRegion:= AConfig.Region;
 end;
+//function TAWSs3.SendObject: iAWSs3;
+//var
+//  vStorageService: TAmazonStorageService;
+//  vStream: TBytesStream;
+//  vCloudResponse: TCloudResponseInfo;
+//begin
+//  Result:= Self;
+//  vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
+//  vCloudResponse:= TCloudResponseInfo.Create;
+//  vStream:= TBytesStream.Create;
+//  try
+//    vStream.LoadFromFile(FFilePath);
+//    if vStorageService.UploadObject(FBucketName,
+//                                    FObjectName,
+//                                    vStream.Bytes,
+//                                    False,
+//                                    FMetaDados,
+//                                    FHeader,
+//                                    amzbaNotSpecified,
+//                                    vCloudResponse) then
+//      FResponseMsg:= 'Enviado com sucesso'
+//    else
+//      FResponseMsg:= 'Erro: ' + vCloudResponse.StatusMessage;
+//    FResponseCode:= vCloudResponse.StatusCode;
+//  finally
+//    vStorageService.Free;
+//    vStream.Free;
+//    vCloudResponse.Free;
+//  end;
+//end;
 function TAWSs3.SendObject: iAWSs3;
+const
+  PART_SIZE = 10 * 1024 * 1024; // 10 MB
 var
-  vStorageService: TAmazonStorageService;
-  vStream: TBytesStream;
-  vCloudResponse: TCloudResponseInfo;
+  StorageService : TAmazonStorageService;
+  CloudResponse  : TCloudResponseInfo;
+  FileStream     : TFileStream;
+  UploadId       : string;
+  PartNumber     : Integer;
+  Buffer         : TBytes;
+  BytesRead      : NativeInt;
+  Parts          : TList<TAmazonMultipartPart>;
+  Part           : TAmazonMultipartPart;
 begin
-  Result:= Self;
-  vStorageService:= TAmazonStorageService.Create(FAmazonConnectionInfo);
-  vCloudResponse:= TCloudResponseInfo.Create;
-  vStream:= TBytesStream.Create;
+  Result := Self;
+
+  StorageService := TAmazonStorageService.Create(FAmazonConnectionInfo);
+  CloudResponse  := TCloudResponseInfo.Create;
+  FileStream     := TFileStream.Create(FFilePath, fmOpenRead or fmShareDenyWrite);
+  Parts          := TList<TAmazonMultipartPart>.Create;
   try
-    vStream.LoadFromFile(FFilePath);
-    if vStorageService.UploadObject(FBucketName,
-                                    FObjectName,
-                                    vStream.Bytes,
-                                    False,
-                                    FMetaDados,
-                                    FHeader,
-                                    amzbaNotSpecified,
-                                    vCloudResponse) then
-      FResponseMsg:= 'Enviado com sucesso'
-    else
-      FResponseMsg:= 'Erro: ' + vCloudResponse.StatusMessage;
-    FResponseCode:= vCloudResponse.StatusCode;
+    try
+      // 1) Inicia Multipart Upload
+      UploadId := StorageService.InitiateMultipartUpload(
+        FBucketName,
+        FObjectName,
+        FMetaDados,
+        FHeader,
+        amzbaNotSpecified
+      );
+
+      if UploadId.IsEmpty then
+        raise Exception.Create(
+          Format('Falha ao iniciar Multipart Upload (%d): %s',
+            [CloudResponse.StatusCode, CloudResponse.StatusMessage])
+        );
+
+      // 2) Upload das partes
+      SetLength(Buffer, PART_SIZE);
+      PartNumber := 1;
+
+      while FileStream.Position < FileStream.Size do
+      begin
+        BytesRead := FileStream.Read(Buffer[0], Length(Buffer));
+        if BytesRead <= 0 then
+          Break;
+
+        SetLength(Buffer, BytesRead);
+
+        Part := Default(TAmazonMultipartPart);
+        Part.PartNumber := PartNumber;
+
+        if not StorageService.UploadPart(
+          FBucketName,
+          FObjectName,
+          UploadId,
+          PartNumber,
+          Buffer,
+          Part,
+          '',
+          CloudResponse
+        ) then
+          raise Exception.Create(
+            Format('Falha no upload da parte %d (%d): %s',
+              [PartNumber, CloudResponse.StatusCode, CloudResponse.StatusMessage])
+          );
+
+        Parts.Add(Part);
+        Inc(PartNumber);
+      end;
+
+      // 3) Finaliza Multipart Upload
+      if not StorageService.CompleteMultipartUpload(
+        FBucketName,
+        FObjectName,
+        UploadId,
+        Parts,
+        CloudResponse
+      ) then
+        raise Exception.Create(
+          Format('Erro ao finalizar Multipart Upload (%d): %s',
+            [CloudResponse.StatusCode, CloudResponse.StatusMessage])
+        );
+
+      FResponseMsg  := 'Enviado com sucesso (Multipart Upload)';
+      FResponseCode := CloudResponse.StatusCode;
+
+    except
+      on E: Exception do
+      begin
+        FResponseMsg  := 'Erro: ' + E.Message;
+        FResponseCode := CloudResponse.StatusCode;
+
+        if not UploadId.IsEmpty then
+          StorageService.AbortMultipartUpload(
+            FBucketName,
+            FObjectName,
+            UploadId,
+            CloudResponse
+          );
+      end;
+    end;
   finally
-    vStorageService.Free;
-    vStream.Free;
-    vCloudResponse.Free;
+    Parts.Free;
+    FileStream.Free;
+    CloudResponse.Free;
+    StorageService.Free;
   end;
 end;
 function TAWSs3.SendObject(AStream: TStream): iAWSs3;
