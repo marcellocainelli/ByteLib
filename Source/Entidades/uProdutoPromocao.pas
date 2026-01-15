@@ -84,6 +84,7 @@ begin
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtinicio')).EditMask:= '!99/99/00;1;_';
   TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('dtfim')).EditMask:= '!99/99/00;1;_';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco')).currency:= True;
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('preco_prazo')).currency:= True;
 end;
 
 function TProdutoPromocao.DtSrc: TDataSource;
