@@ -54,7 +54,7 @@ begin
   case FEntidadeBase.TipoPesquisa of
     1: vTextoSql:= vTextoSql + ' and (DATA between :pDataInicio and :pDataFim) Order by DATA desc';
     2: vTextoSql:= vTextoSql + ' and (DATA between :pDataInicio and :pDataFim) and (COD_CLI = :pCodCli) Order by DATA desc';
-    3: vTextoSql:= 'Select SUM(VALOR - VALOR_USADO) AS DISPONIVEL from CADCLI_CASHBACKS WHERE COD_CLI = :pCodCli and DATA_EXPIRA >= CURRENT_DATE'; //cashback disponivel
+    3: vTextoSql:= 'Select SUM(VALOR - VALOR_USADO) AS DISPONIVEL from CADCLI_CASHBACKS WHERE COD_CLI = :pCodCli and DATA_EXPIRA >= CURRENT_DATE and STATUS = :pStatus'; //cashback disponivel
     4: vTextoSql:= 'Select * From CADCLI_CASHBACKS WHERE (STATUS = :pStatus) and (COD_CLI = :pCodCli) and (DATA between :pDataInicio and :pDataFim) and (COD_CLI = :pCodCli) Order by DATA desc'; //por status
   end;
 
