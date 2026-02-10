@@ -47,10 +47,10 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   vTextoSql:= FEntidadeBase.TextoSql;
-  if FEntidadeBase.Inativos then
-    vTextoSQL:= vTextoSQL + ' and STATUS = ''I'''
-  else
-    vTextoSQL:= vTextoSQL + ' and STATUS = ''A''';
+//  if FEntidadeBase.Inativos then
+//    vTextoSQL:= vTextoSQL + ' and STATUS = ''I'''
+//  else
+//    vTextoSQL:= vTextoSQL + ' and STATUS = ''A''';
   case FEntidadeBase.TipoPesquisa of
     1: vTextoSql:= vTextoSql + ' and (DATA between :pDataInicio and :pDataFim) Order by DATA desc';
     2: vTextoSql:= vTextoSql + ' and (DATA between :pDataInicio and :pDataFim) and (COD_CLI = :pCodCli) Order by DATA desc';
