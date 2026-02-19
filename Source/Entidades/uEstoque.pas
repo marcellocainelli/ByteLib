@@ -93,7 +93,7 @@ procedure TEstoque.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('PRECOCOMPRA')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('DESCONTO')).DisplayFormat:= '#,0.0000';
-  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('CUSTO_ENT')).DisplayFormat:= '#,0.0000';
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('CUSTO_ENT')).DisplayFormat:= '#,0.000000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VENDA_ENT')).DisplayFormat:= '#,0.000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('VENDA_PRAZ')).DisplayFormat:= '#,0.000';
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANT_ENT')).DisplayFormat:= '#,0.000';
