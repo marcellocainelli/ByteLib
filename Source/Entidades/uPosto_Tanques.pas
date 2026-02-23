@@ -79,7 +79,7 @@ end;
 
 procedure TPosto_Tanques.ModificaDisplayCampos;
 begin
-
+  TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('CAPACIDADE')).DisplayFormat:= '#,0.00';
 end;
 
 function TPosto_Tanques.DtSrc: TDataSource;
