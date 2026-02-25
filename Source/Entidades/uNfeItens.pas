@@ -31,11 +31,12 @@ begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL(
-    'Select NFI.*, P.CLASFISCAL, P.IPI_SAIDA, P.ICMS as CODICMS, P.LISTSERV, ' +
-    'P.PPB, P.COD_BARRA, P.COD_ANP, P.COMPLEMENTO, P.CEST, P.VOLUME, P.PESO ' +
-    'From NFISCAL_ITENS NFI ' +
-    'Join PRODUTOS P On (P.COD_PROD = NFI.COD_PROD) ' +
-    'Where (1 = 1) and  ');
+    'select nfi.*, p.clasfiscal, p.ipi_saida, p.icms as codicms, p.listserv, ' +
+    'p.ppb, p.cod_barra, p.cod_anp, p.complemento, p.cest, p.volume, p.peso, i.cbenef ' +
+    'from nfiscal_itens nfi ' +
+    'join produtos p on (p.cod_prod = nfi.cod_prod) ' +
+    'join icms i on (i.cod_icms = p.icms and i.cod_filial = :mcodfilial) ' +
+    'where (1 = 1) and ');
   InicializaDataSource;
 end;
 
@@ -80,6 +81,7 @@ begin
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.IndexFieldNames('NFNUMERO');
+  FEntidadeBase.AddParametro('mcodfilial', 1);
   FEntidadeBase.AddParametro('Parametro', '-1', ftString);
   FEntidadeBase.Iquery.SQL(FEntidadeBase.TextoSql + 'NFI.NFNUMERO = :Parametro');
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
