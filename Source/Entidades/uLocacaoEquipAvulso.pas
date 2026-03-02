@@ -25,8 +25,10 @@ constructor TLocacaoEquipAvulso.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL(
-    'select lea.*, c.nome from LOCACAO_EQUIP_AVULSO lea ' +
+    'select lea.*, le.descricao, le.marca, le.modelo, le.potencia, le.tensao_entrada, le.tensao_saida, c.nome ' +
+    'from LOCACAO_EQUIP_AVULSO lea ' +
     'join cadcli c on (c.codigo = lea.cod_cli) ' +
+    'left join LOCACAO_EQUIPAMENTOS le on (le.id = lea.cod_equipamento) ' +
     'where (1 = 1) '
   );
   InicializaDataSource;
@@ -55,11 +57,12 @@ begin
   else
     vTextoSQL:= FEntidadeBase.TextoSql + 'and lea.status = :pStatus ';
   case FEntidadeBase.TipoPesquisa of
-    1: vTextoSQL:= vTextoSQL + 'and NOME = :pNomeCliente';
-    2: vTextoSQL:= vTextoSQL + 'and DT_FINAL >= :pData';
+    1: vTextoSQL:= vTextoSQL + 'and c.NOME = :pNomeCliente';
+    2: vTextoSQL:= vTextoSQL + 'and lea.DT_FINAL >= :pData';
     3: vTextoSQL:= vTextoSQL;
-    4: vTextoSQL:= vTextoSQL + 'and upper(EQUIP_DESCRICAO) containing upper(:pDescricao)';
-    5: vTextoSQL:= vTextoSQL + 'and DT_INICIO >= :pDtInicio and DT_FINAL <= :pDtFinal';
+    4: vTextoSQL:= vTextoSQL + 'and upper(lea.EQUIP_DESCRICAO) containing upper(:pDescricao)';
+    5: vTextoSQL:= vTextoSQL + 'and lea.DT_INICIO >= :pDtInicio and lea.DT_FINAL <= :pDtFinal';
+    6: vTextoSQL:= vTextoSQL + 'and lea.ID = :pID';
   end;
   FEntidadeBase.Iquery.IndexFieldNames('ID');
   FEntidadeBase.Iquery.SQL(vTextoSQL);

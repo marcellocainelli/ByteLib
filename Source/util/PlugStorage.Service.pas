@@ -20,6 +20,7 @@ type
     function ValidaCertificado(ACnpj: String): iPlugStorage;
     function ConfigDestinadas: iPlugStorage;
     function ContadorVinculado(ACnpj: String): Boolean;
+    function SincronizaNfeDestinada(AChave: String): iPlugStorage;
     //Parametros
     function URL(AValue: String): iPlugStorage;
     function Token(AValue: String): iPlugStorage;
@@ -68,6 +69,7 @@ type
       function ValidaCertificado(ACnpj: String): iPlugStorage;
       function ConfigDestinadas: iPlugStorage;
       function ContadorVinculado(ACnpj: String): Boolean;
+      function SincronizaNfeDestinada(AChave: String): iPlugStorage;
       function Usuario(AUsuario: String): iPlugStorage;
       function Senha(ASenha: String): iPlugStorage;
       function XML(AXml: String): iPlugStorage; overload;
@@ -131,7 +133,6 @@ begin
       vCpfCnpjKeyName:= 'cnpj'
     else if FJson.TryGetValue<string>('cpf', vCpfCnpjKeyValue) then
       vCpfCnpjKeyName:= 'cpf';
-
     vResp:= TRequest.New.BaseURL(FUrl)
               .Timeout(FTimeout)
               .Resource('users/?softwarehouse=' + FToken + '&' + vCpfCnpjKeyName + '=' + vCpfCnpjKeyValue)
@@ -588,6 +589,33 @@ begin
       SetReqResult(False, E.Message);
   end;
 end;
+function TPlugStorage.SincronizaNfeDestinada(AChave: String): iPlugStorage;
+var
+  vResp: IResponse;
+  vResource, vMsg: String;
+  vJsonContent: iJsonVal;
+begin
+  Result:= Self;
+  vResource:= 'destinadas/synchronize?token=' + FToken;
+  try
+    vResp:= TRequest.New.BaseURL(FUrl)
+              .Timeout(FTimeout)
+              .Resource(vResource)
+              .BasicAuthentication(FUsuario, FSenha)
+              .AddParam('Nome', '')
+              .AddParam('token', FToken)
+              .AddParam('key', AChave)
+              .Post;
+     if not vResp.Content.IsEmpty then begin
+       vJsonContent:= TJsonVal.New(vResp.Content);
+       vMsg:= vJsonContent.GetValueAsString('message');
+       SetReqResult(True, vMsg);
+     end;
+  except
+    on E:Exception do
+      SetReqResult(False, E.Message);
+  end;
+end;
 {$ENDREGION}
 {$REGION 'PARAMETROS'}
 function TPlugStorage.URL(AValue: String): iPlugStorage;
@@ -640,13 +668,11 @@ begin
   Result:= Self;
   FCertificado_Password:= AValue;
 end;
-
 function TPlugStorage.Certificado_Path(AValue: String): iPlugStorage;
 begin
   Result:= Self;
   FCertificado_Path:= AValue;
 end;
-
 function TPlugStorage.ChaveXml(AChaveXml: String): iPlugStorage;
 begin
   Result:= Self;
@@ -659,6 +685,7 @@ begin
   FSucesso:= ASucesso;
   FMensagem:= AMensagem;
 end;
+
 function TPlugStorage.GetMensagem: String;
 begin
   Result:= FMensagem;
