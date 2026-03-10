@@ -1,14 +1,12 @@
 unit uEstoqueColetor;
-
 interface
-
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
-
+  Model.Entidade.Interfaces, Data.DB, System.SysUtils, System.StrUtils;
 Type
   TEstoqueColetor = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
+      procedure SelecionaSQLConsulta;
     public
       constructor Create;
       destructor Destroy; override;
@@ -19,38 +17,46 @@ Type
       function DtSrc: TDataSource;
       procedure ModificaDisplayCampos;
   end;
-
 implementation
-
 uses
   uEntidadeBase;
-
 { TBanco }
-
 constructor TEstoqueColetor.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * From ESTOQUE_COLETOR');
-
+  FEntidadeBase.TextoSQL('Select * From ESTOQUE_COLETOR where (1=1) ');
   InicializaDataSource;
 end;
-
 destructor TEstoqueColetor.Destroy;
 begin
-
   inherited;
 end;
-
 class function TEstoqueColetor.New: iEntidade;
 begin
   Result:= Self.Create;
+end;
+procedure TEstoqueColetor.SelecionaSQLConsulta;
+begin
+  if FEntidadeBase.TipoConsulta.IsEmpty then
+    Exit;
+
+  case AnsiIndexStr(FEntidadeBase.TipoConsulta, ['Atualiza']) of
+    0: begin
+      FEntidadeBase.TextoSQL(
+        'Select ec.*, ef.quantidade as estoque' +
+        ' From ESTOQUE_COLETOR ec' +
+        ' join estoquefilial ef on (ec.cod_prod = ef.cod_prod)' +
+        ' join produtos p on (ec.cod_prod = p.cod_prod)' +
+        ' where ef.cod_filial = :pCodFilial and (p.flg_grade <> ''S'' or p.flg_grade is null)'
+      );
+    end;
+  end;
 end;
 
 function TEstoqueColetor.EntidadeBase: iEntidadeBase<iEntidade>;
 begin
   Result:= FEntidadeBase;
 end;
-
 function TEstoqueColetor.Consulta(Value: TDataSource): iEntidade;
 var
   vTextoSql: String;
@@ -58,11 +64,12 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
+  SelecionaSQLConsulta;
   vTextoSql:= FEntidadeBase.TextoSql;
   case FEntidadeBase.TipoPesquisa of
-    1: vTextoSql:= vTextoSql + ' Where ID = :Parametro';
-    2: vTextoSql:= vTextoSql + ' Where ENVIADO = :pEnviado';
-    3: vTextoSql:= vTextoSql + ' Where BAIXADO = :pBaixado';
+    1: vTextoSql:= vTextoSql + ' and ID = :Parametro';
+    2: vTextoSql:= vTextoSql + ' and ENVIADO = :pEnviado';
+    3: vTextoSql:= vTextoSql + ' and BAIXADO = :pBaixado';
   end;
   FEntidadeBase.Iquery.Dataset.FieldDefs.Clear;
   FEntidadeBase.Iquery.Dataset.Fields.Clear;
@@ -71,7 +78,6 @@ begin
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 function TEstoqueColetor.InicializaDataSource(Value: TDataSource): iEntidade;
 var
   vTextoSql: String;
@@ -83,15 +89,14 @@ begin
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
-
 procedure TEstoqueColetor.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('QUANTIDADE')).DisplayFormat:= '#,0.00';
+  if FEntidadeBase.TipoConsulta.Contains('Atualiza') then
+    TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('ESTOQUE')).DisplayFormat:= '#,0.00';
 end;
-
 function TEstoqueColetor.DtSrc: TDataSource;
 begin
   Result:= FEntidadeBase.DataSource;
 end;
-
 end.
