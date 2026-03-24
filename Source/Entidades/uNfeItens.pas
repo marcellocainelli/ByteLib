@@ -31,7 +31,7 @@ begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL(
-    'select nfi.*, p.clasfiscal, p.ipi_saida, p.icms as codicms, p.listserv, ' +
+    'select nfi.*, p.clasfiscal, p.ipi_saida, p.icms as codicms, p.listserv, p.preco_vend as preco_tabela, ' +
     'p.ppb, p.cod_barra, p.cod_anp, p.complemento, p.cest, p.volume, p.peso, p.unidade_comercial, i.cbenef ' +
     'from nfiscal_itens nfi ' +
     'join produtos p on (p.cod_prod = nfi.cod_prod) ' +
@@ -70,7 +70,7 @@ begin
   FEntidadeBase.Iquery.IndexFieldNames('NFNUMERO');
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
-  FEntidadeBase.CriaCampo(Value, 'VrCalculado', ftCurrency);
+  FEntidadeBase.CriaCampo(Value, ['VrCalculado', 'preco_liquido'],[ftCurrency, ftCurrency]);
   ModificaDisplayCampos;
   Value.DataSet.Open;
 end;
