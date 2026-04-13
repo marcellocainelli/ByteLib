@@ -32,10 +32,9 @@ begin
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL(
     'select nfi.*, p.clasfiscal, p.ipi_saida, p.icms as codicms, p.listserv, p.preco_vend as preco_tabela, ' +
-    'p.ppb, p.cod_barra, p.cod_anp, p.complemento, p.cest, p.volume, p.peso, p.unidade_comercial, i.cbenef ' +
+    'p.ppb, p.cod_barra, p.cod_anp, p.complemento, p.cest, p.volume, p.peso, p.unidade_comercial ' +
     'from nfiscal_itens nfi ' +
     'join produtos p on (p.cod_prod = nfi.cod_prod) ' +
-    'join icms i on (i.cod_icms = p.icms and i.cod_filial = :mcodfilial) ' +
     'where (1 = 1) and ');
   InicializaDataSource;
 end;
