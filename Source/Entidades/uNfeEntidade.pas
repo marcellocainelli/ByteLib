@@ -59,7 +59,7 @@ begin
   case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= vTextoSql + 'NUMERO = :Parametro';
     1: vTextoSQL:= vTextoSql + 'NUMNFISCAL = :Parametro';
-    2: vTextoSQL:= vTextoSql + 'DTEMISSAO = :Parametro';
+    2: vTextoSQL:= vTextoSQL + 'DTEMISSAO between :pDtInicio and :pDtFim';
     3: vTextoSQL:= vTextoSql + 'NOME Containing :Parametro';
     4: vTextoSQL:= vTextoSql + 'SERIE = :Parametro and (STATUS = ''P'' or STATUS = ''R'')';
   end;
