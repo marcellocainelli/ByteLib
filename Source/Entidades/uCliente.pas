@@ -146,6 +146,7 @@ begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('honorario')).currency:= True;
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('emp_renda')).currency:= True;
   TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('cpf_co')).EditMask:= '###.###.###-##;1;_';
+  TStringField(FEntidadeBase.Iquery.Dataset.FieldByName('CGC')).DisplayLabel:= 'Cnpj/Cpf';
 end;
 function TCliente.DtSrc: TDataSource;
 begin
