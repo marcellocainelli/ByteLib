@@ -52,6 +52,7 @@ type
     private
       class function FormatarCnpj(const Valor: string): string;
       class function FormatarCpf(const Valor: string): string;
+      class function RemoveMascara(const ADocument: string): string;
       class function SimpleRoundToEX(const AValue: Extended; const ADigit: TRoundToRange = -2): Extended;
     public
       {Funcões uteis}
@@ -355,7 +356,8 @@ end;
 
 class function TLib.FormatarDocumento(pTexto: string): string;
 begin
-  pTexto:= SomenteNumero(pTexto);
+//  pTexto:= SomenteNumero(pTexto);                                              //alterado a pedido de Marcello em 12/06/2026
+  pTexto:= RemoveMascara(pTexto);
   if Length(pTexto) <= 14 then begin
     if Length(pTexto) <= 11 then
       Result := FormatarCpf(pTexto)
@@ -447,6 +449,12 @@ Begin
       AString[x] := SemAcento[Pos(AString[x],ComAcento)];
   Result := AString;
 end;
+
+class function TLib.RemoveMascara(const ADocument: string): string;
+begin
+  Result := TRegEx.Replace(ADocument, '[^\w]', '');
+end;
+
 class function TLib.RoundABNT(const AValue: Double; const Digits: TRoundToRange; const Delta: Double): Double;
 var
    Pow, FracValue, PowValue : Extended;

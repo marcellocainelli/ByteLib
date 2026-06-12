@@ -55,6 +55,7 @@ begin
     1: vTextoSQL:= vTextoSQL + 'and le.STATUS = :pStatus';
     2: vTextoSQL:= vTextoSQL + 'and (le.STATUS = ''A'' or le.STATUS = ''R'' or le.STATUS = ''P'')';
     3: vTextoSQL:= vTextoSQL + 'and le.ID = :pID';
+    4: vTextoSQL:= vTextoSQL + 'and le.STATUS <> ''I''';                        //somente ativos
   end;
   if FEntidadeBase.Inativos then
     vTextoSQL:= FEntidadeBase.TextoSQL + 'and le.status = ''I''';
