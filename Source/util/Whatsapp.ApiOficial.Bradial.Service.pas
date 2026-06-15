@@ -32,7 +32,7 @@ type
     class function New(Parent: T): iPlugzapi<T>;
     function &End : T;
     function Token(AValue: String): iPlugzapi<T>;
-    function InboxID(AValue: String): iPlugzapi<T>;
+    function InboxID(AValue: String): iPlugzapi<T>; overload;
     function InboxID: String; overload;
     function Get(const AResource: String; out AJSONResult: String): iPlugzapi<T>;
     function Send(const AResource: String; AJSON: String): iPlugzapi<T>;

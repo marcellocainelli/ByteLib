@@ -27,7 +27,7 @@ begin
   FEntidadeBase.TextoSQL(
     'select h.* from haver h ' +
     'join caixa cx on (h.num_oper = cx.num_oper) ' +
-    'where h.baixado = ''X'' and cx.cod_filial = :pCodFilial ');
+    'where h.baixado = ''X'' and (cx.cod_filial = :pCodFilial or :pCodFilial = -1) ');
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
