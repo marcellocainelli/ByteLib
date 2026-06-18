@@ -3,15 +3,15 @@ unit uNfeItens;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
 Type
   TNfeItens = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -26,9 +26,9 @@ uses
 
 { TNfeItens }
 
-constructor TNfeItens.Create;
+constructor TNfeItens.Create(AConn: iConexao);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL(
     'select nfi.*, p.clasfiscal, p.ipi_saida, p.icms as codicms, p.listserv, p.preco_vend as preco_tabela, ' +
@@ -44,9 +44,9 @@ begin
   inherited;
 end;
 
-class function TNfeItens.New: iEntidade;
+class function TNfeItens.New(AConn: iConexao): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TNfeItens.EntidadeBase: iEntidadeBase<iEntidade>;

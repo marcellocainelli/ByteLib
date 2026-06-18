@@ -3,16 +3,16 @@ unit uNfeEntidade;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
 
 Type
   TNfeEntidade = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -25,9 +25,9 @@ uses
 
 { TCliente }
 
-constructor TNfeEntidade.Create;
+constructor TNfeEntidade.Create(AConn: iConexao);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TipoPesquisa(0);
   FEntidadeBase.TextoSQL('Select * from NFISCAL Where cod_filial = :pCod_Filial and modelo = :pModelo and ');
   InicializaDataSource;
@@ -38,9 +38,9 @@ begin
   inherited;
 end;
 
-class function TNfeEntidade.New: iEntidade;
+class function TNfeEntidade.New(AConn: iConexao): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TNfeEntidade.EntidadeBase: iEntidadeBase<iEntidade>;

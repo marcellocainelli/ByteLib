@@ -2,7 +2,7 @@ unit Byte.Controller.Stone.SmartTef;
 interface
 uses
   System.SysUtils, System.NetEncoding, RESTRequest4D, System.JSON, Byte.Lib,
-  System.Classes;
+  System.Classes, Controller.LogError;
 type
   swType = (swNone, swDoutorByte, swRinocode);
   TRepostas = record
@@ -182,8 +182,11 @@ var
   vObj, vObjR : TJSONObject;
   vMessageValue : TJSONValue;
   vThread: TThread;
+  vLogError: iControllerLogError;
 begin
   Result:= False;
+  vLogError:= TControllerLogError.New;
+  vLogError.Data(now).Msg('Iniciando envio para a POS: ' + FIp);
   try
     vResp := TRequest.New.BaseURL('http:\\' + FIp + ':' + FPorta.ToString)
                         .Resource('Pagamento')
@@ -195,42 +198,55 @@ begin
                         .Accept('application/json')
                         .Timeout(240000)
                         .Post;
+    vLogError.Data(now).Msg(vResp.Content);
     case vResp.StatusCode of
       200: begin
+        vLogError.Data(now).Msg(vResp.Content + ';;; code' + vResp.StatusCode.ToString);
         vObj := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
-        if Assigned(vObj.GetValue('status')) then
-            ADados.status := vObj.GetValue('status').Value
-        else
-          ADados.status := 'status não encontrado no JSON';
-         vMessageValue := vObj.GetValue('message');
-        if Assigned(vMessageValue) then
-        begin
-          vObjR := TJSONObject.ParseJSONValue(vMessageValue.ToString) as TJSONObject;
-          if Assigned(vObjR) then
-          try
-            if Assigned(vObjR.GetValue('NSU')) then
-             ADados.NSU :=  vObjR.GetValue('NSU').Value;
-             FAtk:= ADados.NSU;
-            if Assigned(vObjR.GetValue('TipoTransacao')) then
-             ADados.TipoTransacao := vObjR.GetValue('TipoTransacao').Value;
-            if Assigned(vObjR.GetValue('Bandeira')) then
-             ADados.Bandeira :=  vObjR.GetValue('Bandeira').Value;
-            if Assigned(vObjR.GetValue('NomeAdquirente')) then
-             ADados.NomeAdquirente :=  vObjR.GetValue('NomeAdquirente').Value;
-            if Assigned(vObjR.GetValue('CnpjAdquirente')) then
-             ADados.CnpjAdquirente := vObjR.GetValue('CnpjAdquirente').Value;
-          finally
-            vObjR.Free;
-          end else begin
-            ADados.erro :=   'Mensagem JSON inválida';
-          end;
+        if not Assigned(vObj) then begin
+          ADados.status := 'Resposta inválida do servidor (JSON malformado)';
+          Exit;
         end;
-        Result := true;
+
+        try
+          if Assigned(vObj.GetValue('status')) then
+              ADados.status := vObj.GetValue('status').Value
+          else
+            ADados.status := 'status não encontrado no JSON';
+           vMessageValue := vObj.GetValue('message');
+          if Assigned(vMessageValue) then
+          begin
+            vObjR := TJSONObject.ParseJSONValue(vMessageValue.ToString) as TJSONObject;
+            if Assigned(vObjR) then
+            try
+              if Assigned(vObjR.GetValue('NSU')) then
+               ADados.NSU :=  vObjR.GetValue('NSU').Value;
+               FAtk:= ADados.NSU;
+              if Assigned(vObjR.GetValue('TipoTransacao')) then
+               ADados.TipoTransacao := vObjR.GetValue('TipoTransacao').Value;
+              if Assigned(vObjR.GetValue('Bandeira')) then
+               ADados.Bandeira :=  vObjR.GetValue('Bandeira').Value;
+              if Assigned(vObjR.GetValue('NomeAdquirente')) then
+               ADados.NomeAdquirente :=  vObjR.GetValue('NomeAdquirente').Value;
+              if Assigned(vObjR.GetValue('CnpjAdquirente')) then
+               ADados.CnpjAdquirente := vObjR.GetValue('CnpjAdquirente').Value;
+            finally
+              vObjR.Free;
+            end else begin
+              ADados.erro :=   'Mensagem JSON inválida';
+            end;
+          end;
+          Result := true;
+        finally
+          vObj.Free;
+        end;
       end;
+
       400: begin
+        vLogError.Data(now).Msg(vResp.Content + ';;; code' + vResp.StatusCode.ToString);
         vObjR := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
         try
-          if Assigned(vobjR.GetValue('status')) then
+          if Assigned(vObjR) and Assigned(vObjR.GetValue('status')) then
             AErro := vobjR.GetValue('status').Value;
           Result := False;
         finally
@@ -238,20 +254,23 @@ begin
         end;
       end;
       500: begin
+        vLogError.Data(now).Msg(vResp.Content + ';;; code' + vResp.StatusCode.ToString);
         AErro :=  'Erro não catalogado no servidor';
         Result := False;
       end;
       else begin
+        vLogError.Data(now).Msg(vResp.Content + ';;; code' + vResp.StatusCode.ToString);
         Result := False;
       end;
     end;
 
   except
     on e: exception do begin
+      vLogError.Data(now).Msg(e.Message);
       Result := false;
       AErro := 'Erro: ' + e.Message;
-      if vResp.StatusCode = 0 then
-       AErro := 'Não foi possível obter resposta do servidor!'+ e.Message;
+      if (vResp = nil) or (vResp.StatusCode = 0) then
+        AErro := 'Não foi possível obter resposta do servidor!' + e.Message;
     end;
   end;
 end;
