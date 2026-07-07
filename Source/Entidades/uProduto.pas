@@ -262,10 +262,12 @@ begin
     5: vTextoSQL:= vTextoSQL + ' and M1.DESCRICAO Containing :mParametro ';
     //procura por Localizacao
     6: vTextoSQL:= vTextoSQL + ' and P.LOCAL Containing :mParametro ';
-    //procura por preco
+    //procura por preco - alterado em 07/07/2026 para buscar por lista de NCM
     7: begin
-      vTextoSQL:= vTextoSQL + ' and P.PRECO_VEND = :mParametro ';
-      FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
+      vTextoSQL:= vTextoSQL + ' and ' + DmFuncoes.GeraFiltroBucaProdutos_NCM(FEntidadeBase.TextoPesquisa);
+      //comentado abaixo em 06/06/2026 na versao 2665.2 por nao termos achado uso
+//      vTextoSQL:= vTextoSQL + ' and P.PRECO_VEND = :mParametro ';
+//      FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
     end;
     8: begin
       vTextoSQL:= vTextoSQL + ' and P.COD_BARRA =  :mParametro ';
