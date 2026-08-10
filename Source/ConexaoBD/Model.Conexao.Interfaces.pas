@@ -29,6 +29,7 @@ type
     function ExecQuery(Value: String = ''): iQuery;
     function Salva(Commit: Boolean = True): iQuery;
     function ApplyUpdates: iQuery;
+    function CommitUpdates: iQuery;
     function IndexFieldNames(FieldName: String): iQuery;
     function StartTransaction: iQuery;
     function InTransaction: Boolean;

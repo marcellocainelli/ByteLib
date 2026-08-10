@@ -25,7 +25,6 @@ Type
     private
       FParent: iConexao;
       FDQuery: TFDQuery;
-      FUpdateTransaction: TFDTransaction;
       FScript: TFDScript;
     public
       constructor Create(Parent: iConexao);
@@ -41,6 +40,7 @@ Type
       function ExecQuery(Value: String): iQuery;
       function Salva(Commit: Boolean = True): iQuery;
       function ApplyUpdates: iQuery;
+      function CommitUpdates: iQuery;
       function IndexFieldNames(FieldName: String): iQuery;
       function StartTransaction: iQuery;
       function InTransaction: Boolean;
@@ -66,13 +66,11 @@ constructor TModelQueryFiredac.Create(Parent: iConexao);
 begin
   FParent:= Parent;
   FDQuery:= TFDQuery.Create(nil);
-  FUpdateTransaction:= TFDTransaction.Create(nil);
   if not Assigned(FParent) then
     FParent:= TModelConexaoFiredac.New;
   FDQuery.Connection:= TFDConnection(FParent.Connection);
   FDQuery.ResourceOptions.ParamCreate := False;
   FDQuery.CachedUpdates:= True;
-  FUpdateTransaction.Connection:= TFDConnection(FParent.Connection);
 end;
 
 function TModelQueryFiredac.Dataset: TDataSet;
@@ -83,8 +81,8 @@ end;
 destructor TModelQueryFiredac.Destroy;
 begin
   FreeAndNil(FDQuery);
-  FreeAndNil(FUpdateTransaction);
-  FreeAndNil(FScript);
+  if Assigned(FScript) then
+    FreeAndNil(FScript);
   inherited;
 end;
 
@@ -123,6 +121,7 @@ begin
 
 function TModelQueryFiredac.FetchOptions(AMode: String; ARowSetSize: integer): iQuery;
 begin
+  Result:= Self;
   if AMode = 'Demand' then
     FDQuery.FetchOptions.Mode:= fmOnDemand
   else if AMode = 'All' then
@@ -212,27 +211,31 @@ end;
 //end;
 function TModelQueryFiredac.Salva(Commit: Boolean = True): iQuery; //alterada em 31/10/2024
 var
-  CrieiTransaction: Boolean;
+  DonoDaTransacao: Boolean;
 begin
   Result:= Self;
 
-  CrieiTransaction:= False;
-  if not InTransaction then begin
-    CrieiTransaction:= True;
-    TFDConnection(FParent.Connection).StartTransaction;
-  end;
+  DonoDaTransacao:= not InTransaction;
 
-  Try
+  if DonoDaTransacao and (not Commit) then
+    raise Exception.Create('Salva(False) exige uma transação externa ativa.');
+
+  if DonoDaTransacao then
+    TFDConnection(FParent.Connection).StartTransaction;
+
+  try
     if FDQuery.ApplyUpdates(0) > 0 then
       CatchApplyUpdatesErrors;
-    FDQuery.CommitUpdates;
-    if Commit then
+
+    if DonoDaTransacao then begin
       TFDConnection(FParent.Connection).Commit;
+      FDQuery.CommitUpdates;
+    end;
   except
-    on E:Exception do begin
-      if CrieiTransaction then
+    on E: Exception do begin
+      if DonoDaTransacao and InTransaction then
         TFDConnection(FParent.Connection).Rollback;
-      raise Exception.Create(E.Message);
+      raise;
     end;
   end;
 end;
@@ -294,6 +297,13 @@ begin
   Result:= Self;
   TFDConnection(FParent.Connection).Commit;
 end;
+
+function TModelQueryFiredac.CommitUpdates: iQuery;
+begin
+  Result:= Self;
+  FDQuery.CommitUpdates;
+end;
+
 function TModelQueryFiredac.Rollback: iQuery;
 begin
   Result:= Self;

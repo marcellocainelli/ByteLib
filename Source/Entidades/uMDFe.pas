@@ -57,6 +57,7 @@ begin
   Case FEntidadeBase.TipoPesquisa of
     0: vTextoSQL:= FEntidadeBase.TextoSQL + 'and ID = :mParametro';
     1: vTextoSQL:= FEntidadeBase.TextoSQL + 'and DTEMISSAO = :pData';
+    2: vTextoSQL:= FEntidadeBase.TextoSQL + 'and NUM_MDFE = :mParametro';
   end;
   FEntidadeBase.AddParametro('mParametro', FEntidadeBase.TextoPesquisa, ftString);
   FEntidadeBase.Iquery.IndexFieldNames('DTEMISSAO');
