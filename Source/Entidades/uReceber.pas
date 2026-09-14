@@ -3,7 +3,7 @@ unit uReceber;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils, Dialogs;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils, StrUtils, Dialogs;
 
 Type
   TReceber = class(TInterfacedObject, iEntidade)
@@ -12,9 +12,9 @@ Type
       procedure MyCalcFields(sender: TDataSet);
       procedure OnNewRecord(DataSet: TDataSet);
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -29,9 +29,9 @@ uses
 
 { TReceber }
 
-constructor TReceber.Create;
+constructor TReceber.Create(AConn: iConexao = nil);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   FEntidadeBase.TextoSQL('select r.*, case when r.valor < 0 then ''DV'' else ''VD'' end as Tipo from receber r where r.situacao = ''A'' ');
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
@@ -42,9 +42,9 @@ begin
   inherited;
 end;
 
-class function TReceber.New: iEntidade;
+class function TReceber.New(AConn: iConexao = nil): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TReceber.EntidadeBase: iEntidadeBase<iEntidade>;

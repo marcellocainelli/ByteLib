@@ -3,16 +3,16 @@ unit uEstoqueFilial;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils;
 
 Type
   TEstoqueFilial = class(TInterfacedObject, iEntidade)
     private
       FEntidadeBase: iEntidadeBase<iEntidade>;
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -27,9 +27,9 @@ uses
 
 { TEstoqueFilial }
 
-constructor TEstoqueFilial.Create;
+constructor TEstoqueFilial.Create(AConn: iConexao = nil);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
 //  FEntidadeBase.TextoSQL('select EF.COD_FILIAL, EF.COD_PROD, EF.QUANTIDADE, F.NOME from ESTOQUEFILIAL EF ' +
 //                         'join FILIAL F on (F.CODIGO = EF.COD_FILIAL) ' +
 //                         'where EF.COD_PROD = :CodProd');
@@ -43,9 +43,9 @@ begin
   inherited;
 end;
 
-class function TEstoqueFilial.New: iEntidade;
+class function TEstoqueFilial.New(AConn: iConexao = nil): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TEstoqueFilial.EntidadeBase: iEntidadeBase<iEntidade>;

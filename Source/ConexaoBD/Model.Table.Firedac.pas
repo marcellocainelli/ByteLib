@@ -18,6 +18,7 @@ Type
       function CriaDataSet: iTable;
       function CopiaDataSet(DataSet: TDataSet): iTable;
       function CloneCursor(DataSet: TDataSet): iTable;
+      function EmptyDataset: iTable;
       function IndexFieldNames(FieldName: String): iTable;
       function CriaCampo(ANomeCampo: string = ''; ADataType: TFieldType = ftUnknown): iTable;
       function CalcFields(AEvent: TDataSetNotifyEvent): iTable;
@@ -34,6 +35,12 @@ destructor TModelTableFiredac.Destroy;
 begin
   FreeAndNil(FDMemTable);
   inherited;
+end;
+
+function TModelTableFiredac.EmptyDataset: iTable;
+begin
+  Result:= Self;
+  FDMemTable.EmptyDataSet;
 end;
 
 class function TModelTableFiredac.New: iTable;

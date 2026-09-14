@@ -3,7 +3,7 @@ unit uCartao;
 interface
 
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils, StrUtils;
 
 Type
   TCartao = class(TInterfacedObject, iEntidade)
@@ -11,9 +11,9 @@ Type
       FEntidadeBase: iEntidadeBase<iEntidade>;
       procedure OnNewRecord(DataSet: TDataSet);
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -29,9 +29,9 @@ uses
 
 { TCartao }
 
-constructor TCartao.Create;
+constructor TCartao.Create(AConn: iConexao = nil);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
@@ -41,9 +41,9 @@ begin
   inherited;
 end;
 
-class function TCartao.New: iEntidade;
+class function TCartao.New(AConn: iConexao = nil): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 
 function TCartao.EntidadeBase: iEntidadeBase<iEntidade>;

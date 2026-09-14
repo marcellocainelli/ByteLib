@@ -1,7 +1,7 @@
 unit uVendaItens;
 interface
 uses
-  Model.Entidade.Interfaces, Data.DB, System.SysUtils, StrUtils, Byte.Lib;
+  Model.Entidade.Interfaces, Model.Conexao.Interfaces, Data.DB, System.SysUtils, StrUtils, Byte.Lib;
 
 Type
   TVendaItens = class(TInterfacedObject, iEntidade)
@@ -11,9 +11,9 @@ Type
       procedure MyCalcFields(sender: TDataSet);
       procedure OnNewRecord(DataSet: TDataSet);
     public
-      constructor Create;
+      constructor Create(AConn: iConexao = nil);
       destructor Destroy; override;
-      class function New: iEntidade;
+      class function New(AConn: iConexao = nil): iEntidade;
       function EntidadeBase: iEntidadeBase<iEntidade>;
       function Consulta(Value: TDataSource = nil): iEntidade;
       function InicializaDataSource(Value: TDataSource = nil): iEntidade;
@@ -22,12 +22,14 @@ Type
       procedure SelecionaSQLConsulta;
   end;
 implementation
+
 uses
   uEntidadeBase;
+
 { TVendaItens }
-constructor TVendaItens.Create;
+constructor TVendaItens.Create(AConn: iConexao = nil);
 begin
-  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
+  FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self, AConn);
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
@@ -35,9 +37,9 @@ destructor TVendaItens.Destroy;
 begin
   inherited;
 end;
-class function TVendaItens.New: iEntidade;
+class function TVendaItens.New(AConn: iConexao = nil): iEntidade;
 begin
-  Result:= Self.Create;
+  Result:= Self.Create(AConn);
 end;
 function TVendaItens.EntidadeBase: iEntidadeBase<iEntidade>;
 begin

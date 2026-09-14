@@ -1,4 +1,4 @@
-unit uCliente;
+unit uCliente_new;
 interface
 uses
   Model.Entidade.Interfaces, Data.DB, System.SysUtils, Byte.Lib;
@@ -25,6 +25,12 @@ constructor TCliente.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
   FEntidadeBase.TextoSQL('Select * From CADCLI Where (1=1) and ');
+  {$IFDEF APP}
+  FEntidadeBase.TextoSQL(
+    'Select CODIGO, NOME, ENDERECO, END_COMPLEMENTO, NUMERO, BAIRRO, CEP, CIDADE, UF, TIPO, CGC, IE, DDD, FONE, FONE1, OBS, DETALHE, EMAIL, LIMITE, ' +
+    'COD_CONV, DT_SINCRONISMO, DTATUALIZACAO, COD_MUNICIPIO, COD_PAIS, COD_FUNCI From CADCLI Where (1=1) and '
+  );
+  {$ENDIF}
   InicializaDataSource;
   FEntidadeBase.InsertNewRecordEvent(OnNewRecord);
 end;
@@ -51,11 +57,6 @@ begin
     Value:= FEntidadeBase.DataSource;
   FEntidadeBase.Iquery.SQL_Add(FEntidadeBase.TextoSql, True);
   {$IFDEF APP}
-  vTextoSQL:= FEntidadeBase.TextoSql;
-  FEntidadeBase.TextoSQL(
-    'Select CODIGO, NOME, ENDERECO, END_COMPLEMENTO, NUMERO, BAIRRO, CEP, CIDADE, UF, TIPO, CGC, IE, DDD, FONE, FONE1, OBS, DETALHE, EMAIL, LIMITE, ' +
-    'COD_CONV, DT_SINCRONISMO, DTATUALIZACAO, COD_MUNICIPIO, COD_PAIS From CADCLI Where (1=1) and '
-  );
   vTextoSQL:= FEntidadeBase.TextoSql;
   if FEntidadeBase.RegraPesquisa = 'Contendo' then
     FEntidadeBase.RegraPesquisa('Containing')
