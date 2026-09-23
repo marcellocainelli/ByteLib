@@ -41,6 +41,8 @@ type
     REDUCAO_IBS: double;
     REDUCAO_CBS: double;
     CONDICAO: integer;
+    MARCA: string;
+    LOG: string;
   end;
 
 
@@ -69,7 +71,7 @@ type
       destructor Destroy; override;
       function ConsultaProduto_MontaReqBody: String;
       function ConsultaLote_MontaReqBody: String;
-      function ConsultaProduto_MontaListaItens: boolean;
+      function ConsultaProduto_MontaListaItens(ARetorno: string): boolean;
       function ConsultaLote_MontaListaItens(ARetorno: string): boolean;
       procedure SetReqResult(ASucesso: Boolean; AMensagem: String);
     public
@@ -182,10 +184,12 @@ begin
           .TokenBearer(FToken)
           .Get;
 
-//    if vResp.StatusCode = 200 then
-//      PreencheDadosVeiculo(vResp.Content)
-//    else
-//      raise Exception.Create(vResp.Content);
+    if vResp.StatusCode = 200 then begin
+      if not ConsultaProduto_MontaListaItens(vResp.Content) then
+        raise Exception.Create(vResp.Content);
+    end else
+      raise Exception.Create(vResp.Content);
+
     SetReqResult(True, 'Dados encontrados');
   except
     on E:Exception do begin
@@ -217,6 +221,7 @@ begin
         raise Exception.Create(vResp.Content);
     end else
       raise Exception.Create(vResp.Content);
+
     SetReqResult(True, 'Dados encontrados');
   except
     on E:Exception do begin
@@ -238,9 +243,51 @@ begin
   FProdutosArray.AddElement(LProduto);
 end;
 
-function TLogme.ConsultaProduto_MontaListaItens: boolean;
+function TLogme.ConsultaProduto_MontaListaItens(ARetorno: string): boolean;
+var
+  vJSONValue: TJSONValue;
+  vJSONObject, vItemObject: TJSONObject;
+  vJSONArray: TJSONArray;
+  vItem: TItem;
+  I: Integer;
+  vMensagem: String;
 begin
-
+  Result:= False;
+  // Limpa a lista existente
+  FListaItens.Clear;
+  vJSONValue := TJSONObject.ParseJSONValue(ARetorno) as TJSONObject;
+  try
+    if not Assigned(vJSONValue) then
+      Exit;
+    if not (vJSONValue is TJSONObject) then
+      Exit;
+    vJSONObject := TJSONObject(vJSONValue);
+    // Captura o success
+    Result := vJSONObject.GetValue<Boolean>('success');
+    // Se não teve sucesso, não processa os itens
+    if not Result then
+      Exit;
+    // Obtém o array data
+    vJSONArray := vJSONObject.GetValue<TJSONArray>('data');
+    if not Assigned(vJSONArray) then
+      Exit;
+    // Percorre os itens
+    for I := 0 to vJSONArray.Count - 1 do begin
+      vMensagem:= '';
+      vItemObject := vJSONArray.Items[I] as TJSONObject;
+      vItem.EAN := vItemObject.GetValue<string>('ean');
+      vItem.CONDICAO:= 1;
+      if vItemObject.TryGetValue<string>('mensagem', vMensagem) then begin
+        vItem.CONDICAO:= 2;
+      end else begin
+        vItem.DESCRICAO := vItemObject.GetValue<string>('descrição');
+        vItem.MARCA := vItemObject.GetValue<string>('marca');
+      end;
+      FListaItens.Add(vItem);
+    end;
+  finally
+    vJSONValue.Free;
+  end;
 end;
 
 function TLogme.ConsultaLote_MontaListaItens(ARetorno: string): boolean;
@@ -252,6 +299,7 @@ var
   I: Integer;
   vMensagem: String;
 begin
+  try
   Result:= False;
   // Limpa a lista existente
   FListaItens.Clear;
@@ -276,12 +324,15 @@ begin
       vMensagem:= '';
       vItemObject := vJSONArray.Items[I] as TJSONObject;
       vItem.EAN := vItemObject.GetValue<string>('ean');
+      vItem.LOG:= vItemObject.ToString;
       vItem.CONDICAO:= 1;
       if vItemObject.TryGetValue<string>('mensagem', vMensagem) then begin
         if vMensagem.Contains('Aguarde definicao da regra de imposto') then
           vItem.CONDICAO:= 2
         else
           vItem.CONDICAO:= 3;
+      end else if not vItemObject.TryGetValue<string>('ncm', vMensagem) then begin
+        vItem.CONDICAO:= 3;
       end else begin
         vItem.DESCRICAO := vItemObject.GetValue<string>('descrição');
         vItem.REGIME_TRIBUTARIO_REMETENTE := vItemObject.GetValue<integer>('regime_tributario_remetente');
@@ -319,6 +370,11 @@ begin
     end;
   finally
     vJSONValue.Free;
+  end;
+  except
+    on E:Exception do begin
+      raise Exception.Create(E.Message + '|' + vItem.LOG);
+    end;
   end;
 end;
 
