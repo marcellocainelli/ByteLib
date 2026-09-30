@@ -97,6 +97,7 @@ end;
 procedure TConta.ModificaDisplayCampos;
 begin
   TFloatField(FEntidadeBase.Iquery.Dataset.FieldByName('LIMITE_CREDITO')).DisplayFormat:= '#,0.00';
+  TDateField(FEntidadeBase.Iquery.Dataset.FieldByName('DATA_CONFERIDO')).EditMask:= '!99/99/00;1;_';
 end;
 
 function TConta.DtSrc: TDataSource;
