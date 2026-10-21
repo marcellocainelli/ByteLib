@@ -12,7 +12,7 @@ const
   C_TIMEOUT = 20000;
 type
   iEvolutionApi<T> = interface
-    ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
+    ['{11C2C9D3-3D18-4B21-AC9A-40E1ED676C00}']
     function Url(AValue: String): iEvolutionApi<T>; overload;
     function Url: String; overload; overload;
     function Instancia(AValue: String): iEvolutionApi<T>; overload;
@@ -47,7 +47,7 @@ type
   end;
 
   iEvolution = interface
-    ['{1EDD7045-3348-48AE-AB6A-AA936890B42C}']
+    ['{5C16B355-4ACC-4C11-8808-B51E31936B53}']
     function EvolutionApi: iEvolutionApi<iEvolution>;
     function Sucesso: Boolean;
     function Mensagem: String;

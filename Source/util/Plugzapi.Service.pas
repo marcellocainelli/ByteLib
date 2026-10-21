@@ -12,7 +12,7 @@ const
   C_TIMEOUT = 60000;
 type
   iPlugzapi<T> = interface
-    ['{1D1B1F01-8A9C-4B17-BF27-05186C056AA5}']
+    ['{AF6D63CB-8FCF-4B4A-B7A8-830ED1FAD571}']
     function Instancia(AValue: String): iPlugzapi<T>;
     function Token(AValue: String): iPlugzapi<T>;
     function Bearer(AValue: String): iPlugzapi<T>;
@@ -64,7 +64,7 @@ type
       function QrCode: String;
   end;
   iPlugzapiMsg = interface
-    ['{1EDD7045-3348-48AE-AB6A-AA936890B42C}']
+    ['{8FA67813-6902-44E3-B242-728D61649749}']
     function Plugzapi: iPlugzapi<iPlugzapiMsg>;
     function Sucesso: Boolean;
     function Mensagem: String;

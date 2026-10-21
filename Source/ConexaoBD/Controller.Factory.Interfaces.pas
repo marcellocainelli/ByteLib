@@ -13,7 +13,7 @@ type
   end;
 
   iFactoryTable = interface
-    ['{40B5AF12-7E1D-48E8-A676-E3E96380D872}']
+    ['{FA7A7460-69D2-4201-BA3A-26A8A1AAECA2}']
     function Table: iTable;
   end;
 

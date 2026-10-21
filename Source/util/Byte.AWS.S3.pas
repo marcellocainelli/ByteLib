@@ -40,7 +40,7 @@ type
       function BucketName: String; overload;
   end;
   iAWSs3 = interface
-    ['{5C313EBB-54BA-4899-9D99-60D2C0CA2701}']
+    ['{3CDA47F6-E2C3-4B7E-AEB1-B8904AF198DC}']
     function SendObject: iAWSs3; overload;
     function SendObject(AStream: TStream): iAWSs3; overload;
     function GetObject: iAWSs3; overload;

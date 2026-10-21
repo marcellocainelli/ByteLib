@@ -7,7 +7,7 @@ const
 type
   tpCobStatus= (cobAberta, cobCancelada, cobPaga, cobNaoExiste);
   iPosControle = interface
-    ['{AC24B481-EE86-4B3E-A6FF-A51D89622D0E}']
+    ['{B6D3EB67-1DD7-4105-87D0-DDB17F0A4D85}']
     function BaseURL(AValue: String): iPosControle;
     function Username(AValue: String): iPosControle;
     function Password(AValue: String): iPosControle;

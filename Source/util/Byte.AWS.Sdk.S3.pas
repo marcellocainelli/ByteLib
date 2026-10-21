@@ -11,7 +11,7 @@ uses
   AWS.S3, AWS.Client;
 type
   iAWSs3Config = interface
-    ['{3E51350F-1063-4B11-9F1E-F3CBD8D03900}']
+    ['{CD141F63-E6E6-4B11-A739-1D9FDE5204A5}']
     function Region(AValue: String): iAWSs3Config; overload;
     function Region: String; overload;
     function AccName(AValue: String): iAWSs3Config; overload;
@@ -38,7 +38,7 @@ type
       function BucketName: String; overload;
   end;
   iAWSs3 = interface
-    ['{5C313EBB-54BA-4899-9D99-60D2C0CA2701}']
+    ['{C300CE32-DE36-40BC-89C1-5770D57AEED8}']
     function FilePath(AValue: String): iAWSs3;
     function ObjectName(AValue: String): iAWSs3;
     function Response: String;

@@ -269,8 +269,13 @@ end;
 
 function TModelQueryFiredac.SetMode(pModo: string): iQuery;
 begin
-  Result:= Self;
-  FDQuery.FetchOptions.Mode:= fmAll;
+  Result := Self;
+  if SameText(pModo, 'Demand') then
+    FDQuery.FetchOptions.Mode := fmOnDemand
+  else if SameText(pModo, 'All') then
+    FDQuery.FetchOptions.Mode := fmAll
+  else
+    raise EArgumentException.CreateFmt('Modo de fetch inválido: "%s"', [pModo]);
 end;
 function TModelQueryFiredac.IndexFieldNames(FieldName: String): iQuery;
 begin

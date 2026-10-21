@@ -16,7 +16,7 @@ type
     erro:  string;
   end;
   IControllerStoneSmartTef = interface
-    ['{D2A8A6D3-98F1-4C4D-AF9B-123456789ABC}']
+    ['{64AFBC54-C96B-4684-AE37-60EF63CAEA10}']
     function swID(const AValue: swType): IControllerStoneSmartTef; overload;
     function swID: swType; overload;
     function EmpresaCNPJ(const AValue: string): IControllerStoneSmartTef; overload;
@@ -76,7 +76,6 @@ function TControllerStoneSmartTef.Encrypt(const S: string): string;
 begin
   Result := TNetEncoding.Base64.Encode(S);
 end;
-
 function TControllerStoneSmartTef.Decrypt(const S: string): string;
 begin
   Result := TNetEncoding.Base64.Decode(S);
@@ -147,7 +146,6 @@ begin
     Result := swNone;
   end;
 end;
-
 function TControllerStoneSmartTef.swID(const AValue: swType): IControllerStoneSmartTef;
 begin
   Result := Self;
@@ -207,7 +205,6 @@ begin
           ADados.status := 'Resposta inválida do servidor (JSON malformado)';
           Exit;
         end;
-
         try
           if Assigned(vObj.GetValue('status')) then
               ADados.status := vObj.GetValue('status').Value
@@ -241,7 +238,6 @@ begin
           vObj.Free;
         end;
       end;
-
       400: begin
         vLogError.Data(now).Msg(vResp.Content + ';;; code' + vResp.StatusCode.ToString);
         vObjR := TJSONObject.ParseJSONValue(vResp.Content) as TJSONObject;
@@ -263,7 +259,6 @@ begin
         Result := False;
       end;
     end;
-
   except
     on e: exception do begin
       vLogError.Data(now).Msg(e.Message);
@@ -274,7 +269,6 @@ begin
     end;
   end;
 end;
-
 function TControllerStoneSmartTef.EnviarCancelamento(AValor, ASerial: string; out ADados: TRepostas; out AErro: string): boolean;
 var
   Resp: IResponse;
@@ -295,7 +289,6 @@ begin
       200:
         begin
          obj := TJSONObject.ParseJSONValue(Resp.Content) as TJSONObject;
-
           if Assigned(obj.GetValue('status')) then
               ADados.status := obj.GetValue('status').Value
           else
@@ -308,7 +301,6 @@ begin
             try
               if Assigned(objR.GetValue('NSU')) then begin    //caso não volte o NSU deu erro ou foi cancelado
                 ADados.NSU := objR.GetValue('NSU').Value;
-
                 if objR.GetValue('NSU').Value <> '' then begin
                   ADados.erro := '';
                   Result := true;
@@ -324,7 +316,6 @@ begin
                 AErro := 'Falha no cancelamento';
                 Result := false;
               end;
-
             finally
               objR.Free;
             end

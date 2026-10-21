@@ -8,7 +8,7 @@ uses
 
 type
   iTokenAws = interface
-    ['{AC24B481-EE86-4B3E-A6FF-A51D89622D0E}']
+    ['{A99CC83D-21A1-4D16-B2DD-58CCB9C1BE35}']
     function BaseURL(AValue: String): iTokenAws;
     function GetJWT: string;
   end;

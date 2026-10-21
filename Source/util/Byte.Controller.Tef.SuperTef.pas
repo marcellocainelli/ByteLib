@@ -10,7 +10,7 @@ const
 type
   tpCobStatus= (cobAberta, cobCancelada, cobPaga, cobNaoExiste);
   iSuperTef = interface
-    ['{AC24B481-EE86-4B3E-A6FF-A51D89622D0E}']
+    ['{C6DB7D0E-10A1-4E8B-8860-7734AC4C6015}']
     function NumSerialPos(AValue: String): iSuperTef;
     function Token(AValue: String): iSuperTef;
     function ChaveCliente(AValue: String): iSuperTef;

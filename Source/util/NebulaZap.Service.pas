@@ -54,7 +54,7 @@ type
 //    procedure AccessToken(AValue: String);
   end;
   iNebulaZap = interface
-    ['{1EDD7045-3348-48AE-AB6A-AA936890B42C}']
+    ['{2F51F83F-208F-4575-BC09-4A1847C3E2D1}']
     function NebulaZapBase: iNebulazapBase<iNebulaZap>;
     function Sucesso: Boolean;
     function Mensagem: String;
