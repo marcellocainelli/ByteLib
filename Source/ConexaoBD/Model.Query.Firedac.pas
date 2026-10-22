@@ -26,6 +26,7 @@ Type
       FParent: iConexao;
       FDQuery: TFDQuery;
       FScript: TFDScript;
+      function ObtemParametro(const NomeParametro: String): TFDParam;
     public
       constructor Create(Parent: iConexao);
       destructor Destroy; override;
@@ -136,15 +137,31 @@ begin
   Result:= Self;
   TFDConnection(FParent.Connection).GetFieldNames('', '', Table, '', List);
 end;
+//Localiza o parametro pelo nome ou cria um unico novo. Chamar AddParametro de novo com o mesmo nome atualiza o valor.
+function TModelQueryFiredac.ObtemParametro(const NomeParametro: String): TFDParam;
+begin
+  Result:= FDQuery.Params.FindParam(NomeParametro);
+  if Result = nil then begin
+    Result:= FDQuery.Params.Add;
+    Result.Name:= NomeParametro;
+  end;
+  Result.ParamType:= ptInput;
+end;
+
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType): iQuery;
+var
+  vParam: TFDParam;
 begin
   Result:= Self;
-  FDQuery.Params.Add.Name:= NomeParametro;
-  FDQuery.Params.ParamValues[NomeParametro]:= ValorParametro;
-  FDQuery.Params.Add.DataType:= DataType;
-  if DataType = ftString then
-    FDQuery.Params.Add.Size:= Length(NomeParametro);
-  FDQuery.Params.Add.ParamType:= ptInput;
+  vParam:= ObtemParametro(NomeParametro);
+  //Texto vai como Wide para manter o Unicode, como ja acontecia quando o tipo era inferido do Variant
+  case DataType of
+    ftString: vParam.DataType:= ftWideString;
+    ftMemo  : vParam.DataType:= ftWideMemo;
+  else
+    vParam.DataType:= DataType;
+  end;
+  vParam.Value:= ValorParametro;
 end;
 
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: Variant; DataType: TFieldType; FilePath: String): iQuery;
@@ -154,21 +171,20 @@ begin
   Result := Self;
 
   if (FilePath <> '') and (DataType = ftBlob) then begin
-    BlobField := FDQuery.Params.Add;
-    BlobField.Name := NomeParametro;
+    BlobField := ObtemParametro(NomeParametro);
     BlobField.DataType := DataType;
-    BlobField.ParamType := ptInput;
     BlobField.LoadFromFile(FilePath, ftBlob);
   end;
 end;
 
 function TModelQueryFiredac.AddParametro(NomeParametro: String; ValorParametro: integer): iQuery;
+var
+  vParam: TFDParam;
 begin
   Result:= Self;
-  FDQuery.Params.Add.Name:= NomeParametro;
-  FDQuery.Params.ParamValues[NomeParametro]:= ValorParametro;
-  FDQuery.Params.Add.DataType:= ftInteger;
-  FDQuery.Params.Add.ParamType:= ptInput;
+  vParam:= ObtemParametro(NomeParametro);
+  vParam.DataType:= ftInteger;
+  vParam.AsInteger:= ValorParametro;
 end;
 
 function TModelQueryFiredac.AddParametro(NomeParametro: String; DataType: TFieldType; Stream: TStream): iQuery;
@@ -177,10 +193,8 @@ var
 begin
   Result:= Self;
   if (DataType = ftBlob) then begin
-    BlobField := FDQuery.Params.Add;
-    BlobField.Name := NomeParametro;
+    BlobField := ObtemParametro(NomeParametro);
     BlobField.DataType := DataType;
-    BlobField.ParamType := ptInput;
     BlobField.LoadFromStream(Stream, ftBlob);
   end;
 end;
@@ -275,8 +289,10 @@ begin
   else if SameText(pModo, 'All') then
     FDQuery.FetchOptions.Mode := fmAll
   else
-    raise EArgumentException.CreateFmt('Modo de fetch inválido: "%s"', [pModo]);
+    FDQuery.FetchOptions.Mode := fmOnDemand;
+    //raise EArgumentException.CreateFmt('Modo de fetch inválido: "%s"', [pModo]);
 end;
+
 function TModelQueryFiredac.IndexFieldNames(FieldName: String): iQuery;
 begin
   Result:= Self;
