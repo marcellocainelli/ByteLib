@@ -43,8 +43,9 @@ Type
     private
       FConexao: TFDConnection;
       FUpdateTransaction: TFDTransaction;
-      class var FDatabase, FUsername, FPassword, FPort: String;
-      class var FForceBDConfig: Boolean;
+      //Configuracao por instancia. Como class var, conexoes criadas ao mesmo tempo (threads) podiam trocar banco e senha entre si
+      FDatabase, FUsername, FPassword, FPort: String;
+      FForceBDConfig: Boolean;
       procedure ConnWindows;
       procedure ConnApp;
       procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
@@ -54,7 +55,7 @@ Type
       procedure InsertOnErrorConnection(AEvent: TFDErrorEvent);
       procedure ErroConnection(const AMsg: PWideChar);
     public
-      constructor Create;
+      constructor Create(ADatabase, AUsername, APassword, APort: String; AForceBDConfig: Boolean);
       destructor Destroy; override;
       class function New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'; APort: String = ''; AForceBDConfig: Boolean = False): iConexao;
       function Connection : TCustomConnection;
@@ -64,8 +65,13 @@ Type
   end;
 implementation
 { TModelConexaoFiredac }
-constructor TModelConexaoFiredac.Create;
+constructor TModelConexaoFiredac.Create(ADatabase, AUsername, APassword, APort: String; AForceBDConfig: Boolean);
 begin
+  FDatabase:= ADatabase;
+  FUsername:= AUsername;
+  FPassword:= APassword;
+  FPort:= APort;
+  FForceBDConfig:= AForceBDConfig;
   FConexao:= TFDConnection.Create(nil);
   //ALTERACOES PARA TESTE
 //  FUpdateTransaction:= TFDTransaction.Create(nil);
@@ -86,12 +92,7 @@ begin
 end;
 class function TModelConexaoFiredac.New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'; APort: String = ''; AForceBDConfig: Boolean = False): iConexao;
 begin
-  FDatabase:= ADatabase;
-  FUsername:= AUsername;
-  FPassword:= APassword;
-  FPort:= APort;
-  FForceBDConfig:= AForceBDConfig;
-  Result:= Self.Create;
+  Result:= Self.Create(ADatabase, AUsername, APassword, APort, AForceBDConfig);
 end;
 procedure TModelConexaoFiredac.RefreshBD;
 begin
@@ -162,6 +163,14 @@ begin
       end;
     end;
     FConexao.DriverName:= 'FB';
+    //Transacoes (R-CON-024): sem estas opcoes o Firebird usava snapshot e "nowait" (erro imediato
+    //quando dois terminais alteram a mesma linha).
+    //read_committed + rec_version: cada comando le o ultimo dado confirmado por outros terminais
+    FConexao.TxOptions.Isolation:= xiReadCommitted;
+    //Espera o bloqueio de outra transacao em vez de falhar na hora...
+    FConexao.UpdateOptions.LockWait:= True;
+    //...por no maximo 20 segundos (Firebird 2.0 ou superior; em versoes anteriores e ignorado)
+    FConexao.TxOptions.Params.Values['lock_timeout']:= '20';
     FConexao.Params.Database:= FDatabase;
     FConexao.Params.UserName:= FUsername;
     FConexao.Params.Password:= FPassword;

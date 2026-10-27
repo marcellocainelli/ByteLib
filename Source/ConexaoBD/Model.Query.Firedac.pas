@@ -244,7 +244,11 @@ begin
     if DonoDaTransacao then begin
       TFDConnection(FParent.Connection).Commit;
       FDQuery.CommitUpdates;
-    end;
+    end else if Commit then
+      //Salva(True) com transacao de outra operacao aberta: aplica e limpa o cache para que o
+      //proximo Salva nao reenvie os mesmos registros (R-CON-017). Quem participa de uma
+      //transacao externa deve usar Salva(False) e fazer o CommitUpdates depois do commit.
+      FDQuery.CommitUpdates;
   except
     on E: Exception do begin
       if DonoDaTransacao and InTransaction then
@@ -283,16 +287,9 @@ end;
 
 function TModelQueryFiredac.SetMode(pModo: string): iQuery;
 begin
-  Result := Self;
-  if SameText(pModo, 'Demand') then
-    FDQuery.FetchOptions.Mode := fmOnDemand
-  else if SameText(pModo, 'All') then
-    FDQuery.FetchOptions.Mode := fmAll
-  else
-    FDQuery.FetchOptions.Mode := fmOnDemand;
-    //raise EArgumentException.CreateFmt('Modo de fetch inválido: "%s"', [pModo]);
+  Result:= Self;
+  FDQuery.FetchOptions.Mode:= fmAll;
 end;
-
 function TModelQueryFiredac.IndexFieldNames(FieldName: String): iQuery;
 begin
   Result:= Self;

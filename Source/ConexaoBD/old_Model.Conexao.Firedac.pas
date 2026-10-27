@@ -1,7 +1,5 @@
 unit Model.Conexao.Firedac;
-
 interface
-
 uses
   System.IOUtils,
   System.IniFiles,
@@ -31,42 +29,48 @@ uses
   FireDAC.Stan.Param,
   FireDAC.Stan.Pool,
   FireDAC.UI.Intf,
+  FireDAC.Phys.IBBase,
+  Byte.Lib,
   {$IFDEF MSWINDOWS}
   FireDAC.VCLUI.Wait,
   Vcl.Forms,
   Vcl.Dialogs,
+  Winapi.Windows,
   {$ENDIF}
   Model.Conexao.Interfaces;
-
 Type
   TModelConexaoFiredac = class(TInterfacedObject, iConexao)
     private
       FConexao: TFDConnection;
-      FArqIni: TIniFile;
-      class var FDatabase, FUsername, FPassword: String;
+      FUpdateTransaction: TFDTransaction;
+      class var FDatabase, FUsername, FPassword, FPort: String;
+      class var FForceBDConfig: Boolean;
       procedure ConnWindows;
       procedure ConnApp;
       procedure InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
       procedure FDConnBeforeConnect(Sender: TObject);
       procedure InsertOnLostConnection(AEvent: TNotifyEvent);
       procedure FDConnLostConnection(Sender: TObject);
+      procedure InsertOnErrorConnection(AEvent: TFDErrorEvent);
+      procedure ErroConnection(const AMsg: PWideChar);
     public
       constructor Create;
       destructor Destroy; override;
-      class function New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'): iConexao;
+      class function New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'; APort: String = ''; AForceBDConfig: Boolean = False): iConexao;
       function Connection : TCustomConnection;
       function CaminhoBanco: String;
       function Conectado: Boolean;
       procedure RefreshBD;
   end;
-
 implementation
-
 { TModelConexaoFiredac }
-
 constructor TModelConexaoFiredac.Create;
 begin
   FConexao:= TFDConnection.Create(nil);
+  //ALTERACOES PARA TESTE
+//  FUpdateTransaction:= TFDTransaction.Create(nil);
+//  FConexao.UpdateTransaction:= FUpdateTransaction;
+//  FConexao.Transaction:= FUpdateTransaction;
   {$IFDEF APP}
     ConnApp;
   {$ELSE}
@@ -74,87 +78,107 @@ begin
   {$ENDIF}
   FConexao.Connected:= true;
 end;
-
 destructor TModelConexaoFiredac.Destroy;
 begin
   FreeAndNil(FConexao);
-  FreeAndNil(FArqIni);
+//  FreeAndNil(FUpdateTransaction);
   inherited;
 end;
-
-class function TModelConexaoFiredac.New(ADatabase: String; AUsername: String; APassword: String): iConexao;
+class function TModelConexaoFiredac.New(ADatabase: String = ''; AUsername: String = 'SYSDBA'; APassword: String = 'masterkey'; APort: String = ''; AForceBDConfig: Boolean = False): iConexao;
 begin
   FDatabase:= ADatabase;
   FUsername:= AUsername;
   FPassword:= APassword;
+  FPort:= APort;
+  FForceBDConfig:= AForceBDConfig;
   Result:= Self.Create;
 end;
-
 procedure TModelConexaoFiredac.RefreshBD;
 begin
   FConexao.Connected:= False;
   FConexao.Connected:= True;
 end;
-
 function TModelConexaoFiredac.CaminhoBanco: String;
 begin
   Result:= FConexao.Params.Database;
 end;
-
 function TModelConexaoFiredac.Conectado: Boolean;
 begin
   Result:= FConexao.Connected;
 end;
-
 procedure TModelConexaoFiredac.ConnApp;
 begin
   InsertOnBeforeConnectEvent(FDConnBeforeConnect);
 end;
-
 function TModelConexaoFiredac.Connection: TCustomConnection;
 begin
   Result:= FConexao;
 end;
-
 procedure TModelConexaoFiredac.ConnWindows;
 var
-  vAcessoOnline: Boolean;
+  vAcessoOnline, vBancoOffline: Boolean;
+  vArqIniPath, vIniFileName: String;
+  vArqIni: TIniFile;
 begin
   vAcessoOnline:= False;
+  vArqIniPath:= ExtractFilePath(ParamStr(0));
+  {$IFDEF BYTESUPER}
+  vIniFileName:= 'ByteSuper.Ini';
+  {$ELSE}
+  vIniFileName:= 'ByteEmpresa.Ini';
+  {$ENDIF}
+  vArqIni:= TIniFile.Create(vArqIniPath + vIniFileName);
+  try
+    if not FForceBDConfig then begin
+      vAcessoOnline:= vArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
+      vBancoOffline:= vArqIni.ReadBool('SISTEMA_OFFLINE', 'BancoOffline', False);
+      if FDatabase.IsEmpty then begin
+        {$IFDEF APPSERVER}
+          FDatabase:= vArqIni.ReadString('HORSE_CONFIG','Database','');
+          if FDatabase.IsEmpty then begin
+            if vAcessoOnline then
+              FDatabase:= vArqIni.ReadString('SISTEMA', 'DatabaseName', '')
+            else
+              FDatabase:= vArqIni.ReadString('SISTEMA','Database', '');
+          end;
+        {$ELSE}
+          if vBancoOffline then begin
+            FDatabase:= vArqIni.ReadString('SISTEMA_OFFLINE', 'Database', '');
+            vAcessoOnline:= False;
+          end else begin
+            if vAcessoOnline then
+              FDatabase:= vArqIni.ReadString('SISTEMA', 'DatabaseName', '')
+            else
+              FDatabase:= vArqIni.ReadString('SISTEMA','Database', '');
+          end;
+        {$ENDIF}
+      end else if vAcessoOnline then begin
+        FPassword:= vArqIni.ReadString('SISTEMA','Password', 'masterkey');
+        vAcessoOnline:= False;
+      end else begin
+        {$IFDEF BYTESUPER}
+        FPassword:= vArqIni.ReadString('SERVIDOR','Password', 'masterkey');
+        {$ENDIF}
+      end;
+    end;
+    FConexao.DriverName:= 'FB';
+    FConexao.Params.Database:= FDatabase;
+    FConexao.Params.UserName:= FUsername;
+    FConexao.Params.Password:= FPassword;
 
-  if FDatabase.Equals(EmptyStr) then begin
-    {$IFDEF BYTESUPER}
-      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteSuper.Ini');
-    {$ELSE}
-      FArqIni:= TiniFile.Create(ExtractFilePath(ParamStr(0)) + 'ByteEmpresa.Ini');
-    {$ENDIF}
-
-    vAcessoOnline:= FArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
-
-    {$IFDEF APPSERVER}
-      FDatabase:= FArqIni.ReadString('HORSE_CONFIG','Database','');
-      if FDatabase.Equals(EmptyStr) then
-        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
-    {$ELSE}
-      if vAcessoOnline then
-        FDatabase:= FArqIni.ReadString('SISTEMA','DatabaseName','')
-      else
-        FDatabase:= FArqIni.ReadString('SISTEMA','Database','');
-    {$ENDIF}
+    if FPort = '' then
+      FConexao.Params.Values['Port']:= vArqIni.ReadString('SISTEMA','Port','3050')
+    else
+      FConexao.Params.Values['Port']:= FPort;
+    if vAcessoOnline then begin
+      FConexao.Params.Values['Server']:= vArqIni.ReadString('SISTEMA','Server','');
+      FConexao.Params.Password:= vArqIni.ReadString('SISTEMA','Password', FPassword);
+      //alteração para a contingencia
+//      InsertOnLostConnection(FDConnLostConnection);
+    end;
+  finally
+    vArqIni.Free;
   end;
-
-  FConexao.DriverName:= 'FB';
-  FConexao.Params.Database:= FDatabase;
-  FConexao.Params.UserName:= FUsername;
-  FConexao.Params.Password:= FPassword;
-
-  if vAcessoOnline then begin
-    FConexao.Params.Values['Server']:= FArqIni.ReadString('SISTEMA','Server','');
-    FConexao.Params.Values['Port']:= FArqIni.ReadString('SISTEMA','Port','3050');
-    FConexao.Params.Password:= FArqIni.ReadString('SISTEMA','Password', FPassword);
-  end;
-
-//  InsertOnLostConnection(FDConnLostConnection);
 end;
 
 procedure TModelConexaoFiredac.InsertOnBeforeConnectEvent(AEvent: TNotifyEvent);
@@ -183,9 +207,35 @@ end;
 procedure TModelConexaoFiredac.FDConnLostConnection(Sender: TObject);
 begin
 {$IFDEF MSWINDOWS}
-  ShowMessage('A conexão com o banco de dados foi perdida devido a um problema nessa máquina ou na rede. O sistema será encerrado.');
-  Application.Terminate;
+  ErroConnection('Erro de conexão com o banco de dados! Verifique o servidor e a rede.');
 {$ENDIF}
 end;
 
+procedure TModelConexaoFiredac.InsertOnErrorConnection(AEvent: TFDErrorEvent);
+begin
+  FConexao.OnError:= AEvent;
+end;
+
+procedure TModelConexaoFiredac.ErroConnection(const AMsg: PWideChar);
+var
+  vArqIni: TIniFile;
+  vArqIniPath, vIniFileName: String;
+  vAcessoOnline: Boolean;
+begin
+{$IFDEF MSWINDOWS}
+  vIniFileName:= 'ByteEmpresa.Ini';
+  vArqIniPath:= ExtractFilePath(ParamStr(0));
+  vArqIni:= TIniFile.Create(vArqIniPath + vIniFileName);
+  vAcessoOnline:= vArqIni.ReadBool('SISTEMA', 'AcessoOnline', False);
+  if vAcessoOnline then begin
+    If Application.MessageBox(
+         'Verifique sua internet ou confirme abaixo para mudar para o modo OFFLINE.', 'Erro na conexão em nuvem!', MB_ICONQUESTION + MB_YESNO)= IDYES then begin
+      vArqIni.WriteBool('SISTEMA_OFFLINE', 'BancoOffline', True);
+      ShowMessage('O sistema irá fechar para alternar para o modo OFFLINE.');
+    end;
+  end else
+    ShowMessage(AMsg);
+  ExitProcess(0);
+{$ENDIF}
+end;
 end.
