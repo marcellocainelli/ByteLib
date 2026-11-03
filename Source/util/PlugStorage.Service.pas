@@ -443,77 +443,83 @@ function TPlugStorage.GetDestinadas(ADtInicio, ADtFim: TDateTime; AModDoc: Strin
     vJsonObjInvoice: TJSONObject;
     vArrayCount: integer;
     vFormatSet: TFormatSettings;
-    vValor: String;
   begin
+    vFormatSet:= TFormatSettings.Create;
     vFormatSet.ShortDateFormat:= 'yyyy-mm-dd';
     vFormatSet.DateSeparator:= '-';
-    for vArrayCount := 0 to AArray.Size - 1 do begin
-      vjsonObjInvoice:= AArray.Get(vArrayCount) as TJSONObject;
+    for vArrayCount := 0 to AArray.Count - 1 do begin
+      vjsonObjInvoice:= AArray.Items[vArrayCount] as TJSONObject;
+      //Campos opcionais com valor padrao: uma nota sem razao_social/fantasia nao interrompe a lista
       ATable.Tabela.Append;
-      ATable.Tabela.FieldByName('XML_NUM').AsString:= vjsonObjInvoice.Get('number').JsonValue.Value;
-      ATable.Tabela.FieldByName('XML_CHAVE').AsString:= vjsonObjInvoice.Get('key').JsonValue.Value;
-      ATable.Tabela.FieldByName('EMITENTE_CNPJ').AsString:= vjsonObjInvoice.Get('cnpj_emitter').JsonValue.Value;
-      ATable.Tabela.FieldByName('EMITENTE_RAZAOSOCIAL').AsString:= vjsonObjInvoice.Get('razao_social').JsonValue.Value;
-      ATable.Tabela.FieldByName('EMITENTE_FANTASIA').AsString:= vjsonObjInvoice.Get('fantasia').JsonValue.Value;
-      ATable.Tabela.FieldByName('EMISSAO').AsDateTime:= StrtoDate(vjsonObjInvoice.Get('date_emission').JsonValue.Value, vFormatSet);
-      vValor:= StringReplace(vjsonObjInvoice.Get('value').JsonValue.Value, '.', ',', [rfReplaceAll, rfIgnoreCase]);
-      ATable.Tabela.FieldByName('VALOR').AsString:= vValor;
+      ATable.Tabela.FieldByName('XML_NUM').AsString:= vjsonObjInvoice.GetValue<String>('number', '');
+      ATable.Tabela.FieldByName('XML_CHAVE').AsString:= vjsonObjInvoice.GetValue<String>('key', '');
+      ATable.Tabela.FieldByName('EMITENTE_CNPJ').AsString:= vjsonObjInvoice.GetValue<String>('cnpj_emitter', '');
+      ATable.Tabela.FieldByName('EMITENTE_RAZAOSOCIAL').AsString:= vjsonObjInvoice.GetValue<String>('razao_social', '');
+      ATable.Tabela.FieldByName('EMITENTE_FANTASIA').AsString:= vjsonObjInvoice.GetValue<String>('fantasia', '');
+      ATable.Tabela.FieldByName('EMISSAO').AsDateTime:= StrToDateDef(vjsonObjInvoice.GetValue<String>('date_emission', ''), 0, vFormatSet);
+      //Valor numerico no JSON: le direto, sem depender do separador decimal do Windows
+      ATable.Tabela.FieldByName('VALOR').AsFloat:= vjsonObjInvoice.GetValue<Double>('value', 0);
       ATable.Tabela.FieldByName('LANCADA').AsBoolean:= False;
       ATable.Tabela.Post;
     end;
   end;
-  function GetNotas(ADados: String; ATable: iTable; out ALastID: String): Integer;
+  //Le uma pagina (no maximo 30 notas) e devolve quantas vieram, o total do periodo e o last_id para a proxima
+  function GetNotas(ADados: String; ATable: iTable; out ATotal: Integer; out ALastID: String): Integer;
   var
     vJsonObj, vJsonObjData: TJSONObject;
     vJsonArrayInvoices: TJSONArray;
-    vSucesso: boolean;
-    vMsg: String;
-    vCount, vTotal, vReqCount: integer;
   begin
     Result:= 0;
+    ATotal:= 0;
+    ALastID:= '';
     vJsonObj:= TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(ADados), 0) as TJSONObject;
+    if vJsonObj = nil then
+      raise Exception.Create('Resposta inválida do PlugStorage.');
     try
-      vJsonObjData:= vJsonObj.Get('data').JsonValue as TJSONObject;
-      vSucesso:= vJsonObj.GetValue<boolean>('error');
-      vSucesso:= not vSucesso;
-      vMsg:= vJsonObj.GetValue<String>('message');
-      if not vSucesso then
-        raise Exception.Create(vMsg);
-        
-      vCount:= vJsonObjData.GetValue<integer>('count');
-      vTotal:= vJsonObjData.GetValue<integer>('total');
-      if vCount = 0 then
+      if vJsonObj.GetValue<Boolean>('error', True) then
+        raise Exception.Create(vJsonObj.GetValue<String>('message', 'Erro ao obter as notas.'));
+
+      if not vJsonObj.TryGetValue<TJSONObject>('data', vJsonObjData) then
         Exit;
-      vJsonArrayInvoices:= vJsonObjData.Get('invoices').JsonValue as TJSONArray;
+      ATotal:= vJsonObjData.GetValue<Integer>('total', 0);
+      ALastID:= vJsonObjData.GetValue<String>('last_id', '');
+      if not vJsonObjData.TryGetValue<TJSONArray>('invoices', vJsonArrayInvoices) then
+        Exit;
       PopulaTableDestinadas(ATable, vJsonArrayInvoices);
-      Result:= (vTotal div vCount) - 1;
-      vJsonObjData.TryGetValue<String>('last_id', ALastID);  
-      SetReqResult(vSucesso, vMsg);  
+      Result:= vJsonArrayInvoices.Count;
     finally
       FreeAndNil(vJsonObj);
     end;
   end;
+const
+  //Protecao contra laco sem fim se a API repetir o last_id ou nao informar o total
+  MAX_PAGINAS = 1000;
 var
-  vJsonDados, vLastID: String;
-  vQtddReq, vReqCount: integer;
+  vJsonDados, vLastID, vLastIDAnterior: String;
+  vRecebidas, vQtddPagina, vTotal, vPaginas: integer;
 begin
   Result:= Self;
-  vReqCount:= 0;
   try
     GeraTableDestinadas(FTable);
-    vJsonDados:= Requisicao(ADtInicio, ADtFim, AModDoc);
-    if not vJsonDados.IsEmpty then begin
-      vQtddReq:= GetNotas(vJsonDados, FTable, vLastID);
-      
-      while vReqCount < vQtddReq do begin
-        vJsonDados:= Requisicao(ADtInicio, ADtFim, AModDoc, vLastID);
-        if not vJsonDados.IsEmpty then
-          vQtddReq:= GetNotas(vJsonDados, FTable, vLastID);
-      end;
-    end else
-      SetReqResult(False, 'Erro ao obter as notas.');
+    //A API devolve no maximo 30 notas por requisicao: segue pedindo a partir do last_id ate
+    //receber o total do periodo, ou ate uma pagina vir vazia
+    vRecebidas:= 0;
+    vPaginas:= 0;
+    vLastID:= '';
+    repeat
+      vJsonDados:= Requisicao(ADtInicio, ADtFim, AModDoc, vLastID);
+      if vJsonDados.IsEmpty then
+        raise Exception.Create('Erro ao obter as notas.');
+      vLastIDAnterior:= vLastID;
+      vQtddPagina:= GetNotas(vJsonDados, FTable, vTotal, vLastID);
+      Inc(vRecebidas, vQtddPagina);
+      Inc(vPaginas);
+    until (vQtddPagina = 0) or ((vTotal > 0) and (vRecebidas >= vTotal)) or vLastID.IsEmpty or
+          (vLastID = vLastIDAnterior) or (vPaginas >= MAX_PAGINAS);
+    FTable.Tabela.First;
+    SetReqResult(True, 'Chaves retornadas.');
   except
-    on E:Exception do 
+    on E:Exception do
       SetReqResult(False, E.Message);
   end;
 end;
