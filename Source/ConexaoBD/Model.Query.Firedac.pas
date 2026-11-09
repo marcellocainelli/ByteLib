@@ -72,6 +72,10 @@ begin
   FDQuery.Connection:= TFDConnection(FParent.Connection);
   FDQuery.ResourceOptions.ParamCreate := False;
   FDQuery.CachedUpdates:= True;
+  //Busca todas as linhas ao abrir: o cursor fecha e o Firebird encerra a transacao automatica.
+  //Com busca sob demanda, uma lista grande aberta mantinha InTransaction = True (R-CON-025).
+  //Para manter a busca sob demanda numa consulta especifica: FetchOptions('Demand')
+  FDQuery.FetchOptions.Mode:= fmAll;
 end;
 
 function TModelQueryFiredac.Dataset: TDataSet;

@@ -208,8 +208,6 @@ begin
     if vAcessoOnline then begin
       FConexao.Params.Values['Server']:= vArqIni.ReadString('SISTEMA','Server','');
       FConexao.Params.Password:= vArqIni.ReadString('SISTEMA','Password', FPassword);
-      //alteração para a contingencia
-//      InsertOnLostConnection(FDConnLostConnection);
     end;
   finally
     vArqIni.Free;
