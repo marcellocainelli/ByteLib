@@ -28,7 +28,11 @@ uses
 constructor TNfse.Create;
 begin
   FEntidadeBase:= TEntidadeBase<iEntidade>.New(Self);
-  FEntidadeBase.TextoSQL('Select * from NFSERVICO Where COD_FILIAL = :pCodFilial ');
+  FEntidadeBase.TextoSQL(
+    'Select nf.*, nfc.porcentagem_tributos_federal, nfc.porcentagem_tributos_estadual, nfc.porcentagem_tributos_municipal ' +
+    'from NFSERVICO nf ' +
+    'left join nfservico_codigotributacao nfc on nfc.codigotributacaomunicipio = nf.codigotributacaomunicipio ' +
+    'Where nf.COD_FILIAL  = :pCodFilial ');
   InicializaDataSource;
 end;
 
@@ -66,6 +70,9 @@ begin
   FEntidadeBase.Iquery.SQL(vTextoSQL);
   ModificaDisplayCampos;
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
+  FEntidadeBase.SetReadOnly(Value, 'PORCENTAGEM_TRIBUTOS_FEDERAL', False);
+  FEntidadeBase.SetReadOnly(Value, 'PORCENTAGEM_TRIBUTOS_ESTADUAL', False);
+  FEntidadeBase.SetReadOnly(Value, 'PORCENTAGEM_TRIBUTOS_MUNICIPAL', False);
 end;
 
 function TNfse.InicializaDataSource(Value: TDataSource): iEntidade;
@@ -75,7 +82,11 @@ begin
   Result:= Self;
   if Value = nil then
     Value:= FEntidadeBase.DataSource;
-  vTextoSql:= 'Select * from NFSERVICO Where 1 <> 1';
+  vTextoSql:=
+    'Select nf.*, nfc.porcentagem_tributos_federal, nfc.porcentagem_tributos_estadual, nfc.porcentagem_tributos_municipal ' +
+    'from NFSERVICO nf ' +
+    'left join nfservico_codigotributacao nfc on nfc.codigotributacaomunicipio = nf.codigotributacaomunicipio ' +
+    'Where 1 <> 1';
   FEntidadeBase.Iquery.SQL(vTextoSql);
   Value.DataSet:= FEntidadeBase.Iquery.Dataset;
 end;
