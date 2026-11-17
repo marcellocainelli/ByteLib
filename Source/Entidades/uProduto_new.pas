@@ -1,4 +1,4 @@
-﻿unit uProduto;
+﻿unit uProduto_new;
 interface
 uses
   System.SysUtils,
@@ -95,7 +95,8 @@ begin
             'and ((P.COD_SUBGRUPO = :mCOD_SUBGRUPO) or (:mCOD_SUBGRUPO = -1)) ' +
             'and ((P.COD_FORNEC = :mCOD_FORNEC) or (:mCOD_FORNEC = -1)) ' +
             'and ((P.COD_PROD in (Select e.cod_prod from estoque e join estoquemestre em on (em.seq = e.seq_mestre) ' +
-                                 'where em.documento = :pDocumento)) or (:pDocumento = ''-1        ''))');
+                                 'where em.documento = :pDocumento)) or (CAST(:pDocumento AS VARCHAR(10)) = ''-1''))' +
+            'and ((P.DETALHE containing :pDetalhe) or (CAST(:pDetalhe AS VARCHAR(100)) = ''-1''))');
   2: FEntidadeBase.TextoSQL(
             'Select P.*, EF.QUANTIDADE ' +
             'From PRODUTOS P ' +
@@ -264,8 +265,10 @@ begin
     6: FEntidadeBase.Iquery.SQL_Add(' and P.LOCAL Containing :mParametro ');
     //procura por preco
     7: begin
-      FEntidadeBase.Iquery.SQL_Add(' and P.PRECO_VEND = :mParametro ');
-      FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
+      FEntidadeBase.Iquery.SQL_Add(' and ' + DmFuncoes.GeraFiltroBucaProdutos_NCM(FEntidadeBase.TextoPesquisa));
+      //comentado abaixo em 06/06/2026 na versao 2665.2 por nao termos achado uso
+//      vTextoSQL:= vTextoSQL + ' and P.PRECO_VEND = :mParametro ';
+//      FEntidadeBase.TextoPesquisa(StringReplace(FEntidadeBase.TextoPesquisa,',','.',[rfReplaceAll, rfIgnoreCase]));
     end;
     8: begin
       FEntidadeBase.Iquery.SQL_Add(' and P.COD_BARRA =  :mParametro ');

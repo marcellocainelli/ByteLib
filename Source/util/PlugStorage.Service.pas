@@ -34,6 +34,7 @@ type
     function Table(ATable: iTable): iPlugStorage;
     function Certificado_Path(AValue: String): iPlugStorage;
     function Certificado_Password(AValue: String): iPlugStorage;
+    function UF(AValue: String): iPlugStorage;
     function GetResult: Boolean;
     function GetMensagem: String;
     property Sucesso: Boolean read GetResult;
@@ -44,7 +45,7 @@ type
     private
       FJson: TJSONValue;
       FTable: iTable;
-      FUsuario, FSenha, FXml, FChaveXml, FToken, FUrl, FCertificado_Path, FCertificado_Password: string;
+      FUsuario, FSenha, FXml, FChaveXml, FToken, FUrl, FCertificado_Path, FCertificado_Password, FUf: string;
       FSucesso: Boolean;
       FMensagem: String;
       FTimeout: integer;
@@ -82,6 +83,7 @@ type
       function Table(ATable: iTable): iPlugStorage;
       function Certificado_Path(AValue: String): iPlugStorage;
       function Certificado_Password(AValue: String): iPlugStorage;
+      function UF(AValue: String): iPlugStorage;
       property Sucesso: Boolean read GetResult;
       property Mensagem: String read GetMensagem;
   end;
@@ -95,6 +97,7 @@ constructor TPlugStorage.Create;
 begin
   FSucesso:= False;
   FMensagem:= EmptyStr;
+  FUf:= 'SP';
 end;
 destructor TPlugStorage.Destroy;
 begin
@@ -216,6 +219,13 @@ begin
       SetReqResult(False, E.Message);
   end;
 end;
+function TPlugStorage.UF(AValue: String): iPlugStorage;
+begin
+  Result:= Self;
+  if Trim(AValue) <> '' then
+    FUf:= AValue;
+end;
+
 function TPlugStorage.UpdateEmailCliente: iPlugStorage;
 var
   vResp: IResponse;
@@ -542,7 +552,7 @@ begin
               .AddFile('cert_pfx', FCertificado_Path)
               .AddField('cert_password', FCertificado_Password)
               .AddField('dfe_cert_concentrating', '0')
-              .AddField('uf', 'SP')
+              .AddField('uf', FUf)
               .AddField('dfe_period', '2')
               .AddField('dfe_tipo', 'NFE')
               .AddField('dfe_notifica', '0')
